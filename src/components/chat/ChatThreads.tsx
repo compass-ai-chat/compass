@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import Tooltip from '@/src/components/ui/Tooltip';
+import { useCharacterModelSelection } from '@/src/hooks/useCharacterModelSelection';
 
 
 interface Section {
@@ -27,6 +28,9 @@ const ChatThreads: React.FC = () => {
   const isDarkMode = colorScheme === 'dark';
   const { t } = useLocalization();
   const defaultThread = useAtomValue(defaultThreadAtom);
+
+  // Get current character and model selection
+  const { selectedModel, selectedCharacter } = useCharacterModelSelection();
 
   const groupThreadsByDate = useCallback((threads: Thread[]): Section[] => {
     const today = new Date();
@@ -58,7 +62,13 @@ const ChatThreads: React.FC = () => {
   }, []);
 
   const addNewThread = async () => {
-    const newThread = {...defaultThread, id: Date.now().toString()};
+    console.log("selected model", selectedModel);
+    const newThread = {
+      ...defaultThread, 
+      id: Date.now().toString(),
+      character: selectedCharacter,
+      selectedModel: selectedModel
+    };
     
     dispatchThread({ type: 'add', payload: newThread });
     
