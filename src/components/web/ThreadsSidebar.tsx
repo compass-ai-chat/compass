@@ -8,33 +8,12 @@ import Tooltip from '../ui/Tooltip';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useCharacterModelSelection } from '@/src/hooks/useCharacterModelSelection';
+import { useChat } from '@/src/hooks/useChat';
 
 export const ThreadsSidebar = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const { t } = useLocalization();
-  const dispatchThread = useSetAtom(threadActionsAtom);
-  const defaultThread = useAtomValue(defaultThreadAtom);
-  const { selectedModel, selectedCharacter } = useCharacterModelSelection();
-
-  
-  const addNewThread = async () => {
-    console.log("selected model", selectedModel);
-    const newThread = {
-      ...defaultThread, 
-      id: Date.now().toString(),
-      character: selectedCharacter,
-      selectedModel: selectedModel
-    };
-    
-    dispatchThread({ type: 'add', payload: newThread });
-    
-    if(Platform.OS != 'web' || window.innerWidth < 768){
-    // wait 100 ms before pushing to allow for thread to be added to state
-      setTimeout(() => {
-        router.push(`/thread/${newThread.id}`);
-      }, 100);
-    }
-  };
+  const { addNewThread } = useChat();
 
   // Common sidebar classes
   const sidebarWidthClass = isSidebarVisible ? 'w-64 h-[70%] shadow-lg' : 'w-10';

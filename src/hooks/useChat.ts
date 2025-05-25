@@ -1,5 +1,5 @@
 import { getDefaultStore, useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { currentThreadAtom, threadActionsAtom, ThreadAction, searchEnabledAtom, documentsAtom, availableModelsAtom } from './atoms';
+import { currentThreadAtom, threadActionsAtom, ThreadAction, searchEnabledAtom, documentsAtom, availableModelsAtom, defaultThreadAtom } from './atoms';
 import { useRef } from 'react';
 import { MentionedCharacter } from '@/src/components/chat/ChatInput';
 import { useTTS } from './useTTS';
@@ -12,7 +12,9 @@ import LogService from '@/utils/LogService';
 import { toastService } from '@/src/services/toastService';
 import { MessageContext, MessageTransformPipeline, relevantPassagesTransform, urlContentTransform, webSearchTransform, threadUpdateTransform, firstMessageTransform, documentContextTransform, templateVariableTransform } from './pipelines';
 import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
-
+import { router } from 'expo-router';
+import { Platform } from 'react-native';
+import { useCharacterModelSelection } from './useCharacterModelSelection';
 export function useChat() {
   const currentThread = useAtomValue(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
@@ -22,9 +24,31 @@ export function useChat() {
   const { search } = useSearch();
   const tts = useTTS();
   const [models, setModels] = useAtom(availableModelsAtom);
+  const { selectedModel, selectedCharacter } = useCharacterModelSelection();
+  const defaultThread = useAtomValue(defaultThreadAtom);
+
 
   const contextManager = new CharacterContextManager();
   const streamHandler = new StreamHandlerService(tts);
+
+  const addNewThread = async () => {
+    console.log("selected model", selectedModel);
+    const newThread = {
+      ...defaultThread, 
+      id: Date.now().toString(),
+      character: selectedCharacter,
+      selectedModel: selectedModel
+    };
+    
+    dispatchThread({ type: 'add', payload: newThread });
+    
+    if(Platform.OS != 'web' || window.innerWidth < 768){
+    // wait 100 ms before pushing to allow for thread to be added to state
+      setTimeout(() => {
+        router.push(`/thread/${newThread.id}`);
+      }, 100);
+    }
+  };
 
   const handleInterrupt = () => {
     if (abortController.current) {
@@ -125,6 +149,6 @@ export function useChat() {
     }
   };
 
-  return { handleSend, handleInterrupt };
+  return { handleSend, handleInterrupt, addNewThread };
 }
 
