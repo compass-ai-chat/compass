@@ -1,6 +1,6 @@
 import { getDefaultStore, useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { currentThreadAtom, threadActionsAtom, ThreadAction, searchEnabledAtom, documentsAtom, availableModelsAtom, defaultThreadAtom } from './atoms';
-import { useRef } from 'react';
+import { currentThreadAtom, threadActionsAtom, ThreadAction, searchEnabledAtom, documentsAtom, availableModelsAtom, defaultThreadAtom, availableProvidersAtom, sidebarVisibleAtom, isGeneratingAtom, editingMessageIndexAtom, threadsAtom } from './atoms';
+import { useEffect, useRef, useState } from 'react';
 import { MentionedCharacter } from '@/src/components/chat/ChatInput';
 import { useTTS } from './useTTS';
 import { CharacterContextManager } from '@/src/services/chat/CharacterContextManager';
@@ -19,17 +19,26 @@ export function useChat() {
   const currentThread = useAtomValue(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const documents = useAtomValue(documentsAtom);
+  const [threads] = useAtom(threadsAtom);
+
   const [searchEnabled] = useAtom(searchEnabledAtom);
   const abortController = useRef<AbortController | null>(null);
   const { search } = useSearch();
   const tts = useTTS();
   const [models, setModels] = useAtom(availableModelsAtom);
+  const [providers] = useAtom(availableProvidersAtom);
+  const [sidebarVisible, setSidebarVisible] = useAtom(sidebarVisibleAtom);
+  const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
+  const [editingMessageIndex, setEditingMessageIndex] = useAtom(editingMessageIndexAtom);
+  const previousThreadId = useRef(currentThread.id);
+
   const { selectedModel, selectedCharacter } = useCharacterModelSelection();
   const defaultThread = useAtomValue(defaultThreadAtom);
 
 
   const contextManager = new CharacterContextManager();
   const streamHandler = new StreamHandlerService(tts);
+  
 
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
@@ -149,6 +158,51 @@ export function useChat() {
     }
   };
 
-  return { handleSend, handleInterrupt, addNewThread };
+  const wrappedHandleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
+    if (!providers.length) return;
+
+    if (Platform.OS == 'web') {
+      setSidebarVisible(false);
+    }
+    
+    let messages = [...currentThread.messages];
+    const isEditing = editingMessageIndex !== -1;
+
+    if (isEditing) {
+      messages.splice(editingMessageIndex);
+      setEditingMessageIndex(-1);
+    }
+
+    if (currentThread.messages.length === 0 && threads.filter(t => t.id === currentThread.id).length === 0) {
+      await dispatchThread({ 
+        type: 'add', 
+        payload: currentThread 
+      });
+    }
+
+    setIsGenerating(true);
+    try {
+      await handleSend(messages, message, mentionedCharacters);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleMessagePress = (index: number, message: ChatMessage) => {
+    if (message.isUser) {
+      setEditingMessageIndex(index);
+      // You'll need to expose this method from ChatInput or handle differently
+    }
+  };
+
+  useEffect(() => {
+    if (previousThreadId.current !== currentThread.id) {
+      previousThreadId.current = currentThread.id;
+    }
+  }, [currentThread.id]);
+
+  return { handleSend, handleInterrupt, addNewThread, handleMessagePress, wrappedHandleSend, isGenerating, setIsGenerating, editingMessageIndex, sidebarVisible, currentThread };
 }
 
