@@ -42,6 +42,12 @@ export function useChat() {
 
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
+
+    // if latest thread has zero messages, do not add new thread
+    if(threads.length > 0 && threads[threads.length - 1].messages.length === 0){
+      return;
+    }
+
     const newThread = {
       ...defaultThread, 
       id: Date.now().toString(),
