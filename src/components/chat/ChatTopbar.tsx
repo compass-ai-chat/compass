@@ -10,9 +10,15 @@ import { useColorScheme } from 'nativewind';
 import Tooltip from '../ui/Tooltip';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalization } from '@/src/hooks/useLocalization';
+import { Dropdown, DropdownElement } from '../ui/Dropdown';
 
+interface ChatTopbarProps {
+  dropdownElements: DropdownElement[];
+  selectedElement?: DropdownElement;
+  onSelection: (element: DropdownElement) => void;
+}
 
-export const ChatTopbar: React.FC = () => {
+export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, selectedElement, onSelection }) => {
     const [currentThread, setCurrentThread] = useAtom(currentThreadAtom);
     const [polarisUser] = useAtom(polarisUserAtom);
     const [ttsEnabled, setTtsEnabled] = useAtom(ttsEnabledAtom);
@@ -28,32 +34,25 @@ export const ChatTopbar: React.FC = () => {
       toggleColorScheme();
     }, [toggleColorScheme]);
 
-
-
-    const handleSelectModel = (model: Model | undefined) => {
-        dispatchThread({
-          type: 'update',
-          payload: { ...currentThread, selectedModel: model }
-        });
-      };
-    
-      const handleSelectCharacter = (character: Character) => {
-        dispatchThread({
-          type: 'update',
-          payload: { ...currentThread, character: character }
-        });
-      };
-
-
     return (
         <View className="absolute top-0 left-0 right-0 w-[25%] mx-auto p-2 flex-row justify-between items-center border-b border-border bg-surface shadow-2xl rounded-xl mt-2 z-10 opacity-60 hover:opacity-100 transition-all duration-200">
-        <ModelSelector 
+        <Dropdown 
+          openUpwards={false}
+          showSearch={true}
+          selected={selectedElement}
+          onSelect={onSelection}
+          children={dropdownElements}
+          className={`w-48 overflow-hidden bg-surface`}
+          dropdownOptionClassName="w-64"
+          position="left"
+        />
+        {/* <ModelSelector 
             onModelSelect={handleSelectModel}
             onCharacterSelect={handleSelectCharacter}
             thread={currentThread}
             character={currentThread.character}
             className=''
-            />
+            /> */}
         <View className="flex-row items-center gap-2">
         {polarisUser && (
             <View className="flex-row items-center gap-2">

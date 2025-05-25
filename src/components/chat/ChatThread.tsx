@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { View, ScrollView, Platform, TouchableOpacity, Text, FlatList } from 'react-native';
 import { Message } from './Message';
 import { ChatInput, ChatInputRef } from './ChatInput';
@@ -15,6 +15,8 @@ import {
   availableProvidersAtom,
   previewCodeAtom,
   sidebarVisibleAtom,
+  availableModelsAtom,
+  charactersAtom,
 } from '@/src/hooks/atoms';
 import { MentionedCharacter } from './ChatInput';
 import { CodePreview } from './CodePreview';
@@ -25,6 +27,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import { ThreadsSidebar } from '../web/ThreadsSidebar';
 import { ChatTopbar } from './ChatTopbar';
+import { DropdownElement } from '../ui/Dropdown';
+import { fetchAvailableModelsV2 } from '@/src/hooks/useModels';
 
 export const ChatThread: React.FC = () => {
   const flatListRef = useRef<FlatList<any>>(null);
@@ -49,17 +53,48 @@ export const ChatThread: React.FC = () => {
 
   const { t } = useLocalization();
 
+  const [selectedModel, setSelectedModel] = useState<Model>();
+  const [selectedCharacter, setSelectedCharacter] = useState<Character>();
+
+  const [models, setModels] = useAtom(availableModelsAtom);
+  const characters = useAtomValue(charactersAtom);
+
+
+  const loadCharacterAndModel = () => {
+    const noCharacterOrModel = !currentThread.selectedModel && !currentThread.character;
+
+    if(noCharacterOrModel){
+      // pick first model and character
+      setSelectedModel(models[0]);
+      setSelectedCharacter(characters[0]);
+    }
+    else{
+      setSelectedModel(currentThread.selectedModel);
+      setSelectedCharacter(currentThread.character);
+    }
+  }
+
+  const loadFreshModelList = async () => {
+    const fetchedModels = await fetchAvailableModelsV2(providers.filter((p) => p.capabilities?.llm))
+    setModels(fetchedModels);
+  }
   
   useEffect(() => {
     chatInputRef.current?.focus();
     if (previousThreadId.current !== currentThread.id) {
       
       previousThreadId.current = currentThread.id;
-
       setIsGenerating(false);
+
+      loadCharacterAndModel();
     }
 
   }, [currentThread.id]);
+
+  useEffect(() => {
+    loadCharacterAndModel();
+    loadFreshModelList();
+  }, [currentThread]);
 
 
   const { handleSend, handleInterrupt } = useChat();
@@ -169,11 +204,65 @@ export const ChatThread: React.FC = () => {
   const messages = currentThread?.messages || [];
   const isEmpty = messages.length === 0;
 
+  // Create dropdown elements directly
+  const dropdownElements: DropdownElement[] = useMemo(() => [
+    ...models.map(model => ({
+      id: model.id,
+      title: model.name,
+      logo: model.provider.logo,
+      metadata: { type: 'model' as const, data: model }
+    })),
+    ...characters.map(character => ({
+      id: character.id,
+      title: character.name,
+      image: character.image || character.icon,
+      logo: character.icon,
+      metadata: { type: 'character' as const, data: character }
+    }))
+  ], [models, characters]);
+
+  const selectedElement = selectedCharacter 
+    ? dropdownElements.find(el => el.id === selectedCharacter.id)
+    : dropdownElements.find(el => el.id === selectedModel?.id);
+
+  const getCharacterModel = (character: Character) => {
+    if(character.allowedModels?.length){ // fetch allowed model from character
+      return models.find((m) => character?.allowedModels?.map(x=>x.id).includes(m.id))
+    }
+    // use first model if no models are available
+    return models.find(x=>true);
+  }
+
+  const setCharacterAndModel = (character: Character | undefined, model: Model | undefined) => {
+    setSelectedCharacter(character);
+    setSelectedModel(model);
+    dispatchThread({
+      type: 'update',
+      payload: { ...currentThread, character: character, selectedModel: model }
+    });
+  }
+
+  const handleSelection = (element: DropdownElement) => {
+    const { type, data } = element.metadata;
+    
+    if (type === 'model') {
+      setCharacterAndModel(undefined, data);
+    } else {
+      const characterModel = getCharacterModel(data);
+      console.log("Character model", characterModel)
+      setCharacterAndModel(data, characterModel);
+    }
+  };
+
   return (
     <View className="flex-row flex-1">
 
     <View className="flex-1 bg-background">
-      {Platform.OS != 'web' || true && (<ChatTopbar />)}
+      {Platform.OS != 'web' || true && (<ChatTopbar 
+        dropdownElements={dropdownElements}
+        selectedElement={selectedElement}
+        onSelection={handleSelection}
+      />)}
       <ThreadsSidebar />
       
       {isEmpty ? (
