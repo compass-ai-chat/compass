@@ -3,6 +3,7 @@ import { View, ScrollView, Platform, TouchableOpacity, Text, FlatList } from 're
 import { Message } from './Message';
 import { ChatInput, ChatInputRef } from './ChatInput';
 import { useChat } from '@/src/hooks/useChat';
+import { useCharacterModelSelection } from '@/src/hooks/useCharacterModelSelection';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Model, Character, ChatMessage } from '@/src/types/core';
 
@@ -15,8 +16,6 @@ import {
   availableProvidersAtom,
   previewCodeAtom,
   sidebarVisibleAtom,
-  availableModelsAtom,
-  charactersAtom,
 } from '@/src/hooks/atoms';
 import { MentionedCharacter } from './ChatInput';
 import { CodePreview } from './CodePreview';
@@ -42,7 +41,6 @@ export const ChatThread: React.FC = () => {
   const previousThreadId = useRef(currentThread.id);
 
   const [editingMessageIndex, setEditingMessageIndex] = useAtom(editingMessageIndexAtom);
-
   const [previewCode, setPreviewCode] = useAtom(previewCodeAtom);
 
   const { width } = useWindowDimensions();
@@ -53,49 +51,23 @@ export const ChatThread: React.FC = () => {
 
   const { t } = useLocalization();
 
-  const [selectedModel, setSelectedModel] = useState<Model>();
-  const [selectedCharacter, setSelectedCharacter] = useState<Character>();
+  // Use the new hook
+  const {
+    selectedModel,
+    selectedCharacter,
+    models,
+    characters,
+    handleModelSelection,
+    handleCharacterSelection,
+  } = useCharacterModelSelection();
 
-  const [models, setModels] = useAtom(availableModelsAtom);
-  const characters = useAtomValue(charactersAtom);
-
-
-  const loadCharacterAndModel = () => {
-    const noCharacterOrModel = !currentThread.selectedModel && !currentThread.character;
-
-    if(noCharacterOrModel){
-      // pick first model and character
-      setSelectedModel(models[0]);
-      setSelectedCharacter(characters[0]);
-    }
-    else{
-      setSelectedModel(currentThread.selectedModel);
-      setSelectedCharacter(currentThread.character);
-    }
-  }
-
-  const loadFreshModelList = async () => {
-    const fetchedModels = await fetchAvailableModelsV2(providers.filter((p) => p.capabilities?.llm))
-    setModels(fetchedModels);
-  }
-  
   useEffect(() => {
     chatInputRef.current?.focus();
     if (previousThreadId.current !== currentThread.id) {
-      
       previousThreadId.current = currentThread.id;
       setIsGenerating(false);
-
-      loadCharacterAndModel();
     }
-
   }, [currentThread.id]);
-
-  useEffect(() => {
-    loadCharacterAndModel();
-    loadFreshModelList();
-  }, [currentThread]);
-
 
   const { handleSend, handleInterrupt } = useChat();
 
@@ -225,32 +197,13 @@ export const ChatThread: React.FC = () => {
     ? dropdownElements.find(el => el.id === selectedCharacter.id)
     : dropdownElements.find(el => el.id === selectedModel?.id);
 
-  const getCharacterModel = (character: Character) => {
-    if(character.allowedModels?.length){ // fetch allowed model from character
-      return models.find((m) => character?.allowedModels?.map(x=>x.id).includes(m.id))
-    }
-    // use first model if no models are available
-    return models.find(x=>true);
-  }
-
-  const setCharacterAndModel = (character: Character | undefined, model: Model | undefined) => {
-    setSelectedCharacter(character);
-    setSelectedModel(model);
-    dispatchThread({
-      type: 'update',
-      payload: { ...currentThread, character: character, selectedModel: model }
-    });
-  }
-
   const handleSelection = (element: DropdownElement) => {
     const { type, data } = element.metadata;
     
     if (type === 'model') {
-      setCharacterAndModel(undefined, data);
+      handleModelSelection(data);
     } else {
-      const characterModel = getCharacterModel(data);
-      console.log("Character model", characterModel)
-      setCharacterAndModel(data, characterModel);
+      handleCharacterSelection(data);
     }
   };
 
