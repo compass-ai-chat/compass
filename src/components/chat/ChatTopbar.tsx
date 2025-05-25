@@ -1,13 +1,10 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Settings } from './Settings';
-import { ModelSelector } from './ModelSelector';
 import { VoiceSelector } from './VoiceSelector';
 import { useAtom, useSetAtom } from 'jotai';
 import { currentThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom } from '@/src/hooks/atoms';
-import { Character, Model } from '@/src/types/core';
 import { useCallback } from 'react';
 import { useColorScheme } from 'nativewind';
-import Tooltip from '../ui/Tooltip';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import { Dropdown, DropdownElement } from '../ui/Dropdown';

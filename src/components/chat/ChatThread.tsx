@@ -27,7 +27,6 @@ import { useLocalization } from '@/src/hooks/useLocalization';
 import { ThreadsSidebar } from '../web/ThreadsSidebar';
 import { ChatTopbar } from './ChatTopbar';
 import { DropdownElement } from '../ui/Dropdown';
-import { fetchAvailableModelsV2 } from '@/src/hooks/useModels';
 
 export const ChatThread: React.FC = () => {
   const flatListRef = useRef<FlatList<any>>(null);

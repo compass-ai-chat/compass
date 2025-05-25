@@ -62,7 +62,6 @@ const ChatThreads: React.FC = () => {
   }, []);
 
   const addNewThread = async () => {
-    console.log("selected model", selectedModel);
     const newThread = {
       ...defaultThread, 
       id: Date.now().toString(),
