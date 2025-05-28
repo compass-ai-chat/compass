@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Model, AllowedModel } from "@/src/types/core";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
 import { Modal } from "@/src/components/ui/Modal";
 import { Image } from "react-native";
 import { useLocalization } from "@/src/hooks/useLocalization";
+import LogoRenderer from "../ui/LogoRenderer";
 
 interface ModelPreferenceSelectorProps {
   availableModels: Model[];
@@ -52,9 +53,12 @@ export function ModelPreferenceSelector({
 
   return (
     <View className="mb-4">
-      <Text className="text-base font-medium mb-2 text-text">
-        {t('common.model')}
-      </Text>
+      <View className="flex-row items-center mb-2">
+        <FontAwesome6 name="brain" size={22} className="!text-primary mr-2" />
+        <Text className="text-base font-medium text-text">
+          {t('common.model')}
+        </Text>
+      </View>
 
       <View className="bg-surface p-4 rounded-lg border-2 border-border">
         {selectedPreferences.length === 0 ? (
@@ -71,22 +75,11 @@ export function ModelPreferenceSelector({
                   className="flex-row items-center justify-between bg-background p-3 rounded-lg"
                 >
                   <View className="flex-row items-center">
-                    {model?.provider?.logo && (
-                      <Image
-                        source={{ uri: model.provider.logo }}
-                        className="!w-[24px] !h-[24px] rounded-full mr-2"
-                      />
-                    )}
-                    <View>
+                      <LogoRenderer logo={model?.provider?.logo} size={24} className="mr-3 !text-primary " />
                       <Text className="text-text font-medium">
                         {model?.name || preference.id}
                       </Text>
-                      <View className="flex-row items-center">
-                        <View
-                          className={`w-2 h-2 rounded-full bg-green-500 mr-1`}
-                        />
-                        <Text className="text-secondary text-xs">{t('characters.edit_character.preferred_model')}</Text>
-                      </View>
+                  <View>
                     </View>
                   </View>
                   <TouchableOpacity

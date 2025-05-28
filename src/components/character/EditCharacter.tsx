@@ -29,7 +29,7 @@ import { TemplateVariableSelector } from './TemplateVariableSelector';
 import { modalService } from "@/src/services/modalService";
 import { Tool } from "@/src/types/tools";
 import { ToolSelector } from "./ToolSelector";
-
+import { FontAwesome6 } from "@expo/vector-icons";
 interface EditCharacterProps {
   availableModels: Model[];
   availableDocuments: Document[];
@@ -195,11 +195,24 @@ export default function EditCharacter({
 
   return (
     <View className={`flex-1 bg-background ${className}`}>
-      <ScrollView
-        className="flex-1 p-4"
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        <View className="items-center mb-8">
+      
+        <View className="items-center mb-8 pt-4 border-b border-border mx-4 flex-row py-4">
+        <View className="flex-1">
+            <Text className="text-base font-medium mb-2 text-text">
+              {t('characters.edit_character.name')}
+            </Text>
+            <TextInput
+              value={character?.name || ""}
+              onChangeText={(text) =>
+                setCharacter({ ...character!, name: text })
+              }
+              placeholder={t('characters.edit_character.enter_character_name')}
+              className="p-4 rounded-lg text-text border-2 border-border bg-surface outline-none"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+          
+          <View className="items-center justify-between mx-8 mr-16">
           <View className="relative">
             {useIcon ? (
               <TouchableOpacity
@@ -219,9 +232,9 @@ export default function EditCharacter({
               />
             )}
           </View>
-          <Text className="text-sm text-text mt-2">
-            {useIcon ? t('characters.edit_character.tap_to_change_icon') : t('characters.edit_character.tap_to_change_avatar')}
-          </Text>
+          </View>
+          
+          
         </View>
 
         <IconSelector
@@ -233,27 +246,21 @@ export default function EditCharacter({
           currentIcon={character?.icon}
         />
 
+        <ScrollView
+                className="flex-1 p-4"
+                contentContainerStyle={{ flexGrow: 1 }}
+              >
         <View className="space-y-6 flex-1">
-          <View>
-            <Text className="text-base font-medium mb-2 text-text">
-              {t('characters.edit_character.name')}
-            </Text>
-            <TextInput
-              value={character?.name || ""}
-              onChangeText={(text) =>
-                setCharacter({ ...character!, name: text })
-              }
-              placeholder={t('characters.edit_character.enter_character_name')}
-              className="p-4 rounded-lg text-text border-2 border-border bg-surface outline-none"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
+          
 
           <View className="flex-1">
             <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-base font-medium text-text">
-                {t('characters.edit_character.instructions')}
-              </Text>
+              <View className="flex-row items-center">
+                <FontAwesome6 name="pen-fancy" size={22} className="!text-primary mr-2" />
+                <Text className="text-base font-medium text-text">
+                  {t('characters.edit_character.instructions')}
+                </Text>
+              </View>
               <TouchableOpacity 
                 onPress={() => setShowTemplateSelector(true)}
                 className="bg-primary/10 px-3 py-1 rounded-lg flex-row items-center"
