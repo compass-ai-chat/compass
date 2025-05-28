@@ -59,7 +59,10 @@ export default function CharactersScreen() {
     // if character is new, add it to the characters array
     let updatedCharacters: Character[] = [];
     if (character.id === "") {
-      updatedCharacters = [...characters, character];
+      updatedCharacters = [...characters, {
+        ...character, 
+        id: crypto.randomUUID()
+      }];
     }
     // if character exists, update the characters array
     else {
