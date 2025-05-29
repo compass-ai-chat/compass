@@ -16,7 +16,8 @@
     "test": "jest --watchAll",
     "lint": "expo lint",
     "deploy": "gh-pages --nojekyll -d dist",
-    "predeploy": "expo export -p web"
+    "predeploy": "expo export -p web",
+    "windows": "npx @react-native-community/cli run-windows"
   },
   "jest": {
     "preset": "jest-expo"
@@ -71,7 +72,7 @@
     "react": "^18.2.0",
     "react-dom": "18.3.1",
     "react-i18next": "^15.5.1",
-    "react-native": "0.76.9",
+    "react-native": "^0.78.0",
     "react-native-chart-kit": "^6.12.0",
     "react-native-fast-encoder": "^0.1.12",
     "react-native-fetch-api": "^3.0.0",
@@ -89,6 +90,7 @@
     "react-native-tab-view": "^4.0.4",
     "react-native-web": "~0.19.10",
     "react-native-webview": "13.12.5",
+    "react-native-windows": "^0.78.5",
     "tailwindcss": "^3.4.14",
     "text-encoding": "^0.7.0",
     "web-streams-polyfill": "^4.0.0",
@@ -102,7 +104,15 @@
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.0.7",
     "gh-pages": "^6.3.0",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "metro-config": "^0.81.1"
   },
-  "private": true
+  "private": true,
+  "react-native-windows": {
+    "init-windows": {
+      "name": "compass",
+      "namespace": "compass",
+      "template": "old/uwp-cpp-app"
+    }
+  }
 }
