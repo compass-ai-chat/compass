@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { Tool } from '../types/tools';
 import { EmailToolService } from '../tools/email.tool';
 import { ToolHandler } from '../tools/tool.interface';
+import { ToolSet } from 'ai';
 
 
 const toolHandlers: Record<string, ToolHandler> = {
@@ -51,8 +52,44 @@ export function useTools() {
         
         return handler.execute(params, tool.config);
     }
+
+    const getToolSchemas = async (toolIds: string[]): Promise<ToolSet | undefined> => {
+        if (!toolIds || toolIds.length === 0) return undefined;
+        
+        const tools = getTools();
+        const enabledTools = tools.filter(tool => tool.enabled);
+    
+        let toolSet: ToolSet = {};
+    
+        enabledTools.forEach(tool => {
+          const handler = toolHandlers[tool.type];
+          const paramsSchema = handler.getParamsSchema();
+          
+          // For email tool, create a properly typed execute function
+        if (tool.type === 'email') {
+            toolSet[tool.id] = {
+              description: tool.description,
+              parameters: paramsSchema,
+              execute: async ({ to, subject, body }: { to: string, subject: string, body: string }) => {
+                return await executeTool(tool.id, { to, subject, body });
+              }
+            };
+          } else {
+            // For other tool types, use their specific parameter types
+            toolSet[tool.id] = {
+              description: tool.description,
+              parameters: paramsSchema,
+              execute: async (params: any) => {
+                return await executeTool(tool.id, params);
+              }
+            };
+          }
+        });
+        
+        return toolSet;
+      }
     
 
-  return { };
+  return { createTool, updateTool, deleteTool, getTool, getTools, executeTool, getToolSchemas };
 }
 
