@@ -1,0 +1,36 @@
+name: Build Multi-Platform
+
+on:
+  push:
+    branches: [ release ]
+  pull_request:
+    branches: [ release ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.11.0'
+          cache: 'npm'
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows Desktop
+        run: |
+          npx react-native-windows-init --overwrite --logging
+          npx react-native run-windows --release --no-deploy --no-launch
+
+      - name: Create Windows installer
+        run: |
+          # Optional: Use tools like electron-builder or WiX for installer
+          # This depends on packaging preferences
