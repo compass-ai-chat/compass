@@ -8,6 +8,7 @@ import {
   Provider,
   Voice,
   Document,
+  Note
 } from "@/src/types/core";
 import { Tool } from "@/src/types/tools";
 import { PREDEFINED_PROMPTS } from "@/constants/characters";
@@ -566,4 +567,12 @@ export const polarisUsersAtom = atom<User[]>([]);
 export const polarisToolsAtom = atom<Tool[]>([]);
 
 
-export const userToolsAtom = atom<Tool[]>([]);
+export const userToolsAtom = atomWithAsyncStorage<Tool[]>(
+  "userTools",
+  [],
+);
+
+export const userNotesAtom = atomWithAsyncStorage<Note[]>(
+  "userNotes",
+  [],
+);

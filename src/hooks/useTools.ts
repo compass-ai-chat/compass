@@ -10,10 +10,11 @@ import { EmailToolService } from '../tools/email.tool';
 import { ToolHandler } from '../tools/tool.interface';
 import { ToolSet } from 'ai';
 import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
-
+import { NoteToolService } from '../tools/note.tool';
 
 const toolHandlers: Record<string, ToolHandler> = {
-    "email": new EmailToolService()
+    "email": new EmailToolService(),
+    "note": new NoteToolService()
 }
 
 export function useTools() {
