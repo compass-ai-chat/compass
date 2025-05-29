@@ -42,6 +42,8 @@ export const createDefaultThread = (name: string = "New thread"): Thread => {
         apiKey: "",
         logo: "",
       },
+      pricePerMillionInputTokens: 0,
+      pricePerMillionOutputTokens: 0,
     },
     character: undefined,
   };
@@ -562,3 +564,6 @@ export const polarisUsersAtom = atom<User[]>([]);
 
 // Add this with your other atoms
 export const polarisToolsAtom = atom<Tool[]>([]);
+
+
+export const toolsAtom = atom<Tool[]>([]);
