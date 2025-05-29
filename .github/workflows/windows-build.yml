@@ -25,6 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Restore NuGet packages
+        run: |
+          nuget restore windows/compass.sln
+
       - name: Build Windows Desktop
         run: |
           npx react-native run-windows --release --no-deploy --no-launch
