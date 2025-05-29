@@ -1,0 +1,41 @@
+name: Create Release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Release v${{ inputs.version }}
+          body: |
+            Docker image is now available.
+
+            🐋 Docker image:
+            - `ghcr.io/${{ github.repository }}:latest`
+            - `ghcr.io/${{ github.repository }}:v${{ inputs.version }}`
+            
+            To pull and run the Docker image:
+            ```bash
+            docker pull ghcr.io/${{ github.repository }}:latest
+            docker run --network host -p 80:80 ghcr.io/${{ github.repository }}:latest
+            ```
+
+            Then you can use compass by visiting "http://localhost/compass" in your browser.
+            This image comes pre-packaged with a proxy server that allows you to use Ollama without any configuration.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
