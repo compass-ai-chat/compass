@@ -30,8 +30,11 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Install yarn
+      run: npm install --global yarn
+
     - name: Install dependencies
-      run: npm ci
+      run: yarn install
 
     - name: Install EAS CLI
       run: npm install -g @expo/eas-cli
