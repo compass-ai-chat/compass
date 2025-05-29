@@ -27,7 +27,6 @@ jobs:
 
       - name: Build Windows Desktop
         run: |
-          npx react-native init-windows --overwrite
           npx react-native run-windows --release --no-deploy --no-launch
 
       - name: Create Windows installer
