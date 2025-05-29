@@ -67,7 +67,7 @@ export default function TabLayout() {
 
   if (isDesktop) {
     // Use Slot for proper routing on desktop
-    return <View className="flex-1 bg-background"><Slot /></View>;
+    return <View className="flex-1"><Slot /></View>;
   }
   
   return (

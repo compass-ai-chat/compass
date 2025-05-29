@@ -108,11 +108,14 @@ export default function RootLayout() {
           {isDesktop && <WebSidebar className="" />}
           <Stack screenOptions={{
             headerStyle: {
-              backgroundColor: theme.surface,
+              backgroundColor: theme.surface
             },
             headerTintColor: theme.text,
             headerShadowVisible: false,
-            header: () => <CustomHeader />
+            header: () => <CustomHeader />,
+            contentStyle: {
+              backgroundColor: theme.background
+            }
           }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
