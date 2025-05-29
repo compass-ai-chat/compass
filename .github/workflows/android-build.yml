@@ -42,6 +42,12 @@ jobs:
     - name: Install dependencies
       run: yarn install
 
+    - name: Setup EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+
     - name: Build Android APK
       run: eas build -p android --profile preview --local --non-interactive
 
