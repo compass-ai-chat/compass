@@ -22,22 +22,46 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3
 
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.3
+        with:
+          msbuild-architecture: x64
+
+      - name: Install Windows SDK 10.0.22621.0
+        run: |
+          choco install windows-sdk-10-version-2004-all
+
       - name: Install dependencies
         run: npm install
+
+      - name: Install React Native Windows dependencies
+        run: |
+          powershell -ExecutionPolicy Bypass -File node_modules/react-native-windows/scripts/rnw-dependencies.ps1
 
       - name: Run autolinking for Windows
         run: |
           npx react-native autolink-windows
 
-      - name: Restore NuGet packages
+      - name: Retarget solution to use available SDK
         run: |
-          nuget restore windows/compass.sln
+          # Get the latest installed Windows SDK version
+          $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\10\Include"
+          if (Test-Path $sdkPath) {
+            $latestSdk = Get-ChildItem $sdkPath | Where-Object { $_.Name -match "10\.0\.\d+\.\d+" } | Sort-Object Name -Descending | Select-Object -First 1
+            if ($latestSdk) {
+              Write-Host "Found Windows SDK: $($latestSdk.Name)"
+              # Retarget the solution to use the latest SDK
+              devenv windows/compass.sln /upgrade
+            }
+          }
+        shell: powershell
 
       - name: Build Windows Desktop
         run: |
-          npx react-native run-windows --release --no-deploy --no-launch
+          npx react-native run-windows --release --no-deploy --no-launch --arch x64
 
-      - name: Create Windows installer
-        run: |
-          # Optional: Use tools like electron-builder or WiX for installer
-          # This depends on packaging preferences
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: windows/x64/Release/
