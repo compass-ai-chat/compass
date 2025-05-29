@@ -16,7 +16,7 @@ import EditCharacter from "@/src/components/character/EditCharacter";
 import CharactersList from "@/src/components/character/CharactersList";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity } from "react-native";
-import { availableModelsAtom, userDocumentsAtom } from "@/src/hooks/atoms";
+import { availableModelsAtom, userDocumentsAtom, userToolsAtom } from "@/src/hooks/atoms";
 export default function CharactersScreen() {
   const router = useRouter();
   const [characters, setCharacters] = useAtom(userCharactersAtom);
@@ -30,6 +30,7 @@ export default function CharactersScreen() {
   const dispatchCharacters = useSetAtom(saveCustomPrompts);
   const [availableDocuments] = useAtom(userDocumentsAtom);
   const defaultThread = useAtomValue(defaultThreadAtom);
+  const [userTools] = useAtom(userToolsAtom);
   const handleEdit = (character: Character) => {
     if (Platform.OS == "web") {
       if (editingCharacter?.id === character.id) {
@@ -141,7 +142,7 @@ export default function CharactersScreen() {
       {editingCharacter && (
         <View className="flex-1 m-4 relative">
           <EditCharacter
-            availableTools={[]}
+            availableTools={userTools}
             availableDocuments={availableDocuments}
             availableModels={availableModels}
             existingCharacter={editingCharacter}
