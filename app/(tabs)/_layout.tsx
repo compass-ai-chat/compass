@@ -67,11 +67,11 @@ export default function TabLayout() {
 
   if (isDesktop) {
     // Use Slot for proper routing on desktop
-    return <Slot />;
+    return <View className="flex-1 bg-background"><Slot /></View>;
   }
   
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1">
       <TabView
         tabBarPosition='bottom'
         navigationState={{ index, routes }}

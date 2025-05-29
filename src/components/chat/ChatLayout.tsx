@@ -14,7 +14,7 @@ export const ChatLayout: React.FC<{ children: React.ReactNode }> = ({ children }
 
   return (
     <View className="flex-row flex-1">
-      <View className="flex-1 bg-background">
+      <View className="flex-1">
         <ThreadsSidebar />
         {children}
       </View>

@@ -104,7 +104,7 @@ export default function RootLayout() {
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <ThemeProvider>
         <ProxyUrlSync />
-        <View className={`flex-row flex-1 ${syncToPolaris ? 'border-8 border-primary' : ''}`}>
+        <View className={`flex-row flex-1 bg-background`}>
           {isDesktop && <WebSidebar className="" />}
           <Stack screenOptions={{
             headerStyle: {
