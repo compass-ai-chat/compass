@@ -79,6 +79,13 @@
             "change_model": "Cambia Modello"
         }
     },
+    "tools":{
+        "tools": "Strumenti",
+        "no_tools": "Non hai strumenti. Crea uno per iniziare.",
+        "new_tool": "Nuovo strumento",
+        "tool_added": "Strumento aggiunto",
+        "tool_added_success": "Strumento aggiunto con successo"
+    },
     "images":{
         "images": "Immagini",
         "generate": "Genera",

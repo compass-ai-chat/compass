@@ -90,6 +90,13 @@
         "failed_to_load_models": "Kunne ikke indlæse modeller",
         "models_fetch_error": "Kunne ikke hente modeller fra den nye udbyder"
     },
+    "tools":{
+        "tools": "Værktøjer",
+        "no_tools": "Du har ingen værktøjer. Opret et værktøj for at komme i gang.",
+        "new_tool": "Nytt værktøj",
+        "tool_added": "Værktøj tilføjet",
+        "tool_added_success": "Værktøj tilføjet med succes"
+    },
     "documents":{
         "documents": "Dokumenter",
         "upload": "Upload",

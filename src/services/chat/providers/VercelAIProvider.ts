@@ -16,7 +16,7 @@ import { createXai } from '@ai-sdk/xai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { useTools } from '@/src/hooks/useTools';
 
-export function useVercelAIProvider(provider: Provider) {
+export function useVercelAIProvider() {
 
     const { getToolSchemas } = useTools();
 
@@ -65,7 +65,7 @@ export function useVercelAIProvider(provider: Provider) {
     return aiModel;
   }
 
-  const sendMessage = async (messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> => {
+  const sendMessage = async (messages: ChatMessage[], model: Model, character: Character|undefined, signal?: AbortSignal): Promise<AsyncIterable<string>> => {
     const newMessages = [
       ...messages.map(message => ({
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
@@ -79,7 +79,7 @@ export function useVercelAIProvider(provider: Provider) {
     }
 
     let toolSchemas: ToolSet | undefined;
-    if(character.toolIds){
+    if(character?.toolIds){
       toolSchemas = await getToolSchemas(character.toolIds);
       if(toolSchemas){
         newMessages.push({

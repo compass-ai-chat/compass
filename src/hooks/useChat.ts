@@ -15,7 +15,9 @@ import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
 import { router } from 'expo-router';
 import { Platform } from 'react-native';
 import { useCharacterModelSelection } from './useCharacterModelSelection';
+import { useVercelAIProvider } from '@/src/services/chat/providers/VercelAIProvider';
 export function useChat() {
+  
   const currentThread = useAtomValue(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const documents = useAtomValue(documentsAtom);
@@ -39,6 +41,7 @@ export function useChat() {
   const contextManager = new CharacterContextManager();
   const streamHandler = new StreamHandlerService(tts);
   
+  const { sendMessage } = useVercelAIProvider();
 
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
@@ -96,6 +99,8 @@ export function useChat() {
 
     const chatProvider = ChatProviderFactory.getProvider(currentThread.selectedModel?.provider);
 
+    
+
     let relevantDocuments = documents.filter((doc: Document) => currentThread.character?.documentIds?.includes(doc.id) ?? false);
     relevantDocuments.push(...documents.filter((doc: Document) => currentThread.metadata?.documentIds?.includes(doc.id) ?? []));
 
@@ -125,13 +130,15 @@ export function useChat() {
       if(transformedContext.systemPrompt.trim().length > 0){
         messages.unshift({content: transformedContext.systemPrompt, isUser: false, isSystem: true});
       }
+
+      const response = await sendMessage(messages, currentThread.selectedModel, context.characterToUse, abortController.current.signal);
       
-      const response = await chatProvider.sendMessage(
-        messages,
-        currentThread.selectedModel,
-        context.characterToUse,
-        abortController.current.signal
-      );
+      // const response = await chatProvider.sendMessage(
+      //   messages,
+      //   currentThread.selectedModel,
+      //   context.characterToUse,
+      //   abortController.current.signal
+      // );
 
       await streamHandler.handleStream(response, transformedContext.metadata.updatedThread, dispatchThread);
 

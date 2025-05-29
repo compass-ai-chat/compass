@@ -566,4 +566,4 @@ export const polarisUsersAtom = atom<User[]>([]);
 export const polarisToolsAtom = atom<Tool[]>([]);
 
 
-export const toolsAtom = atom<Tool[]>([]);
+export const userToolsAtom = atom<Tool[]>([]);

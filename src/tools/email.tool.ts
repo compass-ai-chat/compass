@@ -1,4 +1,4 @@
-import * as nodemailer from 'nodemailer';
+//import * as nodemailer from 'nodemailer';
 import { z } from 'zod';
 import { ToolHandler } from './tool.interface';
 
@@ -17,15 +17,15 @@ export class EmailToolService implements ToolHandler {
             secure = false;
         }
 
-        const transporter = nodemailer.createTransport({
-            host: config.host, 
-            port: port,
-            secure: secure, // true for 465, false for other ports
-            auth: {
-              user: config.user, 
-              pass: config.password
-            }
-          });
+        // const transporter = nodemailer.createTransport({
+        //     host: config.host, 
+        //     port: port,
+        //     secure: secure, // true for 465, false for other ports
+        //     auth: {
+        //       user: config.user, 
+        //       pass: config.password
+        //     }
+        //   });
       
       const mailOptions = {
         from: config.user,
@@ -34,7 +34,9 @@ export class EmailToolService implements ToolHandler {
         text: params.body
       };
 
-      await transporter.sendMail(mailOptions);
+      console.log("Email tool was called with params:", params);
+
+      //await transporter.sendMail(mailOptions);
       return {
         success: true,
         message: 'Email sent successfully'

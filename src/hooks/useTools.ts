@@ -1,5 +1,5 @@
 import { getDefaultStore, useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { toolsAtom } from './atoms';
+import { userToolsAtom } from './atoms';
 import { useEffect, useRef, useState } from 'react';
 import { Character, ChatMessage, Thread, Document, Model, Provider } from '@/src/types/core';
 import LogService from '@/utils/LogService';
@@ -9,6 +9,7 @@ import { Tool } from '../types/tools';
 import { EmailToolService } from '../tools/email.tool';
 import { ToolHandler } from '../tools/tool.interface';
 import { ToolSet } from 'ai';
+import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
 
 
 const toolHandlers: Record<string, ToolHandler> = {
@@ -16,7 +17,7 @@ const toolHandlers: Record<string, ToolHandler> = {
 }
 
 export function useTools() {
-  const [tools, setTools] = useAtom(toolsAtom);
+  const [tools, setTools] = useAtom(userToolsAtom);
 
     const createTool = (tool: Tool) => {
         setTools([...tools, tool]);
@@ -88,8 +89,25 @@ export function useTools() {
         
         return toolSet;
       }
+
+      const getToolTypes = () => {
+        const toolTypes = {} as any;
+
+        // For each handler, get its parameter and config schemas
+        for (const [type, handler] of Object.entries(toolHandlers)) {
+          const paramsSchema = handler.getParamsSchema();
+          const configSchema = handler.getConfigSchema();
+          
+          toolTypes[type] = {
+            // Convert Zod schemas to JSON schema or a simplified representation
+            paramsSchema: zodSchemaToJsonSchema(paramsSchema),
+            configSchema: zodSchemaToJsonSchema(configSchema)
+          };
+        }
+        return toolTypes;
+      }
     
 
-  return { createTool, updateTool, deleteTool, getTool, getTools, executeTool, getToolSchemas };
+  return { createTool, updateTool, deleteTool, getTool, getTools, executeTool, getToolSchemas, getToolTypes };
 }
 
