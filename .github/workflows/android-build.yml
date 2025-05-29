@@ -33,11 +33,14 @@ jobs:
     - name: Install yarn
       run: npm install --global yarn
 
-    - name: Install dependencies
-      run: yarn install
+    - name: Install Expo CLI
+      run: npm install -g @expo/cli@latest
 
     - name: Install EAS CLI
-      run: npm install -g @expo/cli@latest
+      run: npm install --global eas-cli
+
+    - name: Install dependencies
+      run: yarn install
 
     - name: Build Android APK
       run: eas build -p android --profile preview --local --non-interactive
