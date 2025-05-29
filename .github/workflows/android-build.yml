@@ -19,7 +19,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22.11.0'
-        cache: 'npm'
+        cache: 'yarn'
 
     - name: Setup Java JDK
       uses: actions/setup-java@v4
@@ -31,10 +31,10 @@ jobs:
       uses: android-actions/setup-android@v3
 
     - name: Install dependencies
-      run: npm ci
+      run: yarn install --frozen-lockfile
 
     - name: Install EAS CLI
-      run: npm install -g @expo/eas-cli
+      run: yarn global add @expo/eas-cli
 
     - name: Build Android APK
       run: eas build -p android --profile preview --local --non-interactive
