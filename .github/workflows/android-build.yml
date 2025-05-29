@@ -37,7 +37,7 @@ jobs:
       run: yarn install
 
     - name: Install EAS CLI
-      run: npm install -g @expo/eas-cli
+      run: npm install -g @expo/cli@latest
 
     - name: Build Android APK
       run: eas build -p android --profile preview --local --non-interactive
