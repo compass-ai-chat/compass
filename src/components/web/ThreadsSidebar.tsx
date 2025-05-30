@@ -16,7 +16,7 @@ export const ThreadsSidebar = () => {
   const { addNewThread } = useChat();
 
   // Common sidebar classes
-  const sidebarWidthClass = isSidebarVisible ? 'w-64 h-[70%] shadow-lg' : 'w-10';
+  const sidebarWidthClass = isSidebarVisible ? 'w-64 h-[70%] overflow-hidden shadow-lg' : 'w-10';
   
   return (
     <View className='absolute left-0 my-auto z-[1] flex flex-col top-20'>
@@ -26,7 +26,7 @@ export const ThreadsSidebar = () => {
         onMouseLeave={() => setIsSidebarVisible(false)}
       >
           {isSidebarVisible ? (
-            <View className="p-1">
+            <View className="p-1 h-[80vh]">
               <View className="flex-row justify-between items-center p-4">
                 <Text className="text-center text-lg font-bold text-text">
                   {t('chats.chats')}
