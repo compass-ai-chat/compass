@@ -32,6 +32,7 @@ export function ToolSelector({
       database: "server-outline",
       file: "document-outline",
       image: "image-outline",
+      note: "pencil-outline",
       // Add more mappings as needed
     };
 
@@ -44,12 +45,12 @@ export function ToolSelector({
 
   return (
     <View className="mb-4">
-      <Text className="text-base font-medium mb-2 text-text">
-        {t('characters.edit_character.tools') || "Tools"}
-      </Text>
-      <Text className="text-sm text-text-secondary mb-4">
-        {t('characters.edit_character.tools_description') || "Select tools this character can use"}
-      </Text>
+      <View className="flex-row items-center mb-2">
+        <Ionicons name="construct" size={24} className="!text-primary mr-2" />
+        <Text className="text-base font-medium text-text">
+          {t('characters.edit_character.tools') || "Tools"}
+        </Text>
+      </View>
 
       <FlatList
         data={tools}
@@ -70,20 +71,19 @@ export function ToolSelector({
                 <Ionicons
                   name={getIconForToolType(item.type) as any}
                   size={20}
-                  color={isSelected ? "white" : "#6366F1"}
+                  className={`${isSelected ? "!text-white" : "!text-text"}`}
                 />
               </View>
               <View className="flex-1">
                 <Text className="font-medium text-text">{item.name}</Text>
-                <Text className="text-sm text-text-secondary" numberOfLines={1}>
+                <Text className="text-sm text-text" numberOfLines={1}>
                   {item.description}
                 </Text>
               </View>
               <Ionicons
                 name={isSelected ? "checkmark-circle" : "add-circle-outline"}
                 size={24}
-                color={isSelected ? "#6366F1" : "#9CA3AF"}
-                className="ml-2"
+                className={`ml-2 ${isSelected ? "!text-primary" : "!text-text"}`}
               />
             </TouchableOpacity>
           );

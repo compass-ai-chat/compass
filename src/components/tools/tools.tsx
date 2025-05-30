@@ -278,6 +278,7 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
             <TextInput
               className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
               placeholder="Tool name"
+              placeholderTextColor="#9CA3AF"
               value={formData.name}
               onChangeText={(text) => setFormData({...formData, name: text})}
             />
@@ -288,6 +289,7 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
             <TextInput
               className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
               placeholder="Tool description"
+              placeholderTextColor="#9CA3AF"
               value={formData.description}
               onChangeText={(text) => setFormData({...formData, description: text})}
               multiline

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, View, Text } from 'react-native';
+import { Platform, View, Text, ScrollView } from 'react-native';
 import { DocumentManager } from '@/src/components/documents/DocumentManager';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAtom, useAtomValue } from 'jotai';
@@ -144,7 +144,7 @@ export default function DocumentsRoute() {
         />
         <View className="flex-1 mt-8 border-t border-border pt-4">
           <Text className="text-xl font-semibold mb-4 text-primary">Notes</Text>
-          <View className="space-y-2">
+          <ScrollView className="space-y-2">
             {userNotes.map(note => (
               <View
                 key={note.id}
@@ -163,7 +163,7 @@ export default function DocumentsRoute() {
                 </Text>
               </View>
             ))}
-          </View>
+          </ScrollView>
         </View>
       </View>
     </SafeAreaView>
