@@ -52,7 +52,7 @@ export const MessageList: React.FC<MessageListProps> = ({
         autoscrollToTopThreshold: 10
       }}
       className="flex-1 -mt-4"
-      contentContainerStyle={{ padding: 16, paddingBottom: 50, paddingTop: 50 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 50, paddingTop: 100 }}
       onScroll={onScroll}
       onScrollBeginDrag={onScrollBeginDrag}
     />
