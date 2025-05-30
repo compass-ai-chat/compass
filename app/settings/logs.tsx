@@ -1,7 +1,6 @@
-import { FlashList } from '@shopify/flash-list';
 import { logsAtom } from '@/src/hooks/atoms';
 import { useAtom, useAtomValue } from 'jotai';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { LogEntry } from '@/src/hooks/atoms';
 
 export default function LogsScreen() {
@@ -31,10 +30,9 @@ export default function LogsScreen() {
       >
         <Text className="text-secondary">Clear Logs.</Text>
       </TouchableOpacity>
-      <FlashList
+      <FlatList
         data={sortedLogs}
         renderItem={renderItem}
-        estimatedItemSize={200}
         removeClippedSubviews
         keyExtractor={(_, index) => index.toString()}
       />

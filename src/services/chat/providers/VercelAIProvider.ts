@@ -81,12 +81,6 @@ export function useVercelAIProvider() {
     let toolSchemas: ToolSet | undefined;
     if(character?.toolIds){
       toolSchemas = await getToolSchemas(character.toolIds);
-      if(toolSchemas){
-        newMessages.push({
-          role: 'user',
-          content: JSON.stringify(toolSchemas)
-        });
-      }
     }
 
 
