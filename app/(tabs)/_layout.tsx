@@ -27,7 +27,7 @@ const renderScene = SceneMap({
 export const routes = [
   { key: 'index', title: 'chats.chats', icon: 'chatbubble' },
   { key: 'characters', title: 'characters.characters', icon: 'people' },
-  { key: 'tools', title: 'tools.tools', icon: 'hammer' },
+  { key: 'tools', title: 'tools.tools', icon: 'construct' },
   { key: 'images', title: 'images.images', icon: 'image' },
   { key: 'documents', title: 'documents.documents', icon: 'document-text' },
   { key: 'settings', title: 'settings.settings', icon: 'cog' },

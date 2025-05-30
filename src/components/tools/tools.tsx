@@ -402,6 +402,7 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
 
       {/* Edit Tool Modal */}
       <Modal
+        className="w-2/3 p-4"
         isVisible={showEditModal}
         onClose={() => setShowEditModal(false)}
       >
