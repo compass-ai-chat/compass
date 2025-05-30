@@ -17,7 +17,7 @@ export class NoteToolService implements ToolHandler {
             createdAt: new Date()
         }
 
-        defaultStore.set(userNotesAtom, [note]);
+        defaultStore.set(userNotesAtom, [...(await defaultStore.get(userNotesAtom)), note]);
 
         console.log('Note created successfully', note);
       return {

@@ -118,4 +118,5 @@ export interface Model extends ResourceMetadata {
 export interface Note extends ResourceMetadata {
   title: string;
   content: string;
+  createdAt: Date;
 }

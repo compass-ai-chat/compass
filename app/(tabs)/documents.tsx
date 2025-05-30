@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import { DocumentPickerAsset } from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { PDFService } from '@/src/services/PDFService';
+import { format } from 'date-fns';
 
 
 export default function DocumentsRoute() {
@@ -149,9 +150,14 @@ export default function DocumentsRoute() {
                 key={note.id}
                 className="bg-card p-4 rounded-lg space-y-2 border border-border shadow-sm"
               >
-                <Text className="text-lg font-semibold text-foreground tracking-tight">
-                  {note.title}
-                </Text>
+                <View className="flex-row justify-between">
+                  <Text className="text-lg font-semibold text-foreground tracking-tight">
+                    {note.title}
+                  </Text>
+                  <Text className="text-sm text-muted-foreground leading-relaxed">
+                    {format(note.createdAt, 'dd/MM/yyyy HH:mm')}
+                  </Text>
+                </View>
                 <Text className="text-sm text-muted-foreground leading-relaxed">
                   {note.content}
                 </Text>
