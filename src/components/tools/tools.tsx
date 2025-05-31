@@ -117,6 +117,8 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
         return 'mail';
       case 'search':
         return 'search';
+      case 'websearch':
+        return 'search';
       case 'database':
         return 'server';
       case 'api':

@@ -3,28 +3,22 @@ import { z } from 'zod';
 import { ToolHandler } from './tool.interface';
 import { userNotesAtom } from '@/src/hooks/atoms';
 import { getDefaultStore } from 'jotai';
+import { SearxngSearchService } from '@/src/services/search/SearxngSearchService';
 
-export class NoteToolService implements ToolHandler {
+export class WebSearchService implements ToolHandler {
   async execute(params: any, config: any): Promise<any> {
-    // get default store
-    const defaultStore = getDefaultStore();
 
     try {
 
-        const note = {
-            title: params.title,
-            content: params.content,
-            createdAt: new Date()
-        }
+        const searchService = new SearxngSearchService('https://baresearch.org');
+        const response = await searchService.search(params.query);
+        const message = response.results.map((result: any) => result.content).join('\n');
+        console.log("Web search gave message",message);
 
-        defaultStore.set(userNotesAtom, [...(await defaultStore.get(userNotesAtom)), note]);
-
-        console.log('Note created successfully', note);
-      return {
-        success: true,
-        message: 'Note created successfully'
-      };
-
+        return {
+            success: true,
+            message: message,
+        };
     } catch (error: any) {
       console.error('Error sending email:', error);
       return {
@@ -36,8 +30,7 @@ export class NoteToolService implements ToolHandler {
 
   getParamsSchema(): z.ZodSchema {
     return z.object({
-      title: z.string(),
-      content: z.string()
+      query: z.string()
     });
   }
 
@@ -47,10 +40,11 @@ export class NoteToolService implements ToolHandler {
   }
 
   getIcon(): string {
-    return 'pencil';
+    return 'search';
   }
 
   getDescription(): string {
-    return 'Create a note';
+    return 'Search the web for information';
   }
+  
 } 

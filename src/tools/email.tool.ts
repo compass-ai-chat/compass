@@ -68,5 +68,12 @@ export class EmailToolService implements ToolHandler {
         password: z.string()
     });
   }
-  
+
+  getIcon(): string {
+    return 'mail';
+  }
+
+  getDescription(): string {
+    return 'Send an email';
+  }
 } 

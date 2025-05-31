@@ -1,20 +1,16 @@
 import { getDefaultStore, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { userToolsAtom } from './atoms';
-import { useEffect, useRef, useState } from 'react';
-import { Character, ChatMessage, Thread, Document, Model, Provider } from '@/src/types/core';
-import LogService from '@/utils/LogService';
-import { toastService } from '@/src/services/toastService';
-import { Platform } from 'react-native';
 import { Tool } from '../types/tools';
 import { EmailToolService } from '../tools/email.tool';
 import { ToolHandler } from '../tools/tool.interface';
 import { ToolSet } from 'ai';
 import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
 import { NoteToolService } from '../tools/note.tool';
-
+import { WebSearchService } from '../tools/websearch.tool';
 const toolHandlers: Record<string, ToolHandler> = {
     "email": new EmailToolService(),
-    "note": new NoteToolService()
+    "note": new NoteToolService(),
+    "websearch": new WebSearchService()
 }
 
 export function useTools() {
