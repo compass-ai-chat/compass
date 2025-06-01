@@ -131,14 +131,20 @@ export function useChat() {
         messages.unshift({content: transformedContext.systemPrompt, isUser: false, isSystem: true});
       }
 
-      const response = await sendMessage(messages, currentThread.selectedModel, context.characterToUse, abortController.current.signal);
+      let response: AsyncIterable<string>;
+      if(currentThread.selectedModel?.provider.name !== 'polaris'){
+        response = await sendMessage(messages, currentThread.selectedModel, context.characterToUse, abortController.current.signal);
+      }
+      else{
+        response = await chatProvider.sendMessage(
+          messages,
+          currentThread.selectedModel,
+          context.characterToUse,
+          abortController.current.signal
+        );
+      }
       
-      // const response = await chatProvider.sendMessage(
-      //   messages,
-      //   currentThread.selectedModel,
-      //   context.characterToUse,
-      //   abortController.current.signal
-      // );
+      
 
       await streamHandler.handleStream(response, transformedContext.metadata.updatedThread, dispatchThread);
 
