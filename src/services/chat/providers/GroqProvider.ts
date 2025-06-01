@@ -24,7 +24,7 @@ export class GroqProvider implements ChatProvider {
   constructor(provider: Provider) {
     this.provider = provider;
   }
-  async *sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): AsyncGenerator<string> {
+  async sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map(message => ({
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
@@ -65,7 +65,12 @@ export class GroqProvider implements ChatProvider {
         // maxSteps: 5
       });
 
-      yield text;
+      return new ReadableStream({
+        async start(controller) {
+          controller.enqueue(text);
+          controller.close();
+        }
+      });
 
       // for await (const textPart of textStream) {
       //   yield textPart;

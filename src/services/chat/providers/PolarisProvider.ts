@@ -20,12 +20,12 @@ export class PolarisProvider implements ChatProvider {
   constructor(provider: Provider) {
     this.provider = provider;
   }
-  async *sendMessage(
+  async sendMessage(
     messages: ChatMessage[],
     model: Model,
     character: Character,
     signal?: AbortSignal,
-  ): AsyncGenerator<string> {
+  ): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map((message) => ({
         role: message.isUser
@@ -50,7 +50,7 @@ export class PolarisProvider implements ChatProvider {
       // Track tool call results to include in the response
       const toolCallResults: string[] = [];
       
-      yield* streamPolarisResponse(
+      return streamPolarisResponse(
         url,
         {
           model: model.id,

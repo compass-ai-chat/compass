@@ -19,7 +19,7 @@ export class AnthropicProvider implements ChatProvider {
   constructor(provider: Provider) {
     this.provider = provider;
   }
-  async *sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): AsyncGenerator<string> {
+  async sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map(message => ({
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
@@ -60,9 +60,7 @@ export class AnthropicProvider implements ChatProvider {
         maxSteps: 5
       });
 
-      for await (const textPart of textStream) {
-        yield textPart;
-      }
+      return textStream;
     } catch (error: any) {
       LogService.log(error, { component: 'OpenAIProvider', function: 'sendMessage' }, 'error');
       throw error;
