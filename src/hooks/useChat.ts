@@ -132,7 +132,7 @@ export function useChat() {
       }
 
       let response: AsyncIterable<string>;
-      if(currentThread.selectedModel?.provider.name !== 'polaris'){
+      if(currentThread.selectedModel?.provider.name?.toLowerCase() != 'polaris'){
         response = await sendMessage(messages, currentThread.selectedModel, context.characterToUse, abortController.current.signal);
       }
       else{
