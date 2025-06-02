@@ -54,6 +54,12 @@ export function useVercelAIProvider() {
           baseURL: provider.endpoint + '/v1',
         })(modelId);
         break;
+      case 'polaris':
+        aiModel = createOpenAI({
+          apiKey: provider.apiKey,
+          baseURL: provider.endpoint + '/v1',
+        })(modelId);
+        break;
       default:
         throw new Error(`Unsupported provider: ${provider.name}`);
     }
@@ -82,6 +88,8 @@ export function useVercelAIProvider() {
     if(character?.toolIds){
       toolSchemas = await getToolSchemas(character.toolIds);
     }
+    console.log("We're using VERCEL AI PROVIDER");
+    console.log("Tool schemas", toolSchemas);
 
 
     try {

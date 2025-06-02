@@ -10,6 +10,7 @@ import { fetch as expoFetch } from "expo/fetch";
 import { z } from "zod";
 import { getProxyUrl } from "@/src/utils/proxy";
 import { embed } from "ai";
+import { Cache } from '@/src/utils/cache';
 
 import { Platform as PlatformCust } from "@/src/utils/platform";
 import { streamPolarisResponse } from "@/src/services/chat/streamUtils";
@@ -155,22 +156,20 @@ export class PolarisProvider implements ChatProvider {
   }
 
   async getAvailableModels(): Promise<string[]> {
-    const response = await fetch(
-      await getProxyUrl(`${this.provider.endpoint}/api/chat/models`),
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${this.provider.apiKey}`,
-        },
+    return Cache.withCache(
+      `models-cache-openai-${this.provider.endpoint}`,
+      async () => {
+        const openaiResponse = await fetch(`${this.provider.endpoint}/v1/models`, {
+          headers: {
+            'Authorization': `Bearer ${this.provider.apiKey}`
+          }
+        });
+        const openaiData = await openaiResponse.json();
+        console.log("OpenAI models", openaiData);
+        return openaiData.data
+          .map((model: any) => model.id);
       },
+      5 * 60 * 1000 // 5 minutes
     );
-    const data = await response.json();
-
-    if (!(data && Array.isArray(data))) return [];
-    return data
-      .filter(
-        (model: any) => model && typeof model.name === "string",
-      )
-      .map((model: any) => model.name);
   }
 }
