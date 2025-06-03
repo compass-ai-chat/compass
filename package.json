@@ -33,7 +33,6 @@
     "@mozilla/readability": "^0.5.0",
     "@os-team/i18next-react-native-language-detector": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.23.1",
-    "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
@@ -104,8 +103,8 @@
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.0.7",
     "gh-pages": "^6.3.0",
-    "typescript": "~5.3.3",
-    "metro-config": "^0.81.1"
+    "metro-config": "^0.81.1",
+    "typescript": "~5.3.3"
   },
   "private": true,
   "react-native-windows": {

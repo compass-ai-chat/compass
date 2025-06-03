@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+//import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { Modal} from '@/src/components/ui/Modal'
 
@@ -188,36 +188,36 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   // Use native DateTimePicker on mobile platforms
-  if (Platform.OS !== 'web') {
-    return (
-      <View>
-        <TouchableOpacity
-          onPress={() => setIsOpen(true)}
-          className={`bg-primary/10 px-3 py-2 rounded-lg flex-row items-center justify-between ${className}`}
-        >
-          <Text className="text-primary">{formatDate(value)}</Text>
-          <Ionicons name="calendar-outline" size={16} className="text-primary ml-2" />
-        </TouchableOpacity>
+  // if (Platform.OS !== 'web') {
+  //   return (
+  //     <View>
+  //       <TouchableOpacity
+  //         onPress={() => setIsOpen(true)}
+  //         className={`bg-primary/10 px-3 py-2 rounded-lg flex-row items-center justify-between ${className}`}
+  //       >
+  //         <Text className="text-primary">{formatDate(value)}</Text>
+  //         <Ionicons name="calendar-outline" size={16} className="text-primary ml-2" />
+  //       </TouchableOpacity>
         
-        {isOpen && (
-          <DateTimePicker
-            value={value}
-            mode="date"
-            display="default"
-            onChange={(_, selectedDate) => {
-              if (selectedDate) {
-                handleChange(selectedDate);
-              } else {
-                setIsOpen(false);
-              }
-            }}
-            minimumDate={minimumDate}
-            maximumDate={maximumDate}
-          />
-        )}
-      </View>
-    );
-  }
+  //       {isOpen && (
+  //         <DateTimePicker
+  //           value={value}
+  //           mode="date"
+  //           display="default"
+  //           onChange={(_, selectedDate) => {
+  //             if (selectedDate) {
+  //               handleChange(selectedDate);
+  //             } else {
+  //               setIsOpen(false);
+  //             }
+  //           }}
+  //           minimumDate={minimumDate}
+  //           maximumDate={maximumDate}
+  //         />
+  //       )}
+  //     </View>
+  //   );
+  // }
 
   // Custom calendar for web
   return (
