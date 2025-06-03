@@ -2,9 +2,9 @@ name: Build Multi-Platform
 
 on:
   push:
-    branches: [ release ]
+    branches: [ experiment/windows-build ]
   pull_request:
-    branches: [ release ]
+    branches: [ experiment/windows-build ]
   workflow_dispatch:
 
 jobs:

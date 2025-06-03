@@ -92,7 +92,6 @@
     "react-native-windows": "^0.76.14",
     "tailwindcss": "^3.4.14",
     "text-encoding": "^0.7.0",
-    "web-streams-polyfill": "^4.0.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
