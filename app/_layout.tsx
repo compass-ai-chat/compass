@@ -46,8 +46,7 @@ export default function RootLayout() {
   const isDesktop = Platform.isWeb && window.innerWidth >= 768;
 
   const myFunc = async function() {
-    const command = Command.sidecar("binaries/corsproxy");
-    const output = await command.execute();
+    
   }
   if(Platform.isTauri) {
     myFunc();

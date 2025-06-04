@@ -38,7 +38,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/corsproxy"],
+    "externalBin": [],
     "windows": {
       "wix": {
         "language": "en-US",
