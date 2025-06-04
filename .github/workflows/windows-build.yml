@@ -2,9 +2,9 @@ name: Build Multi-Platform
 
 on:
   push:
-    branches: [ release ]
+    branches: [ tauri/windows ]
   pull_request:
-    branches: [ release ]
+    branches: [ tauri/windows ]
   workflow_dispatch:
 
 jobs:
@@ -19,25 +19,22 @@ jobs:
           node-version: '22.11.0'
           cache: 'npm'
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.3
+      - name: Install Rust (Stable)
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies
+      - name: Install dependencies (Rust)
+        run: |
+          rustup target add x86_64-pc-windows-msvc
+          rustup override set stable
+
+      - name: Install WebView2
+        run: |
+          $WebView2Setup = "$env:TEMP\MicrosoftEdgeWebView2Setup.exe"
+          Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $WebView2Setup
+          Start-Process -FilePath $WebView2Setup -Args "/silent /install" -Wait
+
+      - name: Install app dependencies
         run: npm install
-
-      - name: Run autolinking for Windows
-        run: |
-          npx react-native autolink-windows
-
-      - name: Restore NuGet packages
-        run: |
-          nuget restore windows/compass.sln
-
-      - name: Build Windows Desktop
-        run: |
-          npx react-native run-windows --release --no-deploy --no-launch
-
-      - name: Create Windows installer
-        run: |
-          # Optional: Use tools like electron-builder or WiX for installer
-          # This depends on packaging preferences
+      
+      - name: Build Tauri App
+        run: npm run build:windows
