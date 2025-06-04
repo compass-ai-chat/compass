@@ -1,0 +1,9 @@
+/**
+ * 
+ * Be sure to generate this file using the CLI:
+ *
+ * npx @react-native-community/cli bundle --platform windows --entry-file index.js 
+ *   --bundle-output windows\compass\Bundle\index.windows.bundle
+ *   --assets-dest windows\compass\Bundle
+ *
+ */

@@ -18,7 +18,10 @@
         "height": 600,
         "resizable": true,
         "fullscreen": false,
-        "zoomHotkeysEnabled": true
+        "zoomHotkeysEnabled": true,
+        "center": true,
+        "minWidth": 600,
+        "minHeight": 400
       }
     ],
     "security": {
@@ -35,6 +38,20 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/corsproxy"]
+    "externalBin": ["binaries/corsproxy"],
+    "windows": {
+      "wix": {
+        "language": "en-US",
+        "enableElevatedUpdateTask": false
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com"
+    },
+    "publisher": "NordWestT"
   }
+  
 }

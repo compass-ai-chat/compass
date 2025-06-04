@@ -10,6 +10,7 @@
     "build:linux": "NO_STRIP=true npx tauri build",
     "build:android": "eas build -p android --profile preview",
     "build:android-local": "eas build -p android --profile preview --local",
+    "build:windows": "npx tauri build --target x86_64-pc-windows-msvc",
     "dev-tauri": "npx tauri dev",
     "ios": "expo start --ios",
     "web": "npx expo start --port 3000",
