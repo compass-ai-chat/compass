@@ -42,18 +42,18 @@ jobs:
 
       - name: Check if Windows installer was built
         run: |
-          Write-Output "Targets:"
-          Get-ChildItem -Path src-tauri\target
-          Write-Output "Windows:"
-          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc  
-          Write-Output "Windows Release:"
-          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release
-          Write-Output "Windows Release Bundle:"
-          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle
-          Write-Output "MSI Files:"
-          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi
-          Write-Output "EXE Files:"
-          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis
+          echo "Targets:"
+          ls src-tauri\target
+          echo "Windows:"
+          ls src-tauri\target\x86_64-pc-windows-msvc  
+          echo "Windows Release:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release
+          echo "Windows Release Bundle:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release\bundle
+          echo "MSI Files:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi
+          echo "EXE Files:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis
           
 
       - name: Upload Windows Build
