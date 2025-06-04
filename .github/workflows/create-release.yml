@@ -20,6 +20,11 @@ jobs:
           name: windows-build
           path: windows-build
 
+      - name: Check if Windows files are available
+        run: |
+          Write-Output "Windows Build:"
+          Get-ChildItem -Path windows-build
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -46,7 +51,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            windows-build/**/*.msi
-            windows-build/**/*.exe
+            windows-build/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            windows-build/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
