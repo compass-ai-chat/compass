@@ -1,10 +1,11 @@
-name: Build Multi-Platform
+name: Windows Build
 
 on:
-  push:
-    branches: [ tauri/windows ]
-  pull_request:
-    branches: [ tauri/windows ]
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
   workflow_dispatch:
 
 jobs:
@@ -38,3 +39,11 @@ jobs:
       
       - name: Build Tauri App
         run: npm run build:windows
+
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe

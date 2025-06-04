@@ -14,6 +14,11 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     steps:
+      - name: Download Windows Build
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: windows-build
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -21,7 +26,7 @@ jobs:
           tag_name: v${{ inputs.version }}
           name: Release v${{ inputs.version }}
           body: |
-            Docker image is now available.
+            Docker image and Windows application are now available.
 
             🐋 Docker image:
             - `ghcr.io/${{ github.repository }}:latest`
@@ -35,7 +40,13 @@ jobs:
 
             Then you can use compass by visiting "http://localhost/compass" in your browser.
             This image comes pre-packaged with a proxy server that allows you to use Ollama without any configuration.
+
+            🪟 Windows Application:
+            Download the installer from the assets below. Both MSI and EXE installers are provided.
           draft: false
           prerelease: false
+          files: |
+            windows-build/*.msi
+            windows-build/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
