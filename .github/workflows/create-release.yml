@@ -46,7 +46,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            windows-build/*.msi
-            windows-build/*.exe
+            windows-build/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            windows-build/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
