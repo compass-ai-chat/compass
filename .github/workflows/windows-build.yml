@@ -44,21 +44,19 @@ jobs:
         run: |
           if (Test-Path -Path src-tauri\target\release\bundle\msi) {
             Write-Output "MSI Files:"
-            Get-ChildItem -Path src-tauri\target\release\bundle\msi
+            Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi
           }
           if (Test-Path -Path src-tauri\target\release\bundle\nsis) {
             Write-Output "EXE Files:"
-            Get-ChildItem -Path src-tauri\target\release\bundle\nsis
+            Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis
           }
-          Write-Output "Releases:"
-          Get-ChildItem -Path src-tauri\target\release
-          Write-Output "Bundles:"
-          Get-ChildItem -Path src-tauri\target\release\bundle
+          Write-Output "Targets:"
+          Get-ChildItem -Path src-tauri\target
 
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
