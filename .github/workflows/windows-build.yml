@@ -40,6 +40,21 @@ jobs:
       - name: Build Tauri App
         run: npm run build:windows
 
+      - name: Check if Windows installer was built
+        run: |
+          if (Test-Path -Path src-tauri\target\release\bundle\msi) {
+            Write-Output "MSI Files:"
+            Get-ChildItem -Path src-tauri\target\release\bundle\msi
+          }
+          if (Test-Path -Path src-tauri\target\release\bundle\nsis) {
+            Write-Output "EXE Files:"
+            Get-ChildItem -Path src-tauri\target\release\bundle\nsis
+          }
+          Write-Output "Releases:"
+          Get-ChildItem -Path src-tauri\target\release
+          Write-Output "Bundles:"
+          Get-ChildItem -Path src-tauri\target\release\bundle
+
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
