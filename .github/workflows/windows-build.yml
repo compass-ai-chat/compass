@@ -42,16 +42,19 @@ jobs:
 
       - name: Check if Windows installer was built
         run: |
-          if (Test-Path -Path src-tauri\target\release\bundle\msi) {
-            Write-Output "MSI Files:"
-            Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi
-          }
-          if (Test-Path -Path src-tauri\target\release\bundle\nsis) {
-            Write-Output "EXE Files:"
-            Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis
-          }
           Write-Output "Targets:"
           Get-ChildItem -Path src-tauri\target
+          Write-Output "Windows:"
+          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc  
+          Write-Output "Windows Release:"
+          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release
+          Write-Output "Windows Release Bundle:"
+          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle
+          Write-Output "MSI Files:"
+          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi
+          Write-Output "EXE Files:"
+          Get-ChildItem -Path src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis
+          
 
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
