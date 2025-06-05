@@ -33,6 +33,15 @@ export class ToolRegistry {
         fetch: globalThis.fetch,
       };
 
+      // Create a function that returns the schemas
+      const paramsSchemaFunc = definition.paramsSchema ? 
+        `return ${definition.paramsSchema.toString()};` :
+        'return z.object({});';
+      
+      const configSchemaFunc = definition.configSchema ? 
+        `return ${definition.configSchema.toString()};` :
+        'return z.object({});';
+
       // Wrap the code in a class that implements ToolHandler
       const wrappedCode = `
         return class DynamicTool {
@@ -41,11 +50,13 @@ export class ToolRegistry {
           }
 
           getParamsSchema() {
-            return ${definition.paramsSchema?.toString()};
+            const schemaFunc = new Function('z', '${paramsSchemaFunc}');
+            return schemaFunc(z);
           }
 
           getConfigSchema() {
-            return ${definition.configSchema?.toString()};
+            const schemaFunc = new Function('z', '${configSchemaFunc}');
+            return schemaFunc(z);
           }
 
           getIcon() {
@@ -67,6 +78,7 @@ export class ToolRegistry {
       this.tools.set(definition.name, tool);
       this.definitions.set(definition.name, definition);
     } catch (error) {
+      console.error('Registration error:', error);
       throw new Error(`Failed to register tool ${definition.name}: ${error}`);
     }
   }

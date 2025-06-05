@@ -11,10 +11,14 @@ export function useTools() {
   const registry = ToolRegistry.getInstance();
 
   const initializeTools = async () => {
-    const defaultTools = await registerBuiltInTools();
-    // Only initialize if no tools exist
-    if (tools.length === 0) {
-      setTools(defaultTools);
+    try {
+      const defaultTools = await registerBuiltInTools();
+      // Only initialize if no tools exist
+      if (tools.length === 0) {
+        setTools(defaultTools);
+      }
+    } catch (error) {
+      console.error('Failed to initialize tools:', error);
     }
   };
 
@@ -79,7 +83,7 @@ export function useTools() {
       
       toolSet[tool.id] = {
         description: tool.description,
-        parameters: paramsSchema,
+        parameters: zodSchemaToJsonSchema(paramsSchema),
         execute: async (params: any) => {
           return await executeTool(tool.id, params);
         }
@@ -90,19 +94,33 @@ export function useTools() {
   }
 
   const getToolTypes = () => {
-    const toolTypes = {} as any;
-    const allTools = registry.getAllTools();
+    try {
+      const toolTypes: Record<string, { paramsSchema: any; configSchema: any }> = {};
+      const allTools = registry.getAllTools();
 
-    for (const [type, handler] of allTools.entries()) {
-      const paramsSchema = handler.getParamsSchema();
-      const configSchema = handler.getConfigSchema();
-      
-      toolTypes[type] = {
-        paramsSchema: zodSchemaToJsonSchema(paramsSchema),
-        configSchema: zodSchemaToJsonSchema(configSchema)
-      };
+      for (const [type, handler] of allTools.entries()) {
+        try {
+          const paramsSchema = handler.getParamsSchema();
+          const configSchema = handler.getConfigSchema();
+          
+          toolTypes[type] = {
+            paramsSchema: zodSchemaToJsonSchema(paramsSchema),
+            configSchema: zodSchemaToJsonSchema(configSchema)
+          };
+        } catch (error) {
+          console.error(`Error processing schema for tool ${type}:`, error);
+          // Provide a fallback schema for this tool
+          toolTypes[type] = {
+            paramsSchema: {},
+            configSchema: {}
+          };
+        }
+      }
+      return toolTypes;
+    } catch (error) {
+      console.error('Error in getToolTypes:', error);
+      return {};
     }
-    return toolTypes;
   }
 
   return { 
