@@ -3,7 +3,8 @@
 Compass is a modern, open-source Large Language Model (LLM) client designed to provide a seamless AI chat experience across multiple platforms. Built with React Native and Expo, it offers a rich set of features while maintaining high performance and user experience.
 The goal is to promote private, decentralized AI - whilst also maintaining access to cloud-based AI through API's for those who need or prefer it.
 
-Try it out [here](https://nordwestt.com/compass) (only for demo)
+Download from [latest release](https://github.com/compass-ai-chat/compass/releases/tag/v1.0.1)
+Try it out [here](https://compass-ai.chat/compass) (only for demo)
 
 <p align="center">
 <img src="https://github.com/user-attachments/assets/f95389af-4378-466f-87e2-142638c1f422" alt="Compass Desktop" height="300" />
