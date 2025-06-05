@@ -7,6 +7,7 @@ import { toastService } from "@/src/services/toastService";
 import { Tool, CreateToolDto, UpdateToolDto } from "@/src/types/tools";
 import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
+import { useColorScheme } from "nativewind";
 
 interface ToolsProps {
   tools: Tool[];
@@ -20,18 +21,49 @@ interface ToolsProps {
 export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, onToolDeleted, onLoadTools }: ToolsProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCodeEditor, setShowCodeEditor] = useState(false);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-  // Form states
+  // Default code template
+  const defaultCodeTemplate = `// Tool implementation
+// Available parameters:
+// - params: The parameters passed to the tool
+// - configValues: The tool's configuration values
+// Must return a result or throw an error
+
+const result = await someOperation(params, configValues);
+return result;`;
+
+  // Form states for adding/editing tool instances
   const [formData, setFormData] = useState<CreateToolDto>({
     name: "",
     description: "",
     type: "",
-    config: {},
-    schema: {},
     enabled: true,
+    code: "",
+    configValues: {},
+    paramsSchema: undefined,
+    configSchema: undefined,
+  });
+
+  // Form states for creating new tool types
+  const [createToolData, setCreateToolData] = useState<{
+    name: string;
+    description: string;
+    code: string;
+    paramsSchema: string;
+    configSchema: string;
+  }>({
+    name: "",
+    description: "",
+    code: defaultCodeTemplate,
+    paramsSchema: "z.object({\n  // Define your parameters here\n})",
+    configSchema: "z.object({\n  // Define your configuration here\n})",
   });
 
   useEffect(() => {
@@ -83,9 +115,11 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
       name: "",
       description: "",
       type: "",
-      config: {},
-      schema: {},
       enabled: true,
+      code: "",
+      configValues: {},
+      paramsSchema: undefined,
+      configSchema: undefined,
     });
   };
 
@@ -95,9 +129,11 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
       name: tool.name,
       description: tool.description,
       type: tool.type,
-      config: tool.config,
-      schema: tool.schema,
       enabled: tool.enabled,
+      code: tool.code || "",
+      configValues: tool.configValues || {},
+      paramsSchema: tool.paramsSchema,
+      configSchema: tool.configSchema,
     });
     setShowEditModal(true);
   };
@@ -144,6 +180,46 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
     }
   };
 
+  const handleCreateTool = async () => {
+    try {
+      // Validate the schemas by evaluating them
+      const evalParamsSchema = eval(`(${createToolData.paramsSchema})`);
+      const evalConfigSchema = eval(`(${createToolData.configSchema})`);
+
+      const newToolType = {
+        name: createToolData.name,
+        description: createToolData.description,
+        type: createToolData.name.toLowerCase().replace(/\s+/g, '_'),
+        enabled: true,
+        code: createToolData.code,
+        paramsSchema: evalParamsSchema,
+        configSchema: evalConfigSchema,
+      };
+
+      const toolId = await onToolAdded(newToolType);
+      if (toolId) {
+        setShowCreateModal(false);
+        resetCreateForm();
+        toastService.success({ title: "Tool type created successfully" });
+      }
+    } catch (error) {
+      toastService.danger({ 
+        title: "Error creating tool", 
+        description: error instanceof Error ? error.message : "Invalid schema definition" 
+      });
+    }
+  };
+
+  const resetCreateForm = () => {
+    setCreateToolData({
+      name: "",
+      description: "",
+      code: defaultCodeTemplate,
+      paramsSchema: "z.object({\n  // Define your parameters here\n})",
+      configSchema: "z.object({\n  // Define your configuration here\n})",
+    });
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 p-4">
@@ -156,16 +232,28 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
             />
             <Text className="text-2xl font-bold text-primary">Tools</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              resetForm();
-              setShowAddModal(true);
-            }}
-            className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
-          >
-            <Ionicons name="add" size={20} color="white" />
-            <Text className="text-white ml-2 font-medium">Add Tool</Text>
-          </TouchableOpacity>
+          <View className="flex-row space-x-2">
+            <TouchableOpacity
+              onPress={() => {
+                resetCreateForm();
+                setShowCreateModal(true);
+              }}
+              className="bg-secondary px-4 py-2 rounded-lg flex-row items-center"
+            >
+              <Ionicons name="code" size={20} color="white" />
+              <Text className="text-white ml-2 font-medium">Create Tool</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                resetForm();
+                setShowAddModal(true);
+              }}
+              className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
+            >
+              <Ionicons name="add" size={20} color="white" />
+              <Text className="text-white ml-2 font-medium">Add Tool</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View className="flex-row mb-4">
@@ -312,8 +400,9 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
                         setFormData({
                           ...formData, 
                           type,
-                          config: toolTypes[type].configSchema || formData.config,
-                          schema: formData.schema
+                          configValues: {},
+                          paramsSchema: toolTypes[type].paramsSchema,
+                          configSchema: toolTypes[type].configSchema,
                         });
                       }}
                       className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
@@ -357,11 +446,11 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
                     <TextInput
                       className="border border-border rounded-lg p-2 bg-surface text-text"
                       placeholder={`Enter ${key}`}
-                      value={typeof (formData.config || {})[key] === 'string' ? (formData.config || {})[key] : ''}
+                      value={typeof (formData.configValues || {})[key] === 'string' ? (formData.configValues || {})[key] : ''}
                       onChangeText={(text) => setFormData({
                         ...formData, 
-                        config: {
-                          ...(formData.config || {}),
+                        configValues: {
+                          ...(formData.configValues || {}),
                           [key]: text
                         }
                       })}
@@ -376,6 +465,39 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
               )}
             </View>
           </View>) }
+          
+          {formData.type && (
+            <View>
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-secondary">Implementation</Text>
+                <TouchableOpacity
+                  onPress={() => setShowCodeEditor(!showCodeEditor)}
+                  className="flex-row items-center"
+                >
+                  <Text className="text-primary mr-2">
+                    {showCodeEditor ? 'Hide Code' : 'Show Code'}
+                  </Text>
+                  <Ionicons
+                    name={showCodeEditor ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    className="!text-primary"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {showCodeEditor && (
+                <View className="border border-border rounded-lg overflow-hidden">
+                  <CodeEditor
+                    value={formData.code || defaultCodeTemplate}
+                    onChangeText={(code: string) => setFormData({ ...formData, code })}
+                    language="typescript"
+                    style={{ height: 256 }}
+                    textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+                  />
+                </View>
+              )}
+            </View>
+          )}
           
           <View className="flex-row items-center justify-between">
             <Text className="text-secondary">Enabled</Text>
@@ -449,7 +571,9 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
                         setFormData({
                           ...formData, 
                           type,
-                          schema: formData.schema
+                          configValues: {},
+                          paramsSchema: toolTypes[type].paramsSchema,
+                          configSchema: toolTypes[type].configSchema,
                         });
                       }}
                       className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
@@ -493,11 +617,11 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
                     <TextInput
                       className="border border-border rounded-lg p-2 bg-surface text-text"
                       placeholder={`Enter ${key}`}
-                      value={typeof (formData.config || {})[key] === 'string' ? (formData.config || {})[key] : ''}
+                      value={typeof (formData.configValues || {})[key] === 'string' ? (formData.configValues || {})[key] : ''}
                       onChangeText={(text) => setFormData({
                         ...formData, 
-                        config: {
-                          ...(formData.config || {}),
+                        configValues: {
+                          ...(formData.configValues || {}),
                           [key]: text
                         }
                       })}
@@ -512,6 +636,39 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
               )}
             </View>
           </View>) }
+          
+          {formData.type && (
+            <View>
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-secondary">Implementation</Text>
+                <TouchableOpacity
+                  onPress={() => setShowCodeEditor(!showCodeEditor)}
+                  className="flex-row items-center"
+                >
+                  <Text className="text-primary mr-2">
+                    {showCodeEditor ? 'Hide Code' : 'Show Code'}
+                  </Text>
+                  <Ionicons
+                    name={showCodeEditor ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    className="!text-primary"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {showCodeEditor && (
+                <View className="border border-border rounded-lg overflow-hidden">
+                  <CodeEditor
+                    value={formData.code || defaultCodeTemplate}
+                    onChangeText={(code: string) => setFormData({ ...formData, code })}
+                    language="typescript"
+                    style={{ height: 256 }}
+                    textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+                  />
+                </View>
+              )}
+            </View>
+          )}
           
           <View className="flex-row items-center justify-between">
             <Text className="text-secondary">Enabled</Text>
@@ -535,6 +692,98 @@ export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, on
               disabled={isLoading}
             >
               <Text className="text-white">Save Changes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Create Tool Modal */}
+      <Modal
+        isVisible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        className="w-3/4"
+      >
+        <View className="space-y-4 p-4">
+          <Text className="text-xl font-bold text-primary">Create New Tool</Text>
+          
+          <View>
+            <Text className="text-secondary mb-1">Name *</Text>
+            <TextInput
+              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
+              placeholder="Tool name"
+              placeholderTextColor="#9CA3AF"
+              value={createToolData.name}
+              onChangeText={(text) => setCreateToolData({...createToolData, name: text})}
+            />
+          </View>
+          
+          <View>
+            <Text className="text-secondary mb-1">Description *</Text>
+            <TextInput
+              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
+              placeholder="Tool description"
+              placeholderTextColor="#9CA3AF"
+              value={createToolData.description}
+              onChangeText={(text) => setCreateToolData({...createToolData, description: text})}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <View>
+            <Text className="text-secondary mb-1">Implementation Code *</Text>
+            <View className="border border-border rounded-lg overflow-hidden">
+              <CodeEditor
+                value={createToolData.code}
+                onChangeText={(code: string) => setCreateToolData({...createToolData, code})}
+                language="typescript"
+                style={{ height: 200 }}
+                textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+              />
+            </View>
+          </View>
+
+          <View>
+            <Text className="text-secondary mb-1">Parameters Schema *</Text>
+            <View className="border border-border rounded-lg overflow-hidden">
+              <CodeEditor
+                value={createToolData.paramsSchema}
+                onChangeText={(schema: string) => setCreateToolData({...createToolData, paramsSchema: schema})}
+                language="typescript"
+                style={{ height: 100 }}
+                textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+              />
+            </View>
+          </View>
+
+          <View>
+            <Text className="text-secondary mb-1">Configuration Schema *</Text>
+            <View className="border border-border rounded-lg overflow-hidden">
+              <CodeEditor
+                value={createToolData.configSchema}
+                onChangeText={(schema: string) => setCreateToolData({...createToolData, configSchema: schema})}
+                language="typescript"
+                style={{ height: 100 }}
+                textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+              />
+            </View>
+          </View>
+
+          <View className="flex-row justify-end space-x-2 mt-4">
+            <TouchableOpacity
+              onPress={() => setShowCreateModal(false)}
+              className="bg-surface border border-border px-4 py-2 rounded-lg"
+            >
+              <Text className="text-text">Cancel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={handleCreateTool}
+              className="bg-primary px-4 py-2 rounded-lg"
+              disabled={isLoading}
+            >
+              <Text className="text-white">Create Tool</Text>
             </TouchableOpacity>
           </View>
         </View>

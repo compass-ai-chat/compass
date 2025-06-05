@@ -19,7 +19,10 @@ export interface Tool {
     description: string;
     type: string;
     enabled?: boolean;
+    code?: string;
     configValues?: Record<string, any>;
+    paramsSchema?: z.ZodSchema;
+    configSchema?: z.ZodSchema;
   }
   
   export interface UpdateToolDto extends CreateToolDto {}
