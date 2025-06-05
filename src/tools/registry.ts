@@ -58,23 +58,44 @@ export class ToolRegistry {
         fetch: globalThis.fetch,
       };
 
-      // Serialize schemas safely
-      const paramsSchemaStr = this.serializeSchema(definition.paramsSchema);
-      const configSchemaStr = this.serializeSchema(definition.configSchema);
+      // For built-in tools (no code), create a simple pass-through handler
+      if (!definition.code) {
+        const tool: ToolHandler = {
+          async execute(params: any, configValues: any) {
+            // This will be replaced by the actual handler
+            return undefined;
+          },
+          getParamsSchema() {
+            return definition.paramsSchema || z.object({});
+          },
+          getConfigSchema() {
+            return definition.configSchema || z.object({});
+          },
+          getIcon() {
+            return definition.icon;
+          },
+          getDescription() {
+            return definition.description;
+          }
+        };
+        this.tools.set(definition.name, tool);
+        this.definitions.set(definition.name, definition);
+        return;
+      }
 
-      // Wrap the code in a class that implements ToolHandler
+      // For dynamic tools, create a class with the provided code
       const wrappedCode = `
         return class DynamicTool {
-          async execute(params, config) {
+          async execute(params, configValues) {
             ${definition.code}
           }
 
           getParamsSchema() {
-            return ${paramsSchemaStr};
+            return ${this.serializeSchema(definition.paramsSchema)};
           }
 
           getConfigSchema() {
-            return ${configSchemaStr};
+            return ${this.serializeSchema(definition.configSchema)};
           }
 
           getIcon() {
@@ -124,5 +145,13 @@ export class ToolRegistry {
 
   getAllDefinitions(): Map<string, ToolDefinition> {
     return this.definitions;
+  }
+
+  // Method to replace a tool's execute function (used for built-in tools)
+  setToolExecutor(name: string, executor: (params: any, configValues: any) => Promise<any>): void {
+    const tool = this.tools.get(name);
+    if (tool) {
+      tool.execute = executor;
+    }
   }
 } 

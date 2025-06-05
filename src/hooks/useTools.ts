@@ -66,7 +66,10 @@ export function useTools() {
     console.log("Tool handler", handler);
     console.log("Tool params", params);
     console.log("Tool configValues", tool.configValues);
-    return handler.execute(params, tool.configValues || {});
+    console.log("Tool name", tool.name);
+    let result = await handler.execute(params, tool.configValues || {});
+    console.log("Tool result", result);
+    return result;
   };
 
   const getToolSchemas = async (toolIds: string[]): Promise<ToolSet | undefined> => {

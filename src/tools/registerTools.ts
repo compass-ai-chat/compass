@@ -50,6 +50,7 @@ export async function registerBuiltInTools() {
 
   // Register handlers in the registry
   for (const [type, handler] of Object.entries(handlers)) {
+    // First register the tool structure
     await registry.registerTool({
       name: type,
       description: handler.getDescription(),
@@ -58,6 +59,9 @@ export async function registerBuiltInTools() {
       paramsSchema: handler.getParamsSchema(),
       configSchema: handler.getConfigSchema(),
     });
+
+    // Then set the actual executor
+    registry.setToolExecutor(type, (params, configValues) => handler.execute(params, configValues));
   }
 
   return DEFAULT_TOOLS;
