@@ -159,7 +159,7 @@ export class PolarisProvider implements ChatProvider {
     return Cache.withCache(
       `models-cache-openai-${this.provider.endpoint}`,
       async () => {
-        const openaiResponse = await fetch(`${this.provider.endpoint}/v1/models`, {
+        const openaiResponse = await fetch(`${this.provider.endpoint}/api/v1/models`, {
           headers: {
             'Authorization': `Bearer ${this.provider.apiKey}`
           }
