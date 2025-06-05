@@ -1,110 +1,120 @@
-import { getDefaultStore, useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { getDefaultStore, useAtom } from 'jotai';
 import { userToolsAtom } from './atoms';
 import { Tool } from '../types/tools';
-import { EmailToolService } from '../tools/email.tool';
-import { ToolHandler } from '../tools/tool.interface';
+import { ToolRegistry } from '../tools/registry';
 import { ToolSet } from 'ai';
 import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
-import { NoteToolService } from '../tools/note.tool';
-import { WebSearchService } from '../tools/websearch.tool';
-const toolHandlers: Record<string, ToolHandler> = {
-    "email": new EmailToolService(),
-    "note": new NoteToolService(),
-    "websearch": new WebSearchService()
-}
+import { registerBuiltInTools } from '../tools/registerTools';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
+  const registry = ToolRegistry.getInstance();
 
-    const createTool = (tool: Tool) => {
-        setTools([...tools, tool]);
+  const initializeTools = async () => {
+    const defaultTools = await registerBuiltInTools();
+    // Only initialize if no tools exist
+    if (tools.length === 0) {
+      setTools(defaultTools);
+    }
+  };
+
+  const createTool = async (tool: Tool) => {
+    if (tool.type === 'dynamic') {
+      await registry.registerTool({
+        name: tool.id,
+        description: tool.description,
+        icon: tool.icon || 'code',
+        code: tool.code || '',
+        paramsSchema: tool.paramsSchema,
+        configSchema: tool.configSchema,
+      });
+    }
+    setTools([...tools, tool]);
+  };
+
+  const updateTool = (tool: Tool) => {
+    setTools(tools.map(t => t.id === tool.id ? tool : t));
+  }
+
+  const deleteTool = (tool: Tool) => {
+    setTools(tools.filter(t => t.id !== tool.id));
+  }
+
+  const getTool = (id: string) => {
+    return tools.find(t => t.id === id);
+  }
+
+  const getTools = () => {
+    return tools;
+  }
+  
+
+  const executeTool = async (toolId: string, params: Record<string, any>) => {
+    const tool = getTool(toolId);
+    if (!tool) {
+      throw new Error(`Tool not found`);
     }
 
-    const updateTool = (tool: Tool) => {
-        setTools(tools.map(t => t.id === tool.id ? tool : t));
-    }
-
-    const deleteTool = (tool: Tool) => {
-        setTools(tools.filter(t => t.id !== tool.id));
-    }
-
-    const getTool = (id: string) => {
-        return tools.find(t => t.id === id);
-    }
-
-    const getTools = () => {
-        return tools;
+    const handler = registry.getTool(tool.id);
+    if (!handler) {
+      throw new Error(`Tool handler for ${tool.id} not found`);
     }
     
+    return handler.execute(params, tool.configValues || {});
+  };
 
-    const executeTool = async (toolId: string, params: Record<string, any>) => {
-        const tool = getTool(toolId);
-        if (!tool) {
-            throw new Error(`Tool not found`);
+  const getToolSchemas = async (toolIds: string[]): Promise<ToolSet | undefined> => {
+    if (!toolIds || toolIds.length === 0) return undefined;
+    
+    const tools = getTools();
+    const enabledTools = tools.filter(tool => tool.enabled);
+
+    let toolSet: ToolSet = {};
+
+    enabledTools.forEach(tool => {
+      const handler = registry.getTool(tool.id);
+      if (!handler) return;
+
+      const paramsSchema = handler.getParamsSchema();
+      
+      toolSet[tool.id] = {
+        description: tool.description,
+        parameters: paramsSchema,
+        execute: async (params: any) => {
+          return await executeTool(tool.id, params);
         }
+      };
+    });
+    
+    return toolSet;
+  }
 
-        const handler = toolHandlers[tool.type as keyof typeof toolHandlers];
-        if (!handler) {
-            throw new Error(`Tool handler for ${tool.type} not found`);
-        }
-        
-        return handler.execute(params, tool.config);
+  const getToolTypes = () => {
+    const toolTypes = {} as any;
+    const allTools = registry.getAllTools();
+
+    for (const [type, handler] of allTools.entries()) {
+      const paramsSchema = handler.getParamsSchema();
+      const configSchema = handler.getConfigSchema();
+      
+      toolTypes[type] = {
+        paramsSchema: zodSchemaToJsonSchema(paramsSchema),
+        configSchema: zodSchemaToJsonSchema(configSchema)
+      };
     }
+    return toolTypes;
+  }
 
-    const getToolSchemas = async (toolIds: string[]): Promise<ToolSet | undefined> => {
-        if (!toolIds || toolIds.length === 0) return undefined;
-        
-        const tools = getTools();
-        const enabledTools = tools.filter(tool => tool.enabled);
-    
-        let toolSet: ToolSet = {};
-    
-        enabledTools.forEach(tool => {
-          const handler = toolHandlers[tool.type];
-          const paramsSchema = handler.getParamsSchema();
-          
-          // For email tool, create a properly typed execute function
-        if (tool.type === 'email') {
-            toolSet[tool.id] = {
-              description: tool.description,
-              parameters: paramsSchema,
-              execute: async ({ to, subject, body }: { to: string, subject: string, body: string }) => {
-                return await executeTool(tool.id, { to, subject, body });
-              }
-            };
-          } else {
-            // For other tool types, use their specific parameter types
-            toolSet[tool.id] = {
-              description: tool.description,
-              parameters: paramsSchema,
-              execute: async (params: any) => {
-                return await executeTool(tool.id, params);
-              }
-            };
-          }
-        });
-        
-        return toolSet;
-      }
-
-      const getToolTypes = () => {
-        const toolTypes = {} as any;
-
-        // For each handler, get its parameter and config schemas
-        for (const [type, handler] of Object.entries(toolHandlers)) {
-          const paramsSchema = handler.getParamsSchema();
-          const configSchema = handler.getConfigSchema();
-          
-          toolTypes[type] = {
-            // Convert Zod schemas to JSON schema or a simplified representation
-            paramsSchema: zodSchemaToJsonSchema(paramsSchema),
-            configSchema: zodSchemaToJsonSchema(configSchema)
-          };
-        }
-        return toolTypes;
-      }
-    
-
-  return { createTool, updateTool, deleteTool, getTool, getTools, executeTool, getToolSchemas, getToolTypes };
+  return { 
+    createTool, 
+    updateTool, 
+    deleteTool, 
+    getTool, 
+    getTools, 
+    executeTool, 
+    getToolSchemas, 
+    getToolTypes,
+    initializeTools 
+  };
 }
 
