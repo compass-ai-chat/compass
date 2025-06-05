@@ -24,6 +24,31 @@ export class ToolRegistry {
     return ToolRegistry.instance;
   }
 
+  private serializeSchema(schema: z.ZodSchema | undefined): string {
+    if (!schema) return 'z.object({})';
+    
+    // Handle built-in Zod schemas
+    if (schema instanceof z.ZodObject) {
+      const shape = schema._def.shape();
+      const entries = Object.entries(shape).map(([key, value]) => {
+        return `${key}: ${this.serializeSchema(value as z.ZodSchema)}`;
+      });
+      return `z.object({${entries.join(',')}})`;
+    }
+    if (schema instanceof z.ZodString) return 'z.string()';
+    if (schema instanceof z.ZodNumber) return 'z.number()';
+    if (schema instanceof z.ZodBoolean) return 'z.boolean()';
+    if (schema instanceof z.ZodArray) {
+      return `z.array(${this.serializeSchema(schema._def.type)})`;
+    }
+    if (schema instanceof z.ZodOptional) {
+      return `${this.serializeSchema(schema._def.innerType)}.optional()`;
+    }
+    
+    // Fallback
+    return 'z.any()';
+  }
+
   async registerTool(definition: ToolDefinition): Promise<void> {
     try {
       // Create a safe execution context
@@ -33,14 +58,9 @@ export class ToolRegistry {
         fetch: globalThis.fetch,
       };
 
-      // Create a function that returns the schemas
-      const paramsSchemaFunc = definition.paramsSchema ? 
-        `return ${definition.paramsSchema.toString()};` :
-        'return z.object({});';
-      
-      const configSchemaFunc = definition.configSchema ? 
-        `return ${definition.configSchema.toString()};` :
-        'return z.object({});';
+      // Serialize schemas safely
+      const paramsSchemaStr = this.serializeSchema(definition.paramsSchema);
+      const configSchemaStr = this.serializeSchema(definition.configSchema);
 
       // Wrap the code in a class that implements ToolHandler
       const wrappedCode = `
@@ -50,13 +70,11 @@ export class ToolRegistry {
           }
 
           getParamsSchema() {
-            const schemaFunc = new Function('z', '${paramsSchemaFunc}');
-            return schemaFunc(z);
+            return ${paramsSchemaStr};
           }
 
           getConfigSchema() {
-            const schemaFunc = new Function('z', '${configSchemaFunc}');
-            return schemaFunc(z);
+            return ${configSchemaStr};
           }
 
           getIcon() {
@@ -75,6 +93,15 @@ export class ToolRegistry {
 
       // Instantiate and register the tool
       const tool = new ToolClass();
+      
+      // Validate that the schemas work
+      try {
+        tool.getParamsSchema();
+        tool.getConfigSchema();
+      } catch (error) {
+        throw new Error(`Invalid schema definition for tool ${definition.name}: ${error}`);
+      }
+
       this.tools.set(definition.name, tool);
       this.definitions.set(definition.name, definition);
     } catch (error) {

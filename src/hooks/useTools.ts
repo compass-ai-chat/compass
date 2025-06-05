@@ -63,7 +63,9 @@ export function useTools() {
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
     }
-    
+    console.log("Tool handler", handler);
+    console.log("Tool params", params);
+    console.log("Tool configValues", tool.configValues);
     return handler.execute(params, tool.configValues || {});
   };
 
@@ -75,20 +77,30 @@ export function useTools() {
 
     let toolSet: ToolSet = {};
 
-    enabledTools.forEach(tool => {
-      const handler = registry.getTool(tool.id);
-      if (!handler) return;
+    for (const tool of enabledTools) {
+      try {
+        const handler = registry.getTool(tool.id);
+        if (!handler) continue;
 
-      const paramsSchema = handler.getParamsSchema();
-      
-      toolSet[tool.id] = {
-        description: tool.description,
-        parameters: zodSchemaToJsonSchema(paramsSchema),
-        execute: async (params: any) => {
-          return await executeTool(tool.id, params);
-        }
-      };
-    });
+        const paramsSchema = handler.getParamsSchema();
+        const jsonSchema = zodSchemaToJsonSchema(paramsSchema);
+        
+        toolSet[tool.id] = {
+          description: tool.description,
+          parameters: paramsSchema,
+          execute: async (params: any) => {
+            console.log("Executing tool", tool.id, params);
+            return await executeTool(tool.id, params);
+          }
+        };
+      } catch (error) {
+        console.error(`Error processing tool ${tool.id}:`, error);
+        // Skip this tool if there's an error
+        continue;
+      }
+    }
+    console.log('toolSet', toolSet);
+    
     
     return toolSet;
   }
