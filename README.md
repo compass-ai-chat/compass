@@ -22,12 +22,13 @@ Try it out [here](https://compass-ai.chat/compass) (only for demo)
 - 👥 **Character System**: Built-in characters and support for custom character creation
 - 💬 **Chat History**: Persistent conversation tracking and management
 - 🎨 **Modern UI**: Clean, responsive interface with multiple themes built in
-- 🔍 **Web search**: Paste URL's into chat to ask question about them. Automatic web search integration using SearxNg
+- 🔍 **Web search**: Paste URL's into chat to ask question about them
 - 🖼️ **Image Generation**: Generate images from text prompts (currently only supports Replicate)
 - 📁 **Image Gallery**: View images that have been generated
 - 🖥️ **Desktop Shortcut**: Alt + N to open a new chat
 - 📝 **Code Preview**: Preview generated html, css and javascript in a separate window
 - 🔍 **RAG Support**: Upload documents and attach these to characters, who can then use them for their conversations
+- 🛠️ **Tool Support**: Recently added tool support - currently Note, Email and Web Search - plan to add more and allow user-defined tools
 
 ## Roadmap
 
@@ -36,6 +37,9 @@ Try it out [here](https://compass-ai.chat/compass) (only for demo)
 - 📸 **Vision Integration**: Camera support for vision model capabilities
 - ⚙️ **Custom Filters**: Self-programmable filters and data processing pipes
 - 🗣️ **Text-to-Speech (TTS)**: Natural voice output for AI responses (currently only supports ElevenLabs)
+- 🛠️ **User defined Tools**: Allow users to write their own tools for their characters.
+- 🛠️ **Toolsmith**: Create tool to create tools, so AI characters can build new tools for you from the chat
+- 🧑‍💼 **Manager**: Create tool to create/modify character, so AI can manage characters for you from the chat
 
 # Installation 
 
