@@ -76,7 +76,9 @@ export function useTools() {
     if (!toolIds || toolIds.length === 0) return undefined;
     
     const tools = getTools();
-    const enabledTools = tools.filter(tool => tool.enabled);
+    console.log("Tools", tools);
+    console.log("ToolIds", toolIds);
+    const enabledTools = tools.filter(tool => tool.enabled && toolIds.includes(tool.id));
 
     let toolSet: ToolSet = {};
 

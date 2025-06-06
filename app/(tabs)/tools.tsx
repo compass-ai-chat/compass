@@ -18,18 +18,6 @@ import Tools from "@/src/components/tools/tools";
 import { CreateToolDto, Tool, UpdateToolDto } from "@/src/types/tools";
 import { useTools } from "@/src/hooks/useTools";
 export default function ToolsScreen() {
-  const router = useRouter();
-  const [characters, setCharacters] = useAtom(userCharactersAtom);
-  const dispatchThread = useSetAtom(threadActionsAtom);
-  const threads = useAtomValue(threadsAtom);
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(
-    null,
-  );
-  const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);
-  const [availableModels] = useAtom(availableModelsAtom);
-  const dispatchCharacters = useSetAtom(saveCustomPrompts);
-  const [availableDocuments] = useAtom(userDocumentsAtom);
-  const defaultThread = useAtomValue(defaultThreadAtom);
   const [userTools, setUserTools] = useAtom(userToolsAtom);
   const { getToolTypes } = useTools();
 
@@ -42,7 +30,9 @@ export default function ToolsScreen() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as Tool;
-    setUserTools([...userTools, newTool]);
+    await setUserTools([...userTools, newTool]);
+    console.log("New tool", newTool);
+    console.log("New usertools", userTools);
     return newTool.id;
   }
 
@@ -53,8 +43,7 @@ export default function ToolsScreen() {
       updatedTool.name = tool.name;
       updatedTool.description = tool.description;
       updatedTool.type = tool.type;
-      updatedTool.config = tool.config;
-      updatedTool.schema = tool.schema;
+      updatedTool.configValues = tool.configValues;
       updatedTool.enabled = tool.enabled ?? true;
       return true;
     }
