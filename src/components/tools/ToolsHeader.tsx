@@ -31,8 +31,8 @@ export function ToolsHeader({
             onPress={onListBlueprints}
             className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
           >
-            <Ionicons name="add" size={20} color="white" />
-            <Text className="text-white ml-2 font-medium">List Blueprints</Text>
+            <Ionicons name="library" size={20} color="white" />
+            <Text className="text-white ml-2 font-medium">Manage Blueprints</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onCreateBlueprint}

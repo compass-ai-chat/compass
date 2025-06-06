@@ -16,6 +16,7 @@ import { ToolsHeader } from "./ToolsHeader";
 import { ToolsList } from "./ToolsList";
 import { AddToolModal } from "./AddToolModal";
 import { EditToolModal } from "./EditToolModal";
+import { BlueprintManager } from "./BlueprintManager";
 
 interface ToolsProps {
   tools: Tool[];
@@ -30,6 +31,7 @@ export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdate
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
+  const [showBlueprintManager, setShowBlueprintManager] = useState(false);
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -272,7 +274,7 @@ return result;`;
             resetCreateForm();
             setShowCreateBlueprintModal(true);
           }}
-          onListBlueprints={printToolBlueprints}
+          onListBlueprints={() => setShowBlueprintManager(true)}
         />
 
         {isLoading ? (
@@ -325,6 +327,11 @@ return result;`;
         setCreateToolData={setCreateToolData}
         onCreateBlueprint={handleCreateToolBlueprint}
         extractSchemas={extractSchemas}
+      />
+
+      <BlueprintManager
+        isVisible={showBlueprintManager}
+        onClose={() => setShowBlueprintManager(false)}
       />
     </SafeAreaView>
   );
