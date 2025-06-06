@@ -11,6 +11,7 @@ import { useColorScheme } from "nativewind";
 import { z } from "zod";
 import { useTools } from "@/src/hooks/useTools";
 import { ToolRegistry } from "@/src/tools/registry";
+import { CreateBlueprintModal } from "./CreateBlueprintModal";
 
 interface ToolsProps {
   tools: Tool[];
@@ -312,7 +313,7 @@ return result;`;
                 resetCreateForm();
                 setShowCreateBlueprintModal(true);
               }}
-              className="bg-secondary px-4 py-2 rounded-lg flex-row items-center"
+              className="bg-blue-500 px-4 py-2 rounded-lg flex-row items-center"
             >
               <Ionicons name="code" size={20} color="white" />
               <Text className="text-white ml-2 font-medium">Create Blueprint</Text>
@@ -771,86 +772,16 @@ return result;`;
         </View>
       </Modal>
 
-      {/* Create Tool Modal */}
-      <Modal
+      {/* Create Blueprint Modal */}
+      <CreateBlueprintModal
         isVisible={showCreateBlueprintModal}
         onClose={() => setShowCreateBlueprintModal(false)}
-        className="w-3/4"
-      >
-        <View className="space-y-4 p-4">
-          <Text className="text-xl font-bold text-primary">Create New Blueprint</Text>
-          
-          <View>
-            <Text className="text-secondary mb-1">Name *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool name"
-              placeholderTextColor="#9CA3AF"
-              value={createToolData.name}
-              onChangeText={(text) => setCreateToolData({...createToolData, name: text})}
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Description *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool description"
-              placeholderTextColor="#9CA3AF"
-              value={createToolData.description}
-              onChangeText={(text) => setCreateToolData({...createToolData, description: text})}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
-
-          <View>
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="text-secondary">Implementation Code *</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  const { paramsSchema, configSchema } = extractSchemas(createToolData.code);
-                  toastService.info({
-                    title: "Inferred Schemas",
-                    description: `Parameters:\n${paramsSchema}\n\nConfig:\n${configSchema}`
-                  });
-                }}
-                className="bg-primary/10 px-3 py-1 rounded-lg"
-              >
-                <Text className="text-primary text-sm">Preview Schemas</Text>
-              </TouchableOpacity>
-            </View>
-            <View className="border border-border rounded-lg overflow-hidden">
-              <CodeEditor
-                value={createToolData.code}
-                onChangeText={(code: string) => setCreateToolData({...createToolData, code})}
-                language="typescript"
-                style={{ height: 300 }}
-                textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
-                inputClassName="h-full"
-              />
-            </View>
-          </View>
-
-          <View className="flex-row justify-end space-x-2 mt-4">
-            <TouchableOpacity
-              onPress={() => setShowCreateBlueprintModal(false)}
-              className="bg-surface border border-border px-4 py-2 rounded-lg"
-            >
-              <Text className="text-text">Cancel</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={handleCreateToolBlueprint}
-              className="bg-primary px-4 py-2 rounded-lg"
-              disabled={isLoading}
-            >
-              <Text className="text-white">Create Blueprint</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        isLoading={isLoading}
+        createToolData={createToolData}
+        setCreateToolData={setCreateToolData}
+        onCreateBlueprint={handleCreateToolBlueprint}
+        extractSchemas={extractSchemas}
+      />
     </SafeAreaView>
   );
 } 
