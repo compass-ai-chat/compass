@@ -12,6 +12,10 @@ import { z } from "zod";
 import { useTools } from "@/src/hooks/useTools";
 import { ToolRegistry } from "@/src/tools/registry";
 import { CreateBlueprintModal } from "./CreateBlueprintModal";
+import { ToolsHeader } from "./ToolsHeader";
+import { ToolsList } from "./ToolsList";
+import { AddToolModal } from "./AddToolModal";
+import { EditToolModal } from "./EditToolModal";
 
 interface ToolsProps {
   tools: Tool[];
@@ -190,39 +194,6 @@ return result;`;
     );
   });
 
-  const getToolTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'email':
-        return 'mail';
-      case 'search':
-        return 'search';
-      case 'websearch':
-        return 'search';
-      case 'database':
-        return 'server';
-      case 'api':
-        return 'code';
-      default:
-        return 'construct';
-    }
-  };
-
-  const formatJson = (json: Record<string, any>) => {
-    return JSON.stringify(json, null, 2);
-  };
-
-  const parseJsonSafely = (jsonString: string): Record<string, any> => {
-    try {
-      return JSON.parse(jsonString);
-    } catch (error) {
-      toastService.warning({ 
-        title: "Invalid JSON", 
-        description: "Please check your JSON format" 
-      });
-      return {};
-    }
-  };
-
   const handleCreateToolBlueprint = async () => {
     try {
       if (!createToolData.name || !createToolData.description || !createToolData.code) {
@@ -289,71 +260,20 @@ return result;`;
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 p-4">
-        <View className="flex-row justify-between items-center mb-4">
-          <View className="flex-row items-center">
-            <Ionicons
-              name="construct"
-              size={32}
-              className="!text-primary mr-2"
-            />
-            <Text className="text-2xl font-bold text-primary">Tools</Text>
-          </View>
-          <View className="flex-row space-x-2">
-            <TouchableOpacity
-              onPress={() => {
-                printToolBlueprints();
-              }}
-              className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
-            >
-              <Ionicons name="add" size={20} color="white" />
-              <Text className="text-white ml-2 font-medium">List Blueprints</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                resetCreateForm();
-                setShowCreateBlueprintModal(true);
-              }}
-              className="bg-blue-500 px-4 py-2 rounded-lg flex-row items-center"
-            >
-              <Ionicons name="code" size={20} color="white" />
-              <Text className="text-white ml-2 font-medium">Create Blueprint</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                resetForm();
-                setShowAddModal(true);
-              }}
-              className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
-            >
-              <Ionicons name="add" size={20} color="white" />
-              <Text className="text-white ml-2 font-medium">Add Tool</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View className="flex-row mb-4">
-          <View className="flex-1 bg-surface rounded-lg flex-row items-center px-3 py-2">
-            <Ionicons name="search" size={20} className="!text-secondary mr-2" />
-            <TextInput
-              className="flex-1 text-text outline-none"
-              placeholder="Search tools..."
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")}>
-                <Ionicons name="close-circle" size={20} className="!text-secondary" />
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity
-            onPress={onLoadTools}
-            className="ml-2 bg-surface p-2 rounded-lg"
-          >
-            <Ionicons name="refresh" size={24} className="!text-primary" />
-          </TouchableOpacity>
-        </View>
+        <ToolsHeader
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onRefresh={onLoadTools}
+          onAddTool={() => {
+            resetForm();
+            setShowAddModal(true);
+          }}
+          onCreateBlueprint={() => {
+            resetCreateForm();
+            setShowCreateBlueprintModal(true);
+          }}
+          onListBlueprints={printToolBlueprints}
+        />
 
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
@@ -361,418 +281,42 @@ return result;`;
           </View>
         ) : (
           <ScrollView className="flex-1">
-            <View className="bg-surface rounded-lg overflow-hidden">
-              <View className="flex-row bg-primary/10 p-3">
-                <Text className="font-medium text-primary w-10"></Text>
-                <Text className="font-medium text-primary flex-1">Name</Text>
-                <Text className="font-medium text-primary flex-1">Description</Text>
-                <Text className="font-medium text-primary w-24 text-center">Type</Text>
-                <Text className="font-medium text-primary w-20 text-center">Status</Text>
-                <Text className="font-medium text-primary w-24 text-center">Actions</Text>
-              </View>
-              
-              {filteredTools.length === 0 ? (
-                <View className="p-4 items-center">
-                  <Text className="text-secondary">No tools found</Text>
-                </View>
-              ) : (
-                filteredTools.map((tool, index) => (
-                  <View 
-                    key={tool.id} 
-                    className={`flex-row items-center p-3 border-b border-border ${index % 2 === 1 ? 'bg-surface/50' : ''}`}
-                  >
-                    <View className="w-10 items-center justify-center">
-                      <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
-                        <Ionicons 
-                          name={getToolTypeIcon(tool.type)} 
-                          size={16} 
-                          className="!text-primary" 
-                        />
-                      </View>
-                    </View>
-                    <Text className="flex-1 text-text font-medium">{tool.name}</Text>
-                    <Text className="flex-1 text-text text-sm" numberOfLines={2}>{tool.description}</Text>
-                    <View className="w-24 items-center">
-                      <View className="px-2 py-1 rounded-full bg-blue-100">
-                        <Text className="text-xs text-blue-800">
-                          {tool.type}
-                        </Text>
-                      </View>
-                    </View>
-                    <View className="w-20 items-center">
-                      <View className={`px-2 py-1 rounded-full ${tool.enabled ? 'bg-green-100' : 'bg-red-100'}`}>
-                        <Text className={`text-xs ${tool.enabled ? 'text-green-800' : 'text-red-800'}`}>
-                          {tool.enabled ? 'Enabled' : 'Disabled'}
-                        </Text>
-                      </View>
-                    </View>
-                    <View className="w-24 flex-row justify-center space-x-1">
-                      <TouchableOpacity 
-                        onPress={() => openEditModal(tool)}
-                        className="p-2 bg-primary/10 rounded-lg"
-                      >
-                        <Ionicons name="pencil" size={16} className="!text-primary" />
-                      </TouchableOpacity>
-                      
-                      <TouchableOpacity 
-                        onPress={() => handleDeleteTool(tool)}
-                        className="p-2 bg-red-100 rounded-lg"
-                      >
-                        <Ionicons name="trash" size={16} className="!text-red-800" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ))
-              )}
-            </View>
+            <ToolsList
+              tools={filteredTools}
+              onEditTool={openEditModal}
+              onDeleteTool={handleDeleteTool}
+            />
           </ScrollView>
         )}
       </View>
 
-      {/* Add Tool Modal */}
-      <Modal
+      <AddToolModal
         isVisible={showAddModal}
         onClose={() => setShowAddModal(false)}
-        className="w-2/3"
-      >
-        <View className="space-y-4 p-4">
-          <Text className="text-xl font-bold text-primary">Add New Tool</Text>
-          
-          <View>
-            <Text className="text-secondary mb-1">Name *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool name"
-              placeholderTextColor="#9CA3AF"
-              value={formData.name}
-              onChangeText={(text) => setFormData({...formData, name: text})}
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Description *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool description"
-              placeholderTextColor="#9CA3AF"
-              value={formData.description}
-              onChangeText={(text) => setFormData({...formData, description: text})}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Type *</Text>
-            <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolBlueprints).length > 0 ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {Object.keys(toolBlueprints).map((type) => (
-                    <TouchableOpacity
-                      key={type}
-                      onPress={() => {
-                        setFormData({
-                          ...formData, 
-                          type,
-                          configValues: {},
-                          paramsSchema: toolBlueprints[type].paramsSchema,
-                          configSchema: toolBlueprints[type].configSchema,
-                        });
-                      }}
-                      className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
-                    >
-                      <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
-                        {type}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : (
-                <TextInput
-                  className="text-text"
-                  placeholder="Tool type"
-                  value={formData.type}
-                  onChangeText={(text) => setFormData({...formData, type: text})}
-                />
-              )}
-            </View>
-          </View>
-          
-          {formData.type && toolBlueprints[formData.type]?.configSchema && (<View>
-            <Text className="text-secondary mb-1">Configuration</Text>
-            <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolBlueprints[formData.type].configSchema;
-                const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
-                const description = fieldConfig.description || '';
-                const isSecret = fieldConfig.type === 'password' || 
-                                key.toLowerCase().includes('secret') || 
-                                key.toLowerCase().includes('token');
-                
-                return (
-                  <View key={key}>
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="text-secondary">{key}</Text>
-                      {description && (
-                        <Text className="text-xs text-secondary/70 italic">{description}</Text>
-                      )}
-                    </View>
-                    <TextInput
-                      className="border border-border rounded-lg p-2 bg-surface text-text"
-                      placeholder={`Enter ${key}`}
-                      value={typeof (formData.configValues || {})[key] === 'string' ? (formData.configValues || {})[key] : ''}
-                      onChangeText={(text) => setFormData({
-                        ...formData, 
-                        configValues: {
-                          ...(formData.configValues || {}),
-                          [key]: text
-                        }
-                      })}
-                      secureTextEntry={isSecret}
-                    />
-                  </View>
-                );
-              })}
-              
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).length === 0 && (
-                <Text className="text-secondary italic p-2">No configuration fields available</Text>
-              )}
-            </View>
-          </View>) }
-          
-          {formData.type && (
-            <View>
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-secondary">Implementation</Text>
-                <TouchableOpacity
-                  onPress={() => setShowCodeEditor(!showCodeEditor)}
-                  className="flex-row items-center"
-                >
-                  <Text className="text-primary mr-2">
-                    {showCodeEditor ? 'Hide Code' : 'Show Code'}
-                  </Text>
-                  <Ionicons
-                    name={showCodeEditor ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    className="!text-primary"
-                  />
-                </TouchableOpacity>
-              </View>
+        isLoading={isLoading}
+        formData={formData}
+        setFormData={setFormData}
+        onAddTool={handleAddTool}
+        toolBlueprints={toolBlueprints}
+        showCodeEditor={showCodeEditor}
+        setShowCodeEditor={setShowCodeEditor}
+        defaultCodeTemplate={defaultCodeTemplate}
+      />
 
-              {showCodeEditor && (
-                <View className="border border-border rounded-lg overflow-hidden">
-                  <CodeEditor
-                    value={formData.code || defaultCodeTemplate}
-                    onChangeText={(code: string) => setFormData({ ...formData, code })}
-                    language="typescript"
-                    style={{ height: 256 }}
-                    textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
-                  />
-                </View>
-              )}
-            </View>
-          )}
-          
-          <View className="flex-row items-center justify-between">
-            <Text className="text-secondary">Enabled</Text>
-            <Switch
-              value={formData.enabled}
-              onValueChange={(value) => setFormData({...formData, enabled: value})}
-            />
-          </View>
-          
-          <View className="flex-row justify-end space-x-2 mt-4">
-            <TouchableOpacity
-              onPress={() => setShowAddModal(false)}
-              className="bg-surface border border-border px-4 py-2 rounded-lg"
-            >
-              <Text className="text-text">Cancel</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={handleAddTool}
-              className="bg-primary px-4 py-2 rounded-lg"
-              disabled={isLoading}
-            >
-              <Text className="text-white">Add Tool</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Edit Tool Modal */}
-      <Modal
-        className="w-2/3 p-4"
+      <EditToolModal
         isVisible={showEditModal}
         onClose={() => setShowEditModal(false)}
-      >
-        <View className="space-y-4">
-          <Text className="text-xl font-bold text-primary">Edit Tool</Text>
-          
-          <View>
-            <Text className="text-secondary mb-1">Name *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text"
-              placeholder="Tool name"
-              value={formData.name}
-              onChangeText={(text) => setFormData({...formData, name: text})}
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Description *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool description"
-              placeholderTextColor="#9CA3AF"
-              value={formData.description}
-              onChangeText={(text) => setFormData({...formData, description: text})}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Type *</Text>
-            <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolBlueprints).length > 0 ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {Object.keys(toolBlueprints).map((type) => (
-                    <TouchableOpacity
-                      key={type}
-                      onPress={() => {
-                        setFormData({
-                          ...formData, 
-                          type,
-                          configValues: {},
-                          paramsSchema: toolBlueprints[type].paramsSchema,
-                          configSchema: toolBlueprints[type].configSchema,
-                        });
-                      }}
-                      className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
-                    >
-                      <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
-                        {type}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : (
-                <TextInput
-                  className="text-text"
-                  placeholder="Tool type"
-                  value={formData.type}
-                  onChangeText={(text) => setFormData({...formData, type: text})}
-                />
-              )}
-            </View>
-          </View>
-          
-          {formData.type && toolBlueprints[formData.type]?.configSchema && (<View>
-            <Text className="text-secondary mb-1">Configuration</Text>
-            <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolBlueprints[formData.type].configSchema;
-                const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
-                const description = fieldConfig.description || '';
-                const isSecret = fieldConfig.type === 'password' || 
-                                key.toLowerCase().includes('secret') || 
-                                key.toLowerCase().includes('token');
-                
-                return (
-                  <View key={key}>
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="text-secondary">{key}</Text>
-                      {description && (
-                        <Text className="text-xs text-secondary/70 italic">{description}</Text>
-                      )}
-                    </View>
-                    <TextInput
-                      className="border border-border rounded-lg p-2 bg-surface text-text"
-                      placeholder={`Enter ${key}`}
-                      value={typeof (formData.configValues || {})[key] === 'string' ? (formData.configValues || {})[key] : ''}
-                      onChangeText={(text) => setFormData({
-                        ...formData, 
-                        configValues: {
-                          ...(formData.configValues || {}),
-                          [key]: text
-                        }
-                      })}
-                      secureTextEntry={isSecret}
-                    />
-                  </View>
-                );
-              })}
-              
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).length === 0 && (
-                <Text className="text-secondary italic p-2">No configuration fields available</Text>
-              )}
-            </View>
-          </View>) }
-          
-          {formData.type && (
-            <View>
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-secondary">Implementation</Text>
-                <TouchableOpacity
-                  onPress={() => setShowCodeEditor(!showCodeEditor)}
-                  className="flex-row items-center"
-                >
-                  <Text className="text-primary mr-2">
-                    {showCodeEditor ? 'Hide Code' : 'Show Code'}
-                  </Text>
-                  <Ionicons
-                    name={showCodeEditor ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    className="!text-primary"
-                  />
-                </TouchableOpacity>
-              </View>
+        isLoading={isLoading}
+        selectedTool={selectedTool}
+        formData={formData}
+        setFormData={setFormData}
+        onUpdateTool={handleUpdateTool}
+        toolBlueprints={toolBlueprints}
+        showCodeEditor={showCodeEditor}
+        setShowCodeEditor={setShowCodeEditor}
+        defaultCodeTemplate={defaultCodeTemplate}
+      />
 
-              {showCodeEditor && (
-                <View className="border border-border rounded-lg overflow-hidden">
-                  <CodeEditor
-                    value={formData.code || defaultCodeTemplate}
-                    onChangeText={(code: string) => setFormData({ ...formData, code })}
-                    language="typescript"
-                    style={{ height: 256 }}
-                    textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
-                  />
-                </View>
-              )}
-            </View>
-          )}
-          
-          <View className="flex-row items-center justify-between">
-            <Text className="text-secondary">Enabled</Text>
-            <Switch
-              value={formData.enabled}
-              onValueChange={(value) => setFormData({...formData, enabled: value})}
-            />
-          </View>
-          
-          <View className="flex-row justify-end space-x-2 mt-4">
-            <TouchableOpacity
-              onPress={() => setShowEditModal(false)}
-              className="bg-surface border border-border px-4 py-2 rounded-lg"
-            >
-              <Text className="text-text">Cancel</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={handleUpdateTool}
-              className="bg-primary px-4 py-2 rounded-lg"
-              disabled={isLoading}
-            >
-              <Text className="text-white">Save Changes</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Create Blueprint Modal */}
       <CreateBlueprintModal
         isVisible={showCreateBlueprintModal}
         onClose={() => setShowCreateBlueprintModal(false)}
