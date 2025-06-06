@@ -89,32 +89,6 @@ return result;`;
     configSchema: "z.object({\n  // Define your configuration here\n})",
   });
 
-  // Helper function to parse TypeScript function and extract parameter types
-  const extractSchemas = (code: string): { paramsSchema: string, configSchema: string } => {
-    try {
-      // Define default schemas
-      const defaultParamsSchema = `z.object({
-        title: z.string(),
-        count: z.number().optional()
-      })`;
-      
-      const defaultConfigSchema = `z.object({
-        apiKey: z.string()
-      })`;
-
-      return {
-        paramsSchema: defaultParamsSchema,
-        configSchema: defaultConfigSchema
-      };
-    } catch (error) {
-      console.error('Error parsing function:', error);
-      return {
-        paramsSchema: 'z.object({})',
-        configSchema: 'z.object({})'
-      };
-    }
-  };
-
   useEffect(() => {
     onLoadTools();
   }, []);
@@ -196,59 +170,6 @@ return result;`;
     );
   });
 
-  const handleCreateToolBlueprint = async () => {
-    try {
-      if (!createToolData.name || !createToolData.description || !createToolData.code) {
-        toastService.warning({ title: "Please fill all required fields" });
-        return;
-      }
-
-      console.log("Creating tool blueprint", createToolData);
-
-      // Extract schemas from the code
-      const { paramsSchema, configSchema } = extractSchemas(createToolData.code);
-
-      // Create a safe evaluation context with z
-      const evalContext = { z };
-      const evalWithContext = (code: string) => {
-        return new Function('z', `return ${code}`)(z);
-      };
-
-      // Create the tool with the extracted schemas
-      const newToolType = {
-        name: createToolData.name,
-        description: createToolData.description,
-        type: createToolData.name.toLowerCase().replace(/\s+/g, '_'),
-        enabled: true,
-        code: createToolData.code,
-        paramsSchema: evalWithContext(paramsSchema),
-        configSchema: evalWithContext(configSchema),
-      };
-
-      await registerToolBlueprint({
-        name: newToolType.name,
-        description: newToolType.description,
-        icon: 'code',
-        code: newToolType.code,
-        paramsSchema: newToolType.paramsSchema,
-        configSchema: newToolType.configSchema,
-      });
-
-      //const toolId = await onToolAdded(newToolType);
-      //if (toolId) {
-      setShowCreateBlueprintModal(false);
-      resetCreateForm();
-      toastService.success({ title: "Tool type created successfully" });
-      //}
-    } catch (error) {
-      console.error('Tool creation error:', error);
-      toastService.danger({ 
-        title: "Error creating tool", 
-        description: error instanceof Error ? error.message : "Invalid function definition" 
-      });
-    }
-  };
-
   const resetCreateForm = () => {
     setCreateToolData({
       name: "",
@@ -317,16 +238,6 @@ return result;`;
         showCodeEditor={showCodeEditor}
         setShowCodeEditor={setShowCodeEditor}
         defaultCodeTemplate={defaultCodeTemplate}
-      />
-
-      <CreateBlueprintModal
-        isVisible={showCreateBlueprintModal}
-        onClose={() => setShowCreateBlueprintModal(false)}
-        isLoading={isLoading}
-        createToolData={createToolData}
-        setCreateToolData={setCreateToolData}
-        onCreateBlueprint={handleCreateToolBlueprint}
-        extractSchemas={extractSchemas}
       />
 
       <BlueprintManager

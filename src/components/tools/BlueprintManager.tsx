@@ -9,6 +9,8 @@ import { useColorScheme } from 'nativewind';
 import CodeEditor from '@/src/components/ui/CodeEditor';
 import { toastService } from '@/src/services/toastService';
 import { DEFAULT_TOOLS } from '@/src/tools/registerTools';
+import { CreateBlueprintModal } from './CreateBlueprintModal';
+import { z } from 'zod';
 
 interface BlueprintManagerProps {
   isVisible: boolean;
@@ -18,6 +20,14 @@ interface BlueprintManagerProps {
 export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>(null);
+  const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
+  const [createToolData, setCreateToolData] = useState({
+    name: "",
+    description: "",
+    code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;",
+    paramsSchema: "z.object({\n  // Define your parameters here\n})",
+    configSchema: "z.object({\n  // Define your configuration here\n})",
+  });
   const [blueprintDefinitions] = useAtom(blueprintDefinitionsAtom);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -25,6 +35,46 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
 
   // Get built-in tool types
   const builtInTools = DEFAULT_TOOLS.map(tool => tool.type);
+
+  const handleCreateToolBlueprint = async () => {
+    try {
+      if (!createToolData.name || !createToolData.description || !createToolData.code) {
+        toastService.warning({ title: "Please fill all required fields" });
+        return;
+      }
+
+      // Create a safe evaluation context with z
+      const evalContext = { z };
+      const evalWithContext = (code: string) => {
+        return new Function('z', `return ${code}`)(z);
+      };
+
+      await registerToolBlueprint({
+        name: createToolData.name,
+        description: createToolData.description,
+        icon: 'code',
+        code: createToolData.code,
+        paramsSchema: evalWithContext(createToolData.paramsSchema),
+        configSchema: evalWithContext(createToolData.configSchema),
+      });
+
+      setShowCreateBlueprintModal(false);
+      setCreateToolData({
+        name: "",
+        description: "",
+        code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;",
+        paramsSchema: "z.object({\n  // Define your parameters here\n})",
+        configSchema: "z.object({\n  // Define your configuration here\n})",
+      });
+      toastService.success({ title: "Blueprint created successfully" });
+    } catch (error) {
+      console.error('Blueprint creation error:', error);
+      toastService.danger({ 
+        title: "Error creating blueprint", 
+        description: error instanceof Error ? error.message : "Invalid function definition" 
+      });
+    }
+  };
 
   const filteredBlueprints = Object.entries(blueprintDefinitions).filter(([name, definition]) => {
     const searchLower = searchQuery.toLowerCase();
@@ -54,12 +104,21 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
       <View className="flex-1 p-4">
         <View className="flex-row justify-between items-center mb-4">
           <Text className="text-2xl font-bold text-primary">Blueprint Manager</Text>
-          <TouchableOpacity
-            onPress={onClose}
-            className="p-2 rounded-full hover:bg-surface"
-          >
-            <Ionicons name="close" size={24} className="text-secondary" />
-          </TouchableOpacity>
+          <View className="flex-row space-x-2">
+            <TouchableOpacity
+              onPress={() => setShowCreateBlueprintModal(true)}
+              className="bg-primary px-3 py-2 rounded-lg flex-row items-center"
+            >
+              <Ionicons name="add" size={20} color="white" className="mr-1" />
+              <Text className="text-white">Create Blueprint</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onClose}
+              className="p-2 rounded-full hover:bg-surface"
+            >
+              <Ionicons name="close" size={24} className="text-secondary" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search bar */}
@@ -171,6 +230,19 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
             </View>
           </View>
         </ScrollView>
+
+        <CreateBlueprintModal
+          isVisible={showCreateBlueprintModal}
+          onClose={() => setShowCreateBlueprintModal(false)}
+          isLoading={false}
+          createToolData={createToolData}
+          setCreateToolData={setCreateToolData}
+          onCreateBlueprint={handleCreateToolBlueprint}
+          extractSchemas={(code: string) => ({
+            paramsSchema: createToolData.paramsSchema,
+            configSchema: createToolData.configSchema
+          })}
+        />
       </View>
     </Modal>
   );
