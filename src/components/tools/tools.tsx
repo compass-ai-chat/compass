@@ -36,6 +36,9 @@ export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdate
   const printToolBlueprints = async () => {
     const toolBlueprints = await getToolBlueprints();
     console.log(toolBlueprints);
+
+    const toolSchemas = await getToolSchemas(tools.map(tool => tool.id));
+    console.log(toolSchemas);
   }
 
   // Default code template

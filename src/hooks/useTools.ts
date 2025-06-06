@@ -55,7 +55,7 @@ export function useTools() {
     return DEFAULT_TOOLS;
   } 
 
-  const createTool = async (tool: Tool) => {
+  const createToolBlueprint = async (tool: Tool) => {
     console.log("Creating tool", tool);
     if (tool.type === 'dynamic') {
       await registerToolBlueprint({
@@ -105,17 +105,20 @@ export function useTools() {
     if (!toolIds || toolIds.length === 0) return undefined;
     
     const tools = getTools();
+    console.log("tools", tools);
     const enabledTools = tools.filter(tool => tool.enabled && toolIds.includes(tool.id));
 
+    console.log("enabledTools", enabledTools);
     let toolSet: ToolSet = {};
 
     for (const tool of enabledTools) {
       try {
-        const handler = toolBlueprints[tool.id];
+        const handler = toolBlueprints[tool.blueprintId];
         if (!handler) {
           console.error(`Tool handler for ${tool.name} not found`);
           continue;
         }
+        console.log("AddidsdJDJKng tool", tool.name);
 
         const paramsSchema = handler.getParamsSchema();
         const jsonSchema = zodSchemaToJsonSchema(paramsSchema);
@@ -283,7 +286,7 @@ export function useTools() {
   }
 
   return { 
-    createTool, 
+    createToolBlueprint, 
     updateTool, 
     deleteTool, 
     getTool, 

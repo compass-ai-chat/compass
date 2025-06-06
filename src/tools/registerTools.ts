@@ -9,6 +9,7 @@ export const DEFAULT_TOOLS: Tool[] = [
   {
     id: 'email',
     name: 'Email',
+    blueprintId: 'email',
     description: 'Send emails to recipients',
     type: 'email',
     enabled: true,
@@ -20,6 +21,7 @@ export const DEFAULT_TOOLS: Tool[] = [
   {
     id: 'note',
     name: 'Note',
+    blueprintId: 'note',
     description: 'Create and manage notes',
     type: 'note',
     enabled: true,
@@ -31,6 +33,7 @@ export const DEFAULT_TOOLS: Tool[] = [
   {
     id: 'websearch',
     name: 'Web Search',
+    blueprintId: 'websearch',
     description: 'Search the web for information',
     type: 'websearch',
     enabled: true,

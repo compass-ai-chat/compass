@@ -3,6 +3,7 @@ import { z } from 'zod';
 export interface Tool {
     id: string;
     name: string;
+    blueprintId: string;
     description: string;
     type: string;
     enabled: boolean;
