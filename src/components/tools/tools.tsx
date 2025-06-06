@@ -30,7 +30,6 @@ interface ToolsProps {
 export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdated, onToolDeleted, onLoadTools }: ToolsProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
   const [showBlueprintManager, setShowBlueprintManager] = useState(false);
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,15 +37,6 @@ export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdate
   const [showCodeEditor, setShowCodeEditor] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const {getToolSchemas, registerToolBlueprint, getToolBlueprints} = useTools();
-
-  const printToolBlueprints = async () => {
-    const toolBlueprints = await getToolBlueprints();
-    console.log(toolBlueprints);
-
-    const toolSchemas = await getToolSchemas(tools.map(tool => tool.id));
-    console.log(toolSchemas);
-  }
 
   // Default code template
   const defaultCodeTemplate = `// Tool implementation
@@ -72,21 +62,6 @@ return result;`;
     configValues: {},
     paramsSchema: undefined,
     configSchema: undefined,
-  });
-
-  // Form states for creating new tool types
-  const [createToolData, setCreateToolData] = useState<{
-    name: string;
-    description: string;
-    code: string;
-    paramsSchema: string;
-    configSchema: string;
-  }>({
-    name: "",
-    description: "",
-    code: defaultCodeTemplate,
-    paramsSchema: "z.object({\n  // Define your parameters here\n})",
-    configSchema: "z.object({\n  // Define your configuration here\n})",
   });
 
   useEffect(() => {
@@ -170,16 +145,6 @@ return result;`;
     );
   });
 
-  const resetCreateForm = () => {
-    setCreateToolData({
-      name: "",
-      description: "",
-      code: defaultCodeTemplate,
-      paramsSchema: "z.object({\n  // Define your parameters here\n})",
-      configSchema: "z.object({\n  // Define your configuration here\n})",
-    });
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 p-4">
@@ -190,10 +155,6 @@ return result;`;
           onAddTool={() => {
             resetForm();
             setShowAddModal(true);
-          }}
-          onCreateBlueprint={() => {
-            resetCreateForm();
-            setShowCreateBlueprintModal(true);
           }}
           onListBlueprints={() => setShowBlueprintManager(true)}
         />

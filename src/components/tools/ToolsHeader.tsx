@@ -7,7 +7,6 @@ interface ToolsHeaderProps {
   setSearchQuery: (query: string) => void;
   onRefresh: () => Promise<void>;
   onAddTool: () => void;
-  onCreateBlueprint: () => void;
   onListBlueprints: () => void;
 }
 
@@ -16,7 +15,6 @@ export function ToolsHeader({
   setSearchQuery,
   onRefresh,
   onAddTool,
-  onCreateBlueprint,
   onListBlueprints,
 }: ToolsHeaderProps) {
   return (
@@ -33,13 +31,6 @@ export function ToolsHeader({
           >
             <Ionicons name="library" size={20} color="white" />
             <Text className="text-white ml-2 font-medium">Manage Blueprints</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={onCreateBlueprint}
-            className="bg-blue-500 px-4 py-2 rounded-lg flex-row items-center"
-          >
-            <Ionicons name="code" size={20} color="white" />
-            <Text className="text-white ml-2 font-medium">Create Blueprint</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onAddTool}
