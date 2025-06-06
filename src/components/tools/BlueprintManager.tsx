@@ -141,7 +141,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                         </View>
                         <View className="flex-row space-x-2">
                           <TouchableOpacity
-                            onPress={() => setSelectedBlueprint(name)}
+                            onPress={() => selectedBlueprint === name ? setSelectedBlueprint(null) : setSelectedBlueprint(name)}
                             className="bg-primary px-3 py-1 rounded-lg"
                           >
                             <Text className="text-white">Edit</Text>
