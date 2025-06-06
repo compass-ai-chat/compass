@@ -1,25 +1,14 @@
 import { View, Platform } from "react-native";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  defaultThreadAtom,
-  currentIndexAtom,
-  threadActionsAtom,
-  threadsAtom,
-  saveCustomPrompts,
-  userCharactersAtom,
   userToolsAtom
 } from "@/src/hooks/atoms";
-import { Character } from "@/src/types/core";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { availableModelsAtom, userDocumentsAtom } from "@/src/hooks/atoms";
 import Tools from "@/src/components/tools/tools";
 import { CreateToolDto, Tool, UpdateToolDto } from "@/src/types/tools";
 import { useTools } from "@/src/hooks/useTools";
 export default function ToolsScreen() {
   const [userTools, setUserTools] = useAtom(userToolsAtom);
-  const { getToolTypes } = useTools();
+  const { getToolBlueprints } = useTools();
 
   const handleAddTool = async (tool: CreateToolDto) => {
     
@@ -60,7 +49,7 @@ export default function ToolsScreen() {
     <View className="flex-1 bg-background flex-row">
       <Tools
         tools={userTools}
-        toolTypes={getToolTypes()}
+        toolBlueprints={getToolBlueprints()}
         onToolAdded={handleAddTool}
         onToolUpdated={handleUpdateTool}
         onToolDeleted={handleDeleteTool}

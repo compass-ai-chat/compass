@@ -9,43 +9,48 @@ import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
 import { useColorScheme } from "nativewind";
 import { z } from "zod";
+import { useTools } from "@/src/hooks/useTools";
+import { ToolRegistry } from "@/src/tools/registry";
 
 interface ToolsProps {
   tools: Tool[];
-  toolTypes: Record<string, { paramsSchema: any; configSchema: any }>;
+  toolBlueprints: Record<string, { paramsSchema: any; configSchema: any }>;
   onToolAdded: (formData: CreateToolDto) => Promise<string>;
   onToolUpdated: (toolId: string, formData: UpdateToolDto) => Promise<boolean>;
   onToolDeleted: (toolId: string) => Promise<boolean>;
   onLoadTools: () => Promise<void>;
 }
 
-export default function Tools({ tools, toolTypes, onToolAdded, onToolUpdated, onToolDeleted, onLoadTools }: ToolsProps) {
+export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdated, onToolDeleted, onLoadTools }: ToolsProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCodeEditor, setShowCodeEditor] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const {getToolSchemas, registerToolBlueprint, getToolBlueprints} = useTools();
+
+  const printToolBlueprints = async () => {
+    const toolBlueprints = await getToolBlueprints();
+    console.log(toolBlueprints);
+  }
 
   // Default code template
   const defaultCodeTemplate = `// Tool implementation
 // Define your function parameters and config values using TypeScript types
 // The schema will be automatically generated from these types
 
-function main(params: {
-  // Add your parameter types here
-  title: string;
-  count?: number;
-}, configValues: {
-  // Add your configuration types here
-  apiKey: string;
-}) {
-  // Your implementation here
-  return \`Title: \${params.title}, Count: \${params.count || 0}, Using key: \${configValues.apiKey}\`;
-}`;
+// Your implementation here
+const result = {
+  title: params.title,
+  count: params.count || 0,
+  apiKey: configValues.apiKey
+};
+
+return result;`;
 
   // Form states for adding/editing tool instances
   const [formData, setFormData] = useState<CreateToolDto>({
@@ -77,34 +82,19 @@ function main(params: {
   // Helper function to parse TypeScript function and extract parameter types
   const extractSchemas = (code: string): { paramsSchema: string, configSchema: string } => {
     try {
-      // Basic regex to extract parameter types
-      // Note: This is a simple implementation - we might want to use a proper TS parser for production
-      const functionMatch = code.match(/function\s+main\s*\(\s*params\s*:\s*({[^}]+})\s*,\s*configValues\s*:\s*({[^}]+})\s*\)/s);
+      // Define default schemas
+      const defaultParamsSchema = `z.object({
+        title: z.string(),
+        count: z.number().optional()
+      })`;
       
-      if (!functionMatch) {
-        throw new Error("Could not find main function with correct signature");
-      }
-
-      const [_, paramsType, configType] = functionMatch;
-
-      // Convert TypeScript types to Zod schemas
-      const convertTypeToZod = (typeStr: string) => {
-        const properties = typeStr.match(/(\w+)\s*(\?)?:\s*(string|number|boolean)(?=\s*[,;}])/g) || [];
-        
-        const zodProperties = properties.map(prop => {
-          const [_, name, optional, type] = prop.match(/(\w+)\s*(\?)?:\s*(string|number|boolean)/) || [];
-          const zodType = type === 'string' ? 'string()' : 
-                         type === 'number' ? 'number()' : 
-                         'boolean()';
-          return `${name}: z.${zodType}${optional ? '.optional()' : ''}`;
-        });
-
-        return `z.object({\n  ${zodProperties.join(',\n  ')}\n})`;
-      };
+      const defaultConfigSchema = `z.object({
+        apiKey: z.string()
+      })`;
 
       return {
-        paramsSchema: convertTypeToZod(paramsType),
-        configSchema: convertTypeToZod(configType)
+        paramsSchema: defaultParamsSchema,
+        configSchema: defaultConfigSchema
       };
     } catch (error) {
       console.error('Error parsing function:', error);
@@ -229,12 +219,14 @@ function main(params: {
     }
   };
 
-  const handleCreateTool = async () => {
+  const handleCreateToolBlueprint = async () => {
     try {
       if (!createToolData.name || !createToolData.description || !createToolData.code) {
         toastService.warning({ title: "Please fill all required fields" });
         return;
       }
+
+      console.log("Creating tool blueprint", createToolData);
 
       // Extract schemas from the code
       const { paramsSchema, configSchema } = extractSchemas(createToolData.code);
@@ -256,12 +248,21 @@ function main(params: {
         configSchema: evalWithContext(configSchema),
       };
 
-      const toolId = await onToolAdded(newToolType);
-      if (toolId) {
-        setShowCreateModal(false);
-        resetCreateForm();
-        toastService.success({ title: "Tool type created successfully" });
-      }
+      await registerToolBlueprint({
+        name: newToolType.name,
+        description: newToolType.description,
+        icon: 'code',
+        code: newToolType.code,
+        paramsSchema: newToolType.paramsSchema,
+        configSchema: newToolType.configSchema,
+      });
+
+      //const toolId = await onToolAdded(newToolType);
+      //if (toolId) {
+      setShowCreateBlueprintModal(false);
+      resetCreateForm();
+      toastService.success({ title: "Tool type created successfully" });
+      //}
     } catch (error) {
       console.error('Tool creation error:', error);
       toastService.danger({ 
@@ -296,13 +297,22 @@ function main(params: {
           <View className="flex-row space-x-2">
             <TouchableOpacity
               onPress={() => {
+                printToolBlueprints();
+              }}
+              className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
+            >
+              <Ionicons name="add" size={20} color="white" />
+              <Text className="text-white ml-2 font-medium">List Blueprints</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
                 resetCreateForm();
-                setShowCreateModal(true);
+                setShowCreateBlueprintModal(true);
               }}
               className="bg-secondary px-4 py-2 rounded-lg flex-row items-center"
             >
               <Ionicons name="code" size={20} color="white" />
-              <Text className="text-white ml-2 font-medium">Create Tool</Text>
+              <Text className="text-white ml-2 font-medium">Create Blueprint</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
@@ -452,9 +462,9 @@ function main(params: {
           <View>
             <Text className="text-secondary mb-1">Type *</Text>
             <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolTypes).length > 0 ? (
+              {Object.keys(toolBlueprints).length > 0 ? (
                 <View className="flex-row flex-wrap gap-2">
-                  {Object.keys(toolTypes).map((type) => (
+                  {Object.keys(toolBlueprints).map((type) => (
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
@@ -462,8 +472,8 @@ function main(params: {
                           ...formData, 
                           type,
                           configValues: {},
-                          paramsSchema: toolTypes[type].paramsSchema,
-                          configSchema: toolTypes[type].configSchema,
+                          paramsSchema: toolBlueprints[type].paramsSchema,
+                          configSchema: toolBlueprints[type].configSchema,
                         });
                       }}
                       className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
@@ -485,11 +495,11 @@ function main(params: {
             </View>
           </View>
           
-          {formData.type && toolTypes[formData.type]?.configSchema && (<View>
+          {formData.type && toolBlueprints[formData.type]?.configSchema && (<View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolTypes[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolTypes[formData.type].configSchema;
+              {Object.keys(toolBlueprints[formData.type].configSchema || {}).slice(0, 5).map((key) => {
+                const schema = toolBlueprints[formData.type].configSchema;
                 const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
                 const description = fieldConfig.description || '';
                 const isSecret = fieldConfig.type === 'password' || 
@@ -521,7 +531,7 @@ function main(params: {
                 );
               })}
               
-              {Object.keys(toolTypes[formData.type].configSchema || {}).length === 0 && (
+              {Object.keys(toolBlueprints[formData.type].configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>
@@ -623,9 +633,9 @@ function main(params: {
           <View>
             <Text className="text-secondary mb-1">Type *</Text>
             <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolTypes).length > 0 ? (
+              {Object.keys(toolBlueprints).length > 0 ? (
                 <View className="flex-row flex-wrap gap-2">
-                  {Object.keys(toolTypes).map((type) => (
+                  {Object.keys(toolBlueprints).map((type) => (
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
@@ -633,8 +643,8 @@ function main(params: {
                           ...formData, 
                           type,
                           configValues: {},
-                          paramsSchema: toolTypes[type].paramsSchema,
-                          configSchema: toolTypes[type].configSchema,
+                          paramsSchema: toolBlueprints[type].paramsSchema,
+                          configSchema: toolBlueprints[type].configSchema,
                         });
                       }}
                       className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
@@ -656,11 +666,11 @@ function main(params: {
             </View>
           </View>
           
-          {formData.type && toolTypes[formData.type]?.configSchema && (<View>
+          {formData.type && toolBlueprints[formData.type]?.configSchema && (<View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolTypes[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolTypes[formData.type].configSchema;
+              {Object.keys(toolBlueprints[formData.type].configSchema || {}).slice(0, 5).map((key) => {
+                const schema = toolBlueprints[formData.type].configSchema;
                 const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
                 const description = fieldConfig.description || '';
                 const isSecret = fieldConfig.type === 'password' || 
@@ -692,7 +702,7 @@ function main(params: {
                 );
               })}
               
-              {Object.keys(toolTypes[formData.type].configSchema || {}).length === 0 && (
+              {Object.keys(toolBlueprints[formData.type].configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>
@@ -760,12 +770,12 @@ function main(params: {
 
       {/* Create Tool Modal */}
       <Modal
-        isVisible={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        isVisible={showCreateBlueprintModal}
+        onClose={() => setShowCreateBlueprintModal(false)}
         className="w-3/4"
       >
         <View className="space-y-4 p-4">
-          <Text className="text-xl font-bold text-primary">Create New Tool</Text>
+          <Text className="text-xl font-bold text-primary">Create New Blueprint</Text>
           
           <View>
             <Text className="text-secondary mb-1">Name *</Text>
@@ -815,24 +825,25 @@ function main(params: {
                 language="typescript"
                 style={{ height: 300 }}
                 textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+                inputClassName="h-full"
               />
             </View>
           </View>
 
           <View className="flex-row justify-end space-x-2 mt-4">
             <TouchableOpacity
-              onPress={() => setShowCreateModal(false)}
+              onPress={() => setShowCreateBlueprintModal(false)}
               className="bg-surface border border-border px-4 py-2 rounded-lg"
             >
               <Text className="text-text">Cancel</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              onPress={handleCreateTool}
+              onPress={handleCreateToolBlueprint}
               className="bg-primary px-4 py-2 rounded-lg"
               disabled={isLoading}
             >
-              <Text className="text-white">Create Tool</Text>
+              <Text className="text-white">Create Blueprint</Text>
             </TouchableOpacity>
           </View>
         </View>

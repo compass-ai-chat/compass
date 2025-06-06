@@ -9,6 +9,8 @@ interface CodeEditorProps {
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   readOnly?: boolean;
+  className?: string;
+  inputClassName?: string;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -18,6 +20,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   style,
   textStyle,
   readOnly = false,
+  className,
+  inputClassName,
 }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -33,7 +37,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, style]} className={`${className}`}>
       <TextInput
         value={text}
         onChangeText={handleChangeText}
@@ -48,7 +52,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         autoCorrect={false}
         spellCheck={false}
         textAlignVertical="top"
-        className="outline-none"
+        className={`outline-none ${inputClassName}`}
       />
     </View>
   );

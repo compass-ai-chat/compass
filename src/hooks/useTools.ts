@@ -1,14 +1,21 @@
 import { getDefaultStore, useAtom } from 'jotai';
 import { userToolsAtom } from './atoms';
 import { Tool } from '../types/tools';
-import { ToolRegistry } from '../tools/registry';
+import { ToolDefinition, ToolRegistry } from '../tools/registry';
 import { ToolSet } from 'ai';
 import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
-import { registerBuiltInTools } from '../tools/registerTools';
+import { DEFAULT_TOOLS } from '../tools/registerTools';
+import { ToolHandler } from '../tools/tool.interface';
+import { z } from 'zod';
+import { EmailToolService } from '../tools/email.tool';
+import { NoteToolService } from '../tools/note.tool';
+import { WebSearchService } from '../tools/websearch.tool';
+import { toolBlueprintsAtom, blueprintDefinitionsAtom } from './atoms';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
-  const registry = ToolRegistry.getInstance();
+  const [toolBlueprints, setToolBlueprints] = useAtom(toolBlueprintsAtom);
+  const [blueprintDefinitions, setBlueprintDefinitions] = useAtom(blueprintDefinitionsAtom);
 
   const initializeTools = async () => {
     try {
@@ -22,9 +29,36 @@ export function useTools() {
     }
   };
 
+  const registerBuiltInTools = async () => {
+    const handlers = {
+      email: new EmailToolService(),
+      note: new NoteToolService(),
+      websearch: new WebSearchService(),
+    };
+  
+    // Register handlers in the registry
+    for (const [type, handler] of Object.entries(handlers)) {
+      // First register the tool structure
+      await registerToolBlueprint({
+        name: type,
+        description: handler.getDescription(),
+        icon: handler.getIcon(),
+        code: '', // Built-in tools don't need code
+        paramsSchema: handler.getParamsSchema(),
+        configSchema: handler.getConfigSchema(),
+      });
+  
+      // Then set the actual executor
+      setToolExecutor(type, (params: any, configValues: any) => handler.execute(params, configValues));
+    }
+  
+    return DEFAULT_TOOLS;
+  } 
+
   const createTool = async (tool: Tool) => {
+    console.log("Creating tool", tool);
     if (tool.type === 'dynamic') {
-      await registry.registerTool({
+      await registerToolBlueprint({
         name: tool.id,
         description: tool.description,
         icon: tool.icon || 'code',
@@ -59,16 +93,11 @@ export function useTools() {
       throw new Error(`Tool not found`);
     }
 
-    const handler = registry.getTool(tool.id);
+    const handler = toolBlueprints[tool.id];
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
     }
-    console.log("Tool handler", handler);
-    console.log("Tool params", params);
-    console.log("Tool configValues", tool.configValues);
-    console.log("Tool name", tool.name);
     let result = await handler.execute(params, tool.configValues || {});
-    console.log("Tool result", result);
     return result;
   };
 
@@ -76,26 +105,27 @@ export function useTools() {
     if (!toolIds || toolIds.length === 0) return undefined;
     
     const tools = getTools();
-    console.log("Tools", tools);
-    console.log("ToolIds", toolIds);
     const enabledTools = tools.filter(tool => tool.enabled && toolIds.includes(tool.id));
 
     let toolSet: ToolSet = {};
 
     for (const tool of enabledTools) {
       try {
-        const handler = registry.getTool(tool.id);
-        if (!handler) continue;
+        const handler = toolBlueprints[tool.id];
+        if (!handler) {
+          console.error(`Tool handler for ${tool.name} not found`);
+          continue;
+        }
 
         const paramsSchema = handler.getParamsSchema();
         const jsonSchema = zodSchemaToJsonSchema(paramsSchema);
         
-        toolSet[tool.id] = {
+        toolSet[tool.name] = {
           description: tool.description,
           parameters: paramsSchema,
           execute: async (params: any) => {
-            console.log("Executing tool", tool.id, params);
-            return await executeTool(tool.id, params);
+            console.log("Executing tool", tool.name, params);
+            return await executeTool(tool.name, params);
           }
         };
       } catch (error) {
@@ -110,12 +140,12 @@ export function useTools() {
     return toolSet;
   }
 
-  const getToolTypes = () => {
+  const getToolBlueprints = () => {
     try {
       const toolTypes: Record<string, { paramsSchema: any; configSchema: any }> = {};
-      const allTools = registry.getAllTools();
+      console.log("toolBlueprints", toolBlueprints);
 
-      for (const [type, handler] of allTools.entries()) {
+      for (const [type, handler] of Object.entries(toolBlueprints)) {
         try {
           const paramsSchema = handler.getParamsSchema();
           const configSchema = handler.getConfigSchema();
@@ -140,6 +170,118 @@ export function useTools() {
     }
   }
 
+  const registerToolBlueprint = (definition: ToolDefinition) => {
+    try {
+
+      // Create a safe execution context
+      const context = {
+        z,
+        console,
+        fetch: globalThis.fetch,
+      };
+
+      // For built-in tools (no code), create a simple pass-through handler
+      if (!definition.code) {
+        const tool: ToolHandler = {
+          async execute(params: any, configValues: any) {
+            // This will be replaced by the actual handler
+            return undefined;
+          },
+          getParamsSchema() {
+            return definition.paramsSchema || z.object({});
+          },
+          getConfigSchema() {
+            return definition.configSchema || z.object({});
+          },
+          getIcon() {
+            return definition.icon;
+          },
+          getDescription() {
+            return definition.description;
+          }
+        };
+        setToolBlueprints(prevBlueprints => ({
+          ...prevBlueprints,
+          [definition.name]: tool
+        }));
+        setBlueprintDefinitions(prevDefinitions => ({
+          ...prevDefinitions,
+          [definition.name]: definition
+        }));
+        console.log("Registered tool blueprint", definition.name);
+        console.log("toolBlueprints", toolBlueprints);
+        console.log("blueprintDefinitions", blueprintDefinitions);
+        return;
+      }
+
+      // For dynamic tools, create a class with the provided code
+      const wrappedCode = `
+        return class DynamicTool {
+          async execute(params, configValues) {
+            try {
+              ${definition.code}
+            } catch (error) {
+              console.error('Tool execution error:', error);
+              throw error;
+            }
+          }
+
+          getParamsSchema() {
+            return ${serializeSchema(definition.paramsSchema)};
+          }
+
+          getConfigSchema() {
+            return ${serializeSchema(definition.configSchema)};
+          }
+
+          getIcon() {
+            return "${definition.icon}";
+          }
+
+          getDescription() {
+            return "${definition.description}";
+          }
+        }
+      `;
+
+      // Create the tool class
+      const ToolClass = new Function(...Object.keys(context), wrappedCode)
+        (...Object.values(context));
+
+      // Instantiate and register the tool
+      const tool = new ToolClass();
+
+      
+      // Validate that the schemas work
+      try {
+        tool.getParamsSchema();
+        tool.getConfigSchema();
+      } catch (error) {
+        throw new Error(`Invalid schema definition for tool ${definition.name}: ${error}`);
+      }
+
+      setToolBlueprints(prevBlueprints => ({
+        ...prevBlueprints,
+        [definition.name]: tool
+      }));
+      setBlueprintDefinitions(prevDefinitions => ({
+        ...prevDefinitions,
+        [definition.name]: definition
+      }));
+      console.log("Registered tool blueprint", definition.name);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw new Error(`Failed to register tool ${definition.name}: ${error}`);
+    }
+  }
+
+  const setToolExecutor = (name: string, executor: (params: any, configValues: any) => Promise<any>) => {
+    const tool = toolBlueprints[name];
+    if (tool) {
+      tool.execute = executor;
+    }
+  }
+
   return { 
     createTool, 
     updateTool, 
@@ -148,8 +290,36 @@ export function useTools() {
     getTools, 
     executeTool, 
     getToolSchemas, 
-    getToolTypes,
-    initializeTools 
+    getToolBlueprints,
+    initializeTools,
+    registerToolBlueprint,
+    setToolExecutor
   };
 }
 
+
+
+function serializeSchema(schema: z.ZodSchema | undefined): string {
+  if (!schema) return 'z.object({})';
+  
+  // Handle built-in Zod schemas
+  if (schema instanceof z.ZodObject) {
+    const shape = schema._def.shape();
+    const entries = Object.entries(shape).map(([key, value]) => {
+      return `${key}: ${serializeSchema(value as z.ZodSchema)}`;
+    });
+    return `z.object({${entries.join(',')}})`;
+  }
+  if (schema instanceof z.ZodString) return 'z.string()';
+  if (schema instanceof z.ZodNumber) return 'z.number()';
+  if (schema instanceof z.ZodBoolean) return 'z.boolean()';
+  if (schema instanceof z.ZodArray) {
+    return `z.array(${serializeSchema(schema._def.type)})`;
+  }
+  if (schema instanceof z.ZodOptional) {
+    return `${serializeSchema(schema._def.innerType)}.optional()`;
+  }
+  
+  // Fallback
+  return 'z.any()';
+}

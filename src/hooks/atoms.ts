@@ -19,6 +19,8 @@ import { toastService } from "@/src/services/toastService";
 import { DocumentService } from "../services/document/DocumentService";
 import { DropdownElement } from "@/src/components/ui/Dropdown";
 import { User } from "@/src/types/user";
+import { ToolHandler } from "../tools/tool.interface";
+import { ToolDefinition } from "../tools/registry";
 
 export const createDefaultThread = (name: string = "New thread"): Thread => {
   // Get the first custom prompt if available, otherwise use the first predefined prompt
@@ -576,3 +578,6 @@ export const userNotesAtom = atomWithAsyncStorage<Note[]>(
   "userNotes",
   [],
 );
+
+export const toolBlueprintsAtom = atom<Record<string, ToolHandler>>({});
+export const blueprintDefinitionsAtom = atom<Record<string, ToolDefinition>>({});

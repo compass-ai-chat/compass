@@ -3,8 +3,9 @@ import { EmailToolService } from './email.tool';
 import { NoteToolService } from './note.tool';
 import { WebSearchService } from './websearch.tool';
 import { Tool } from '../types/tools';
+import { useTools } from '../hooks/useTools';
 
-const DEFAULT_TOOLS: Tool[] = [
+export const DEFAULT_TOOLS: Tool[] = [
   {
     id: 'email',
     name: 'Email',
@@ -41,7 +42,7 @@ const DEFAULT_TOOLS: Tool[] = [
 ];
 
 export async function registerBuiltInTools() {
-  const registry = ToolRegistry.getInstance();
+  const {registerToolBlueprint, setToolExecutor} = useTools();
   const handlers = {
     email: new EmailToolService(),
     note: new NoteToolService(),
@@ -51,7 +52,7 @@ export async function registerBuiltInTools() {
   // Register handlers in the registry
   for (const [type, handler] of Object.entries(handlers)) {
     // First register the tool structure
-    await registry.registerTool({
+    await registerToolBlueprint({
       name: type,
       description: handler.getDescription(),
       icon: handler.getIcon(),
@@ -61,7 +62,7 @@ export async function registerBuiltInTools() {
     });
 
     // Then set the actual executor
-    registry.setToolExecutor(type, (params, configValues) => handler.execute(params, configValues));
+    setToolExecutor(type, (params: any, configValues: any) => handler.execute(params, configValues));
   }
 
   return DEFAULT_TOOLS;
