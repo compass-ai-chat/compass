@@ -185,9 +185,6 @@ return result;`;
         setFormData={setFormData}
         onUpdateTool={handleUpdateTool}
         toolBlueprint={selectedBlueprint!}
-        showCodeEditor={showCodeEditor}
-        setShowCodeEditor={setShowCodeEditor}
-        defaultCodeTemplate={defaultCodeTemplate}
       />
 
       <BlueprintManager
