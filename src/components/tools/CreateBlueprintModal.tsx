@@ -6,6 +6,7 @@ import CodeEditor from '@/src/components/ui/CodeEditor';
 import { toastService } from '@/src/services/toastService';
 import { Ionicons } from "@expo/vector-icons";
 import { IconSelector } from "@/src/components/character/IconSelector";
+import { extractSchemas } from '@/src/utils/codeAnalyzer';
 
 export interface CreateToolData {
   name: string;
@@ -23,7 +24,6 @@ interface CreateBlueprintModalProps {
   createToolData: CreateToolData;
   setCreateToolData: (data: CreateToolData) => void;
   onCreateBlueprint: () => Promise<void>;
-  extractSchemas: (code: string) => { paramsSchema: string; configSchema: string };
 }
 
 export function CreateBlueprintModal({
@@ -33,11 +33,20 @@ export function CreateBlueprintModal({
   createToolData,
   setCreateToolData,
   onCreateBlueprint,
-  extractSchemas,
 }: CreateBlueprintModalProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [showIconSelector, setShowIconSelector] = useState(false);
+
+  const handleCodeChange = (code: string) => {
+    const schemas = extractSchemas(code);
+    setCreateToolData({
+      ...createToolData,
+      code,
+      paramsSchema: schemas.paramsSchema,
+      configSchema: schemas.configSchema,
+    });
+  };
 
   return (
     <Modal
@@ -94,18 +103,11 @@ export function CreateBlueprintModal({
           <View className="border border-border rounded-lg overflow-hidden">
             <CodeEditor
               value={createToolData.code}
-              onChangeText={(code: string) => {
-                const schemas = extractSchemas(code);
-                setCreateToolData({
-                  ...createToolData,
-                  code,
-                  paramsSchema: schemas.paramsSchema,
-                  configSchema: schemas.configSchema,
-                });
-              }}
+              onChangeText={handleCodeChange}
               language="typescript"
-              style={{ height: 256 }}
+              style={{ height: 300 }}
               textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
+              className='h-full'
             />
           </View>
         </View>

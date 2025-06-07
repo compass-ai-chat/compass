@@ -13,6 +13,7 @@ import { CreateBlueprintModal } from './CreateBlueprintModal';
 import { z } from 'zod';
 import { CreateToolData } from './CreateBlueprintModal';
 import { ToolBlueprint } from '@/src/tools/tool.interface';
+import { extractSchemas } from '@/src/utils/codeAnalyzer';
 
 interface BlueprintManagerProps {
   isVisible: boolean;
@@ -26,7 +27,17 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const [createToolData, setCreateToolData] = useState<CreateToolData>({
     name: "",
     description: "",
-    code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;"
+    code: `// Tool implementation
+// Define your function parameters and config values using TypeScript types
+// The schema will be automatically generated from these types
+
+// params: { title: string, content: string }
+// configValues: {}
+async function execute(params, configValues) {
+  return \`Your title is: \${params.title} and your content is \${params.content}\`;
+}
+
+return execute(params, configValues);`
   });
   const [toolBlueprints] = useAtom(toolBlueprintsAtom);
   const { colorScheme } = useColorScheme();
@@ -49,20 +60,32 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
         return new Function('z', `return ${code}`)(z);
       };
 
+      const { paramsSchema, configSchema } = extractSchemas(createToolData.code);
+
       await registerToolBlueprint({
         name: createToolData.name,
         description: createToolData.description,
         icon: createToolData.icon || 'code',
         code: createToolData.code,
-        paramsSchema: createToolData.paramsSchema ? evalWithContext(createToolData.paramsSchema) : z.object({}),
-        configSchema: createToolData.configSchema ? evalWithContext(createToolData.configSchema) : z.object({}),
+        paramsSchema: evalWithContext(paramsSchema),
+        configSchema: evalWithContext(configSchema),
       });
 
       setShowCreateBlueprintModal(false);
       setCreateToolData({
         name: "",
         description: "",
-        code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;"
+        code: `// Tool implementation
+// Define your function parameters and config values using TypeScript types
+// The schema will be automatically generated from these types
+
+// params: { title: string, content: string }
+// configValues: {}
+async function execute(params, configValues) {
+  return \`Your title is: \${params.title} and your content is \${params.content}\`;
+}
+
+return execute(params, configValues);`
       });
       toastService.success({ title: "Blueprint created successfully" });
     } catch (error) {
@@ -84,9 +107,13 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
 
   const handleEditBlueprint = async (name: string, blueprint: ToolBlueprint) => {
     try {
+      const { paramsSchema, configSchema } = extractSchemas(blueprint.code || '');
+
       await registerToolBlueprint({
         ...blueprint,
         name,
+        paramsSchema: new Function('z', `return ${paramsSchema}`)(z),
+        configSchema: new Function('z', `return ${configSchema}`)(z),
       });
       toastService.success({ title: 'Blueprint updated successfully' });
     } catch (error) {
@@ -236,10 +263,6 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
           createToolData={createToolData}
           setCreateToolData={setCreateToolData}
           onCreateBlueprint={handleCreateToolBlueprint}
-          extractSchemas={(code: string) => ({
-            paramsSchema: "z.object({})",
-            configSchema: "z.object({})"
-          })}
         />
       </View>
     </Modal>

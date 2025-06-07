@@ -52,7 +52,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         autoCorrect={false}
         spellCheck={false}
         textAlignVertical="top"
-        className={`outline-none ${inputClassName}`}
+        className={`outline-none h-full ${inputClassName}`}
       />
     </View>
   );
