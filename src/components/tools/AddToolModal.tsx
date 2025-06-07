@@ -6,6 +6,7 @@ import { CreateToolDto } from "@/src/types/tools";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
 import { ToolBlueprint } from "@/src/tools/tool.interface";
+import { zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
 
 interface AddToolModalProps {
   isVisible: boolean;
@@ -34,7 +35,6 @@ export function AddToolModal({
 }: AddToolModalProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const [showIconSelector, setShowIconSelector] = useState(false);
 
   const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
 
@@ -45,11 +45,11 @@ export function AddToolModal({
       ...formData, 
       type: blueprint.name,
       configValues: {},
-      paramsSchema: blueprint.paramsSchema,
-      configSchema: blueprint.configSchema,
+      paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
+      configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
     });
 
-    console.log("blueprint.configSchema", blueprint.configSchema);
+    console.log("blueprint.configSchema", zodSchemaToJsonSchema(blueprint.configSchema));
   };
 
   return (
@@ -129,8 +129,8 @@ export function AddToolModal({
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(selectedBlueprint?.configSchema || {}).slice(0, 5).map((key) => {
-                const schema = selectedBlueprint?.configSchema;
+              {Object.keys(formData.configSchema || {}).slice(0, 5).map((key) => {
+                const schema = formData.configSchema;
                 const fieldConfig = typeof schema?.[key as keyof typeof schema] === 'object' ? schema?.[key as keyof typeof schema] : { type: 'string' };
                 const description = fieldConfig.description || '';
                 const isSecret = fieldConfig.type === 'password' || 

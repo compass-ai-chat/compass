@@ -2,28 +2,28 @@ import { z } from 'zod';
 
 // Helper method to convert Zod schema to a more readable format
 export function zodSchemaToJsonSchema(schema: z.ZodSchema) {
-    try {
-      // Try to extract the shape from the schema
-      if ('_def' in schema && schema._def && 'typeName' in schema._def) {
-        if (schema._def.typeName === 'ZodObject' && 'shape' in schema._def && typeof schema._def.shape === 'function') {
-          const shape = schema._def.shape();
-          const result = {} as any;
-          
-          for (const [key, fieldSchema] of Object.entries(shape)) {
-            result[key] = getZodFieldInfo(fieldSchema);
-          }
-          
-          return result;
+  try {
+    // Try to extract the shape from the schema
+    if ('_def' in schema && schema._def && 'typeName' in schema._def) {
+      if (schema._def.typeName === 'ZodObject' && 'shape' in schema._def && typeof schema._def.shape === 'function') {
+        const shape = schema._def.shape();
+        const result = {} as any;
+        
+        for (const [key, fieldSchema] of Object.entries(shape)) {
+          result[key] = getZodFieldInfo(fieldSchema);
         }
+        
+        return result;
       }
-      
-      // For non-object schemas, return a simplified type info
-      return getZodFieldInfo(schema);
-    } catch (error) {
-      console.error('Error converting Zod schema:', error);
-      return { type: 'unknown' };
     }
+    
+    // For non-object schemas, return a simplified type info
+    return getZodFieldInfo(schema);
+  } catch (error) {
+    console.error('Error converting Zod schema:', error);
+    return { type: 'unknown' };
   }
+}
 
 
 export function getZodFieldInfo(fieldSchema: any): any {
