@@ -20,7 +20,19 @@ export function useTools() {
       const defaultTools = await registerBuiltInTools();
       // Only initialize if no tools exist
       if (tools.length === 0) {
-        setTools(defaultTools.map((tool) => ({
+        // Filter out tools that have config options
+        const toolsWithoutConfig = defaultTools.filter(tool => {
+          const configSchema = tool.configSchema as z.ZodSchema;
+          if (!configSchema) return true;
+          
+          // Check if the config schema is an empty object
+          if (configSchema instanceof z.ZodObject) {
+            return Object.keys(configSchema._def.shape()).length === 0;
+          }
+          return false;
+        });
+
+        setTools(toolsWithoutConfig.map((tool) => ({
           ...tool,
           configSchema: zodSchemaToJsonSchema(tool.configSchema as z.ZodSchema),
           paramsSchema: zodSchemaToJsonSchema(tool.paramsSchema as z.ZodSchema),
