@@ -6,7 +6,7 @@ import CodeEditor from '@/src/components/ui/CodeEditor';
 import { toastService } from '@/src/services/toastService';
 import { Ionicons } from "@expo/vector-icons";
 import { IconSelector } from "@/src/components/character/IconSelector";
-import { extractSchemas } from '@/src/utils/codeAnalyzer';
+import { compileTypescript } from '@/src/utils/tsCompiler';
 
 export interface CreateToolData {
   name: string;
@@ -39,13 +39,17 @@ export function CreateBlueprintModal({
   const [showIconSelector, setShowIconSelector] = useState(false);
 
   const handleCodeChange = (code: string) => {
-    const schemas = extractSchemas(code);
-    setCreateToolData({
-      ...createToolData,
-      code,
-      paramsSchema: schemas.paramsSchema,
-      configSchema: schemas.configSchema,
-    });
+    try {
+      const { compiledCode, paramsSchema, configSchema } = compileTypescript(code);
+      setCreateToolData({
+        ...createToolData,
+        code,
+        paramsSchema,
+        configSchema,
+      });
+    } catch (error) {
+      console.error('Error compiling TypeScript:', error);
+    }
   };
 
   return (

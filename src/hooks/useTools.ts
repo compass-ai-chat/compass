@@ -98,14 +98,20 @@ export function useTools() {
       throw new Error(`Tool not found`);
     }
 
+    console.log("tool found", tool);
+
     const handler = Object.values(toolBlueprints).find(t => t.name === tool.blueprintId);
+    console.log("handler", handler);
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
     }
     if(!handler.execute){
       throw new Error(`Tool handler for ${tool.id} does not have an execute function`);
     }
+    
+    console.log("executing tool", handler.execute, typeof handler.execute);
     let result = await handler.execute(params, tool.configValues || {});
+    console.log("result", result);
     return result;
   };
 

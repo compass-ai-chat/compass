@@ -13,7 +13,7 @@ import { CreateBlueprintModal } from './CreateBlueprintModal';
 import { z } from 'zod';
 import { CreateToolData } from './CreateBlueprintModal';
 import { ToolBlueprint } from '@/src/tools/tool.interface';
-import { extractSchemas } from '@/src/utils/codeAnalyzer';
+import { compileTypescript } from '@/src/utils/tsCompiler';
 
 interface BlueprintManagerProps {
   isVisible: boolean;
@@ -54,19 +54,21 @@ return execute(params, configValues);`
         return;
       }
 
+      // Compile TypeScript code and extract schemas
+      const { compiledCode, paramsSchema, configSchema } = compileTypescript(createToolData.code);
+
+      console.log("compiledCode", compiledCode);
       // Create a safe evaluation context with z
       const evalContext = { z };
       const evalWithContext = (code: string) => {
         return new Function('z', `return ${code}`)(z);
       };
 
-      const { paramsSchema, configSchema } = extractSchemas(createToolData.code);
-
       await registerToolBlueprint({
         name: createToolData.name,
         description: createToolData.description,
         icon: createToolData.icon || 'code',
-        code: createToolData.code,
+        code: compiledCode, // Use the compiled JavaScript code
         paramsSchema: evalWithContext(paramsSchema),
         configSchema: evalWithContext(configSchema),
       });
@@ -76,12 +78,8 @@ return execute(params, configValues);`
         name: "",
         description: "",
         code: `// Tool implementation
-// Define your function parameters and config values using TypeScript types
-// The schema will be automatically generated from these types
-
-// params: { title: string, content: string }
-// configValues: {}
-async function execute(params, configValues) {
+// You can use TypeScript types for params and configValues
+async function execute(params: { title: string, content: string }, configValues: {}) {
   return \`Your title is: \${params.title} and your content is \${params.content}\`;
 }
 
@@ -107,11 +105,12 @@ return execute(params, configValues);`
 
   const handleEditBlueprint = async (name: string, blueprint: ToolBlueprint) => {
     try {
-      const { paramsSchema, configSchema } = extractSchemas(blueprint.code || '');
+      const { compiledCode, paramsSchema, configSchema } = compileTypescript(blueprint.code || '');
 
       await registerToolBlueprint({
         ...blueprint,
         name,
+        code: compiledCode,
         paramsSchema: new Function('z', `return ${paramsSchema}`)(z),
         configSchema: new Function('z', `return ${configSchema}`)(z),
       });
