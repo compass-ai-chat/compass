@@ -98,7 +98,7 @@ export function useTools() {
       throw new Error(`Tool not found`);
     }
 
-    const handler = toolBlueprints[tool.id];
+    const handler = Object.values(toolBlueprints).find(t => t.name === tool.blueprintId);
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
     }

@@ -30,7 +30,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
     setResponse(null);
     
     try {
-      const result = await executeTool(tool.blueprintId, params);
+      const result = await executeTool(tool.id, params);
       setResponse(result);
       setIsError(false);
     } catch (error) {
