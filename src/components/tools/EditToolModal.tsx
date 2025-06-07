@@ -112,12 +112,12 @@ export function EditToolModal({
           </View>
         </View>
         
-        {formData.type && toolBlueprint?.configSchema && (
+        {formData.type && formData.configSchema && (
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolBlueprint.configSchema || {}).slice(0, 5).map((key) => {
-                const fieldConfig = typeof toolBlueprint.configSchema?.[key as keyof typeof toolBlueprint.configSchema] === 'object' ? toolBlueprint.configSchema?.[key as keyof typeof toolBlueprint.configSchema] : { type: 'string' };
+              {Object.keys(formData.configSchema || {}).slice(0, 5).map((key) => {
+                const fieldConfig = typeof formData.configSchema?.[key as keyof typeof formData.configSchema] === 'object' ? formData.configSchema?.[key as keyof typeof formData.configSchema] : { type: 'string' };
                 const description = fieldConfig.description || '';
                 const isSecret = fieldConfig.type === 'password' || 
                                 key.toLowerCase().includes('secret') || 
@@ -148,7 +148,7 @@ export function EditToolModal({
                 );
               })}
               
-              {Object.keys(toolBlueprint.configSchema || {}).length === 0 && (
+              {Object.keys(formData.configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>
