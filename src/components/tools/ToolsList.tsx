@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Tool } from "@/src/types/tools";
+import { TestToolModal } from "./TestToolModal";
 
 interface ToolsListProps {
   tools: Tool[];
@@ -10,6 +11,13 @@ interface ToolsListProps {
 }
 
 export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+  const [showTestModal, setShowTestModal] = useState(false);
+
+  const handleTestTool = (tool: Tool) => {
+    setSelectedTool(tool);
+    setShowTestModal(true);
+  };
 
   return (
     <View className="bg-surface rounded-lg overflow-hidden">
@@ -19,7 +27,7 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
         <Text className="font-medium text-primary flex-1">Description</Text>
         <Text className="font-medium text-primary w-24 text-center">Type</Text>
         <Text className="font-medium text-primary w-20 text-center">Status</Text>
-        <Text className="font-medium text-primary w-24 text-center">Actions</Text>
+        <Text className="font-medium text-primary w-32 text-center">Actions</Text>
       </View>
       
       {tools.length === 0 ? (
@@ -57,7 +65,14 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
                 </Text>
               </View>
             </View>
-            <View className="w-24 flex-row justify-center space-x-1">
+            <View className="w-32 flex-row justify-center space-x-1">
+              <TouchableOpacity 
+                onPress={() => handleTestTool(tool)}
+                className="p-2 bg-blue-100 rounded-lg"
+              >
+                <Ionicons name="play" size={16} className="!text-blue-800" />
+              </TouchableOpacity>
+              
               <TouchableOpacity 
                 onPress={() => onEditTool(tool)}
                 className="p-2 bg-primary/10 rounded-lg"
@@ -75,6 +90,15 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
           </View>
         ))
       )}
+
+      <TestToolModal
+        isVisible={showTestModal}
+        onClose={() => {
+          setShowTestModal(false);
+          setSelectedTool(null);
+        }}
+        tool={selectedTool}
+      />
     </View>
   );
 } 

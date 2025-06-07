@@ -214,7 +214,8 @@ export function useTools() {
     getToolBlueprints,
     initializeTools,
     registerToolBlueprint,
-    setToolExecutor
+    setToolExecutor,
+    executeTool
   };
 }
 
