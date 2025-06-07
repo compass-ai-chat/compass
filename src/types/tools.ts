@@ -20,6 +20,7 @@ export interface Tool {
     description: string;
     type: string;
     enabled?: boolean;
+    icon?: string;
     code?: string;
     configValues?: Record<string, any>;
     paramsSchema?: z.ZodSchema;

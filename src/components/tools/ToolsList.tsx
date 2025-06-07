@@ -10,21 +10,26 @@ interface ToolsListProps {
 }
 
 export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
-  const getToolTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'email':
-        return 'mail';
-      case 'search':
-        return 'search';
-      case 'websearch':
-        return 'search';
-      case 'database':
-        return 'server';
-      case 'api':
-        return 'code';
-      default:
-        return 'construct';
-    }
+  const getToolTypeIcon = (tool: Tool): string => {
+    if (tool.icon) return tool.icon;
+
+    const iconMap: Record<string, string> = {
+      email: 'mail',
+      search: 'search',
+      websearch: 'search',
+      database: 'server',
+      api: 'code',
+      weather: 'cloudy',
+      calendar: 'calendar',
+      calculator: 'calculator',
+      browser: 'globe',
+      code: 'code-slash',
+      file: 'document',
+      image: 'image',
+      note: 'pencil',
+    };
+
+    return iconMap[tool.type.toLowerCase()] || 'construct';
   };
 
   return (
@@ -51,7 +56,7 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
             <View className="w-10 items-center justify-center">
               <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
                 <Ionicons 
-                  name={getToolTypeIcon(tool.type)} 
+                  name={getToolTypeIcon(tool) as any} 
                   size={16} 
                   className="!text-primary" 
                 />

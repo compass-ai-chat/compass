@@ -11,6 +11,7 @@ import { toastService } from '@/src/services/toastService';
 import { DEFAULT_TOOLS } from '@/src/tools/registerTools';
 import { CreateBlueprintModal } from './CreateBlueprintModal';
 import { z } from 'zod';
+import { CreateToolData } from './CreateBlueprintModal';
 
 interface BlueprintManagerProps {
   isVisible: boolean;
@@ -21,12 +22,10 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>(null);
   const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
-  const [createToolData, setCreateToolData] = useState({
+  const [createToolData, setCreateToolData] = useState<CreateToolData>({
     name: "",
     description: "",
-    code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;",
-    paramsSchema: "z.object({\n  // Define your parameters here\n})",
-    configSchema: "z.object({\n  // Define your configuration here\n})",
+    code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;"
   });
   const [blueprintDefinitions] = useAtom(blueprintDefinitionsAtom);
   const { colorScheme } = useColorScheme();
@@ -52,19 +51,17 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
       await registerToolBlueprint({
         name: createToolData.name,
         description: createToolData.description,
-        icon: 'code',
+        icon: createToolData.icon || 'code',
         code: createToolData.code,
-        paramsSchema: evalWithContext(createToolData.paramsSchema),
-        configSchema: evalWithContext(createToolData.configSchema),
+        paramsSchema: createToolData.paramsSchema ? evalWithContext(createToolData.paramsSchema) : z.object({}),
+        configSchema: createToolData.configSchema ? evalWithContext(createToolData.configSchema) : z.object({}),
       });
 
       setShowCreateBlueprintModal(false);
       setCreateToolData({
         name: "",
         description: "",
-        code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;",
-        paramsSchema: "z.object({\n  // Define your parameters here\n})",
-        configSchema: "z.object({\n  // Define your configuration here\n})",
+        code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;"
       });
       toastService.success({ title: "Blueprint created successfully" });
     } catch (error) {
@@ -239,8 +236,8 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
           setCreateToolData={setCreateToolData}
           onCreateBlueprint={handleCreateToolBlueprint}
           extractSchemas={(code: string) => ({
-            paramsSchema: createToolData.paramsSchema,
-            configSchema: createToolData.configSchema
+            paramsSchema: "z.object({})",
+            configSchema: "z.object({})"
           })}
         />
       </View>

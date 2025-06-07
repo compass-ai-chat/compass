@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, Switch } from "react-native";
 import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
 import { Tool, UpdateToolDto } from "@/src/types/tools";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
+import { IconSelector } from "@/src/components/character/IconSelector";
 
 interface EditToolModalProps {
   isVisible: boolean;
@@ -19,6 +20,26 @@ interface EditToolModalProps {
   setShowCodeEditor: (show: boolean) => void;
   defaultCodeTemplate: string;
 }
+
+// Map tool types to appropriate Ionicons
+const getIconForToolType = (type: string): string => {
+  const iconMap: Record<string, string> = {
+    email: "mail",
+    search: "search",
+    weather: "cloudy",
+    calendar: "calendar",
+    calculator: "calculator",
+    browser: "globe",
+    code: "code-slash",
+    database: "server",
+    file: "document",
+    image: "image",
+    note: "pencil",
+    // Add more mappings as needed
+  };
+
+  return iconMap[type.toLowerCase()] || "construct"; // Default to a generic tool icon
+};
 
 export function EditToolModal({
   isVisible,
@@ -35,26 +56,44 @@ export function EditToolModal({
 }: EditToolModalProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const [showIconSelector, setShowIconSelector] = useState(false);
 
   if (!selectedTool) return null;
 
   return (
     <Modal
-      className="w-2/3 p-4"
       isVisible={isVisible}
       onClose={onClose}
+      className="w-2/3"
     >
-      <View className="space-y-4">
+      <View className="space-y-4 p-4">
         <Text className="text-xl font-bold text-primary">Edit Tool</Text>
         
-        <View>
-          <Text className="text-secondary mb-1">Name *</Text>
-          <TextInput
-            className="border border-border rounded-lg p-2 bg-surface text-text"
-            placeholder="Tool name"
-            value={formData.name}
-            onChangeText={(text) => setFormData({...formData, name: text})}
-          />
+        <View className="flex-row items-start space-x-4">
+          <View className="flex-1">
+            <Text className="text-secondary mb-1">Name *</Text>
+            <TextInput
+              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
+              placeholder="Tool name"
+              placeholderTextColor="#9CA3AF"
+              value={formData.name}
+              onChangeText={(text) => setFormData({...formData, name: text})}
+            />
+          </View>
+          
+          <View className="items-center">
+            <Text className="text-secondary mb-1">Icon</Text>
+            <TouchableOpacity
+              onPress={() => setShowIconSelector(true)}
+              className="w-[60px] h-[60px] rounded-full bg-primary items-center justify-center hover:opacity-80"
+            >
+              <Ionicons
+                name={formData.icon as any}
+                size={32}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View>
@@ -88,8 +127,14 @@ export function EditToolModal({
                         configSchema: toolBlueprints[type].configSchema,
                       });
                     }}
-                    className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
                   >
+                    <Ionicons
+                      name={getIconForToolType(type) as any}
+                      size={20}
+                      color={formData.type === type ? 'white' : '#6366F1'}
+                      className="mr-2"
+                    />
                     <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
                       {type}
                     </Text>
@@ -209,6 +254,16 @@ export function EditToolModal({
           </TouchableOpacity>
         </View>
       </View>
+
+      <IconSelector
+        isVisible={showIconSelector}
+        onClose={() => setShowIconSelector(false)}
+        onSelect={(iconName) => {
+          setFormData({ ...formData, icon: iconName });
+          setShowIconSelector(false);
+        }}
+        currentIcon={formData.icon}
+      />
     </Modal>
   );
 } 

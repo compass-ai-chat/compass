@@ -11,7 +11,6 @@ export default function ToolsScreen() {
   const { getToolBlueprints } = useTools();
 
   const handleAddTool = async (tool: CreateToolDto) => {
-    
     // create a new tool with the same name as the tool
     console.log("Adding tool", tool);
     const newTool = {
@@ -21,24 +20,36 @@ export default function ToolsScreen() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as Tool;
-    await setUserTools([...userTools, newTool]);
+    
+    // Update userTools state
+    const updatedTools = [...userTools, newTool];
+    await setUserTools(updatedTools);
+    
     console.log("New tool", newTool);
-    console.log("New usertools", userTools);
+    console.log("New usertools", updatedTools);
     return newTool.id;
   }
 
   const handleUpdateTool = async (toolId: string, tool: UpdateToolDto) => {
-    // update the tool with the same id
-    const updatedTool = userTools.find(t => t.id === toolId);
-    if (updatedTool) {
-      updatedTool.name = tool.name;
-      updatedTool.description = tool.description;
-      updatedTool.type = tool.type;
-      updatedTool.configValues = tool.configValues;
-      updatedTool.enabled = tool.enabled ?? true;
-      return true;
-    }
-    return false;
+    // Create a new array with the updated tool
+    const updatedTools = userTools.map(t => {
+      if (t.id === toolId) {
+        return {
+          ...t,
+          name: tool.name,
+          description: tool.description,
+          type: tool.type,
+          configValues: tool.configValues,
+          enabled: tool.enabled ?? true,
+          icon: tool.icon,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return t;
+    });
+
+    await setUserTools(updatedTools);
+    return true;
   }
 
   const handleDeleteTool = async (toolId: string) => {

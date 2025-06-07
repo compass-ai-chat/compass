@@ -1,17 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Switch, Image } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAtom } from "jotai";
-import { Ionicons } from "@expo/vector-icons";
 import { toastService } from "@/src/services/toastService";
 import { Tool, CreateToolDto, UpdateToolDto } from "@/src/types/tools";
-import { Modal } from "@/src/components/ui/Modal";
-import CodeEditor from "@/src/components/ui/CodeEditor";
-import { useColorScheme } from "nativewind";
-import { z } from "zod";
-import { useTools } from "@/src/hooks/useTools";
-import { ToolRegistry } from "@/src/tools/registry";
-import { CreateBlueprintModal } from "./CreateBlueprintModal";
 import { ToolsHeader } from "./ToolsHeader";
 import { ToolsList } from "./ToolsList";
 import { AddToolModal } from "./AddToolModal";
@@ -35,8 +26,6 @@ export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdate
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCodeEditor, setShowCodeEditor] = useState(false);
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
   // Default code template
   const defaultCodeTemplate = `// Tool implementation

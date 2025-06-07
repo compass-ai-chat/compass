@@ -20,7 +20,9 @@ export function ToolSelector({
   const { t } = useLocalization();
 
   // Map tool types to appropriate Ionicons
-  const getIconForToolType = (type: string): string => {
+  const getIconForToolType = (tool: Tool): string => {
+    if (tool.icon) return tool.icon;
+
     const iconMap: Record<string, string> = {
       email: "mail-outline",
       search: "search-outline",
@@ -36,7 +38,7 @@ export function ToolSelector({
       // Add more mappings as needed
     };
 
-    return iconMap[type.toLowerCase()] || "construct-outline"; // Default to a generic tool icon
+    return iconMap[tool.type.toLowerCase()] || "construct-outline"; // Default to a generic tool icon
   };
 
   if (!tools || tools.length === 0) {
@@ -69,7 +71,7 @@ export function ToolSelector({
             >
               <View className={`w-10 h-10 rounded-full ${isSelected ? "bg-primary" : "bg-primary/20"} items-center justify-center mr-3`}>
                 <Ionicons
-                  name={getIconForToolType(item.type) as any}
+                  name={item.icon as any}
                   size={20}
                   className={`${isSelected ? "!text-white" : "!text-text"}`}
                 />
