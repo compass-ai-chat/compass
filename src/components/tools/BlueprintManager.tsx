@@ -93,10 +93,10 @@ return execute(params, configValues);`
     }
   };
 
-  const filteredBlueprints = Object.entries(toolBlueprints).filter(([name, blueprint]) => {
+  const filteredBlueprints = toolBlueprints.filter((blueprint: ToolBlueprint) => {
     const searchLower = searchQuery.toLowerCase();
     return (
-      name.toLowerCase().includes(searchLower) ||
+      blueprint.name.toLowerCase().includes(searchLower) ||
       blueprint.description.toLowerCase().includes(searchLower)
     );
   });
@@ -170,10 +170,10 @@ return execute(params, configValues);`
               <Text className="text-lg font-semibold text-primary mb-2">Built-in Blueprints</Text>
               <View className="space-y-2">
                 {filteredBlueprints
-                  .filter(([name]) => builtInTools.includes(name))
-                  .map(([name, blueprint]) => (
+                  .filter((blueprint: ToolBlueprint) => builtInTools.includes(blueprint.name))
+                  .map((blueprint: ToolBlueprint) => (
                     <View
-                      key={name}
+                      key={blueprint.name}
                       className="bg-surface p-4 rounded-lg border border-border"
                     >
                       <View className="flex-row justify-between items-center">
@@ -184,7 +184,7 @@ return execute(params, configValues);`
                             className="text-primary mr-2"
                           />
                           <View>
-                            <Text className="text-lg font-medium text-text">{name}</Text>
+                            <Text className="text-lg font-medium text-text">{blueprint.name}</Text>
                             <Text className="text-secondary">{blueprint.description}</Text>
                           </View>
                         </View>
@@ -202,10 +202,10 @@ return execute(params, configValues);`
               <Text className="text-lg font-semibold text-primary mb-2">User-defined Blueprints</Text>
               <View className="space-y-2">
                 {filteredBlueprints
-                  .filter(([name]) => !builtInTools.includes(name))
-                  .map(([name, blueprint]) => (
+                  .filter((blueprint: ToolBlueprint) => !builtInTools.includes(blueprint.name))
+                  .map((blueprint: ToolBlueprint) => (
                     <View
-                      key={name}
+                      key={blueprint.name}
                       className="bg-surface p-4 rounded-lg border border-border"
                     >
                       <View className="flex-row justify-between items-center">
@@ -216,13 +216,13 @@ return execute(params, configValues);`
                             className="text-primary mr-2"
                           />
                           <View>
-                            <Text className="text-lg font-medium text-text">{name}</Text>
+                            <Text className="text-lg font-medium text-text">{blueprint.name}</Text>
                             <Text className="text-secondary">{blueprint.description}</Text>
                           </View>
                         </View>
                         <View className="flex-row space-x-2">
                           <TouchableOpacity
-                            onPress={() => selectedBlueprint === name ? setSelectedBlueprint(null) : setSelectedBlueprint(name)}
+                            onPress={() => selectedBlueprint === blueprint.name ? setSelectedBlueprint(null) : setSelectedBlueprint(blueprint.name)}
                             className="bg-primary px-3 py-1 rounded-lg"
                           >
                             <Text className="text-white">Edit</Text>
@@ -230,13 +230,13 @@ return execute(params, configValues);`
                         </View>
                       </View>
 
-                      {selectedBlueprint === name && (
+                      {selectedBlueprint === blueprint.name && (
                         <View className="mt-4">
                           <View className="border border-primary rounded-lg overflow-hidden h-full">
                             <CodeEditor
                               value={blueprint.code || ''}
                               onChangeText={(code: string) =>
-                                handleEditBlueprint(name, { ...blueprint, code })
+                                handleEditBlueprint(blueprint.name, { ...blueprint, code })
                               }
                               language="typescript"
                               style={{ height: 800 }}

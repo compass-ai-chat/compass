@@ -579,4 +579,4 @@ export const userNotesAtom = atomWithAsyncStorage<Note[]>(
   [],
 );
 
-export const toolBlueprintsAtom = atom<Record<string, ToolBlueprint>>({});
+export const toolBlueprintsAtom = atom<ToolBlueprint[]>([]);

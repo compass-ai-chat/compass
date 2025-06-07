@@ -100,7 +100,7 @@ export function useTools() {
 
     console.log("tool found", tool);
 
-    const handler = Object.values(toolBlueprints).find(t => t.name === tool.blueprintId);
+    const handler = toolBlueprints.find(t => t.name === tool.blueprintId);
     console.log("handler", handler);
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
@@ -124,9 +124,9 @@ export function useTools() {
 
     for (const tool of filteredTools) {
       try {
-        const blueprint = toolBlueprints[tool.blueprintId]
+        const blueprint = toolBlueprints.find(t => t.name === tool.blueprintId);
 
-        if(!blueprint.execute){
+        if(!blueprint?.execute){
           console.error("Missing execute function for tool", tool.name);
           continue;
         }
@@ -153,7 +153,7 @@ export function useTools() {
 
   const getToolBlueprints = () : ToolBlueprint[] => {
     try {
-      return Object.values(toolBlueprints);
+      return toolBlueprints;
     } catch (error) {
       console.error('Error in getToolBlueprints:', error);
       return [];
@@ -165,10 +165,7 @@ export function useTools() {
 
       if (!blueprint.code) {
         // Built-in tool registration
-        setToolBlueprints(prev => ({
-          ...prev,
-          [blueprint.name]: blueprint
-        }));
+        setToolBlueprints(prev => [...prev, blueprint]);
       } else {
         // Dynamic tool registration
         const context = { z, console, fetch: globalThis.fetch };
@@ -194,10 +191,7 @@ export function useTools() {
         const toolImpl = new Function(...Object.keys(context), wrappedCode)
           (...Object.values(context));
   
-        setToolBlueprints(prev => ({
-          ...prev,
-          [blueprint.name]: toolImpl
-        }));
+        setToolBlueprints(prev => [...prev, toolImpl]);
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -206,7 +200,7 @@ export function useTools() {
   }
 
   const setToolExecutor = (name: string, executor: (params: any, configValues: any) => Promise<any>) => {
-    const tool = toolBlueprints[name];
+    const tool = toolBlueprints.find(t => t.name === name);
     if (tool) {
       tool.execute = executor;
     }
