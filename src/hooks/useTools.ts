@@ -22,14 +22,7 @@ export function useTools() {
       if (tools.length === 0) {
         // Filter out tools that have config options
         const toolsWithoutConfig = defaultTools.filter(tool => {
-          const configSchema = tool.configSchema as z.ZodSchema;
-          if (!configSchema) return true;
-          
-          // Check if the config schema is an empty object
-          if (configSchema instanceof z.ZodObject) {
-            return Object.keys(configSchema._def.shape()).length === 0;
-          }
-          return false;
+          return !hasConfigOptions(tool.configSchema as z.ZodSchema);
         });
 
         setTools(toolsWithoutConfig.map((tool) => ({
@@ -87,6 +80,10 @@ export function useTools() {
 
   const updateTool = (tool: Tool) => {
     setTools(tools.map(t => t.id === tool.id ? tool : t));
+  }
+
+  const addTool = (tool: Tool) => {
+    setTools([...tools, tool]);
   }
 
   const deleteTool = (tool: Tool) => {
@@ -172,12 +169,13 @@ export function useTools() {
     }
   }
 
-  const registerToolBlueprint = (blueprint: ToolBlueprint) => {
+  const registerToolBlueprint = (blueprint: ToolBlueprint) : ToolBlueprint => {
     try {
 
       if (!blueprint.code) {
         // Built-in tool registration
         setToolBlueprints(prev => [...prev, blueprint]);
+        return blueprint;
       } else {
         // Dynamic tool registration
         const context = { z, console, fetch: globalThis.fetch };
@@ -204,6 +202,7 @@ export function useTools() {
           (...Object.values(context));
   
         setToolBlueprints(prev => [...prev, toolImpl]);
+        return toolImpl;
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -229,10 +228,20 @@ export function useTools() {
     initializeTools,
     registerToolBlueprint,
     setToolExecutor,
-    executeTool
+    executeTool,
+    addTool
   };
 }
 
+export function hasConfigOptions(schema: z.ZodSchema): boolean {
+  if (!schema) return false;
+
+  // Check if the config schema is an empty object
+  if (schema instanceof z.ZodObject) {
+    return Object.keys(schema._def.shape()).length > 0;
+  }
+  return false;
+}
 
 
 function serializeSchema(schema: z.ZodSchema | undefined): string {

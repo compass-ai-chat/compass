@@ -9,6 +9,7 @@ import { AddToolModal } from "./AddToolModal";
 import { EditToolModal } from "./EditToolModal";
 import { BlueprintManager } from "./BlueprintManager";
 import { ToolBlueprint } from "@/src/tools/tool.interface";
+import { hasConfigOptions } from "@/src/hooks/useTools";
 
 interface ToolsProps {
   tools: Tool[];
@@ -173,7 +174,7 @@ return result;`;
         formData={formData}
         setFormData={setFormData}
         onAddTool={handleAddTool}
-        toolBlueprints={toolBlueprints}
+        toolBlueprints={toolBlueprints.filter(blueprint => hasConfigOptions(blueprint.configSchema))}
       />
 
       <EditToolModal

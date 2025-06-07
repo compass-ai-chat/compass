@@ -14,33 +14,37 @@ import { z } from 'zod';
 import { CreateToolData } from './CreateBlueprintModal';
 import { ToolBlueprint } from '@/src/tools/tool.interface';
 import { compileTypescript } from '@/src/utils/tsCompiler';
+import { hasConfigOptions } from '@/src/hooks/useTools';
+import { zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
 
 interface BlueprintManagerProps {
   isVisible: boolean;
   onClose: () => void;
 }
 
+const defaultBlueprint = {
+  name: "",
+  description: "",
+  code: `
+// Define your function parameters and config values using TypeScript types
+async function execute(params: { message: string }, configValues: { printTimes: number }) {
+  let result = {success: true, message: ""}
+  for (let i = 0; i < configValues.printTimes; i++) {
+    result.message += params.message;
+  }
+  return result;
+}`
+};
+
 export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>(null);
   const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
-  const [createToolData, setCreateToolData] = useState<CreateToolData>({
-    name: "",
-    description: "",
-    code: `
-// Define your function parameters and config values using TypeScript types
-async function execute(params: { message: string }, configValues: { printTimes: number }) {
-    let result = {success: true, message: ""}
-    for (let i = 0; i < configValues.printTimes; i++) {
-      result.message += params.message;
-    }
-    return result;
-}`
-  });
+  const [createToolData, setCreateToolData] = useState<CreateToolData>(defaultBlueprint);
   const [toolBlueprints] = useAtom(toolBlueprintsAtom);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { registerToolBlueprint } = useTools();
+  const { registerToolBlueprint, addTool } = useTools();
 
   // Get built-in tool types
   const builtInTools = DEFAULT_TOOLS.map(tool => tool.type);
@@ -57,12 +61,11 @@ async function execute(params: { message: string }, configValues: { printTimes: 
 
       console.log("compiledCode", compiledCode);
       // Create a safe evaluation context with z
-      const evalContext = { z };
       const evalWithContext = (code: string) => {
         return new Function('z', `return ${code}`)(z);
       };
 
-      await registerToolBlueprint({
+      let blueprint = await registerToolBlueprint({
         name: createToolData.name,
         description: createToolData.description,
         icon: createToolData.icon || 'code',
@@ -71,18 +74,26 @@ async function execute(params: { message: string }, configValues: { printTimes: 
         configSchema: evalWithContext(configSchema),
       });
 
-      setShowCreateBlueprintModal(false);
-      setCreateToolData({
-        name: "",
-        description: "",
-        code: `// Tool implementation
-// You can use TypeScript types for params and configValues
-async function execute(params: { title: string, content: string }, configValues: {}) {
-  return \`Your title is: \${params.title} and your content is \${params.content}\`;
-}
+      console.log("new blueprint", blueprint);
 
-return execute(params, configValues);`
-      });
+      if(!hasConfigOptions(blueprint.configSchema as z.ZodSchema)){
+        console.log("adding tool", blueprint);
+        addTool({
+          id: Date.now().toString(),
+          blueprintId: blueprint.name,
+          configValues: {},
+          name: blueprint.name,
+          description: blueprint.description,
+          type: blueprint.name,
+          enabled: true,
+          icon: blueprint.icon,
+          paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
+          configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
+        });
+      }
+
+      setShowCreateBlueprintModal(false);
+      setCreateToolData(defaultBlueprint);
       toastService.success({ title: "Blueprint created successfully" });
     } catch (error) {
       console.error('Blueprint creation error:', error);
