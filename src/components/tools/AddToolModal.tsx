@@ -37,6 +37,21 @@ export function AddToolModal({
   const [showIconSelector, setShowIconSelector] = useState(false);
 
   const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
+
+
+  const onBlueprintSelected = (blueprint: ToolBlueprint) => {
+    setSelectedBlueprint(blueprint);
+    setFormData({
+      ...formData, 
+      type: blueprint.name,
+      configValues: {},
+      paramsSchema: blueprint.paramsSchema,
+      configSchema: blueprint.configSchema,
+    });
+
+    console.log("blueprint.configSchema", blueprint.configSchema);
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -83,14 +98,7 @@ export function AddToolModal({
                   <TouchableOpacity
                     key={blueprint.name}
                     onPress={() => {
-                      setSelectedBlueprint(blueprint);
-                      setFormData({
-                        ...formData, 
-                        type: blueprint.name,
-                        configValues: {},
-                        paramsSchema: blueprint.paramsSchema,
-                        configSchema: blueprint.configSchema,
-                      });
+                      onBlueprintSelected(blueprint);
                     }}
                     className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === blueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
                   >
@@ -158,39 +166,6 @@ export function AddToolModal({
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>
-          </View>
-        )}
-        
-        {formData.type && (
-          <View>
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="text-secondary">Implementation</Text>
-              <TouchableOpacity
-                onPress={() => setShowCodeEditor(!showCodeEditor)}
-                className="flex-row items-center"
-              >
-                <Text className="text-primary mr-2">
-                  {showCodeEditor ? 'Hide Code' : 'Show Code'}
-                </Text>
-                <Ionicons
-                  name={showCodeEditor ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  className="!text-primary"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {showCodeEditor && (
-              <View className="border border-border rounded-lg overflow-hidden">
-                <CodeEditor
-                  value={formData.code || defaultCodeTemplate}
-                  onChangeText={(code: string) => setFormData({ ...formData, code })}
-                  language="typescript"
-                  style={{ height: 256 }}
-                  textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
-                />
-              </View>
-            )}
           </View>
         )}
         
