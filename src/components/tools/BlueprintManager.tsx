@@ -27,17 +27,15 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const [createToolData, setCreateToolData] = useState<CreateToolData>({
     name: "",
     description: "",
-    code: `// Tool implementation
+    code: `
 // Define your function parameters and config values using TypeScript types
-// The schema will be automatically generated from these types
-
-// params: { title: string, content: string }
-// configValues: {}
-async function execute(params, configValues) {
-  return \`Your title is: \${params.title} and your content is \${params.content}\`;
-}
-
-return execute(params, configValues);`
+async function execute(params: { message: string }, configValues: { printTimes: number }) {
+    let result = {success: true, message: ""}
+    for (let i = 0; i < configValues.printTimes; i++) {
+      result.message += params.message;
+    }
+    return result;
+}`
   });
   const [toolBlueprints] = useAtom(toolBlueprintsAtom);
   const { colorScheme } = useColorScheme();

@@ -182,7 +182,7 @@ export function useTools() {
             configSchema: ${serializeSchema(blueprint.configSchema)},
             async execute(params, configValues) {
               try {
-                ${blueprint.code}
+                ${blueprint.code+"\nreturn execute(params, configValues);"}
               } catch (error) {
                 console.error('Tool execution error:', error);
                 throw error;
