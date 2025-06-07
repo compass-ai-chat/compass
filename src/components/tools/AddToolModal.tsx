@@ -54,37 +54,9 @@ export function AddToolModal({
     >
       <View className="space-y-4 p-4">
         <Text className="text-xl font-bold text-primary">Add New Tool</Text>
-        
-        <View className="flex-row items-start space-x-4">
-          <View className="flex-1">
-            <Text className="text-secondary mb-1">Name *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool name"
-              placeholderTextColor="#9CA3AF"
-              value={formData.name}
-              onChangeText={(text) => setFormData({...formData, name: text})}
-            />
-          </View>
-          
-        </View>
-        
+
         <View>
-          <Text className="text-secondary mb-1">Description *</Text>
-          <TextInput
-            className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-            placeholder="Tool description"
-            placeholderTextColor="#9CA3AF"
-            value={formData.description}
-            onChangeText={(text) => setFormData({...formData, description: text})}
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
-          />
-        </View>
-        
-        <View>
-          <Text className="text-secondary mb-1">Type *</Text>
+          <Text className="text-secondary mb-1">Select a blueprint *</Text>
           <View className="border border-border rounded-lg p-2 bg-surface">
             {toolBlueprints.length > 0 ? (
               <View className="flex-row flex-wrap gap-2">
@@ -116,6 +88,34 @@ export function AddToolModal({
               />
             )}
           </View>
+        </View>
+        
+        <View className="flex-row items-start space-x-4">
+          <View className="flex-1">
+            <Text className="text-secondary mb-1">Name *</Text>
+            <TextInput
+              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
+              placeholder="Tool name"
+              placeholderTextColor="#9CA3AF"
+              value={formData.name}
+              onChangeText={(text) => setFormData({...formData, name: text})}
+            />
+          </View>
+          
+        </View>
+        
+        <View>
+          <Text className="text-secondary mb-1">Description *</Text>
+          <TextInput
+            className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
+            placeholder="Tool description"
+            placeholderTextColor="#9CA3AF"
+            value={formData.description}
+            onChangeText={(text) => setFormData({...formData, description: text})}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
         </View>
         
         {formData.type && toolBlueprints.find((blueprint) => blueprint.name === formData.type)?.configSchema && (
