@@ -7,6 +7,7 @@ import { toastService } from "@/src/services/toastService";
 import { Ionicons } from "@expo/vector-icons";
 import CodeEditor from "@/src/components/ui/CodeEditor";
 import { useTools } from "@/src/hooks/useTools";
+import { TextInput } from "react-native-gesture-handler";
 
 interface TestToolModalProps {
   isVisible: boolean;
@@ -43,26 +44,20 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
   };
 
   const renderParamsInput = () => {
+    console.log("tool", tool);
     if (!tool?.paramsSchema) return null;
 
-    const schema = zodSchemaToJsonSchema(tool.paramsSchema);
-    if (!schema.properties) return null;
+    //const schema = zodSchemaToJsonSchema(tool.paramsSchema);
+    //if (!schema.properties) return null;
 
-    return Object.entries(schema.properties).map(([key, value]: [string, any]) => (
+    return Object.entries(tool.paramsSchema).map(([key, value]: [string, any]) => (
       <View key={key} className="mb-4">
         <Text className="text-secondary mb-1 capitalize">{key}</Text>
-        <CodeEditor
-          value={JSON.stringify(params[key] || "", null, 2)}
-          onChangeText={(text) => {
-            try {
-              const parsed = JSON.parse(text);
-              setParams(prev => ({ ...prev, [key]: parsed }));
-            } catch {
-              setParams(prev => ({ ...prev, [key]: text.replace(/^"|"$/g, '') }));
-            }
-          }}
-          language="json"
-          className="min-h-[100px] rounded-lg"
+        <TextInput
+          className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
+          placeholder={`Enter ${key}`}
+          value={params[key] || ""}
+          onChangeText={(text) => setParams({ ...params, [key]: text })}
         />
       </View>
     ));
@@ -89,7 +84,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
             language="json"
             readOnly
             onChangeText={() => {}}
-            className="min-h-[200px]"
+            className="min-h-[200px] h-full"
           />
         </View>
       </View>
