@@ -9,6 +9,7 @@ import { EmailToolService } from '../tools/email.tool';
 import { NoteToolService } from '../tools/note.tool';
 import { WebSearchService } from '../tools/websearch.tool';
 import { toolBlueprintsAtom } from './atoms';
+import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
@@ -19,7 +20,11 @@ export function useTools() {
       const defaultTools = await registerBuiltInTools();
       // Only initialize if no tools exist
       if (tools.length === 0) {
-        setTools(defaultTools);
+        setTools(defaultTools.map((tool) => ({
+          ...tool,
+          configSchema: zodSchemaToJsonSchema(tool.configSchema as z.ZodSchema),
+          paramsSchema: zodSchemaToJsonSchema(tool.paramsSchema as z.ZodSchema),
+        })));
       }
     } catch (error) {
       console.error('Failed to initialize tools:', error);
