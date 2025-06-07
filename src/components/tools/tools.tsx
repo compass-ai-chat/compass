@@ -174,9 +174,6 @@ return result;`;
         setFormData={setFormData}
         onAddTool={handleAddTool}
         toolBlueprints={toolBlueprints}
-        showCodeEditor={showCodeEditor}
-        setShowCodeEditor={setShowCodeEditor}
-        defaultCodeTemplate={defaultCodeTemplate}
       />
 
       <EditToolModal

@@ -16,9 +16,6 @@ interface AddToolModalProps {
   setFormData: (data: CreateToolDto) => void;
   onAddTool: () => Promise<void>;
   toolBlueprints: ToolBlueprint[];
-  showCodeEditor: boolean;
-  setShowCodeEditor: (show: boolean) => void;
-  defaultCodeTemplate: string;
 }
 
 export function AddToolModal({
@@ -29,12 +26,7 @@ export function AddToolModal({
   setFormData,
   onAddTool,
   toolBlueprints,
-  showCodeEditor,
-  setShowCodeEditor,
-  defaultCodeTemplate,
 }: AddToolModalProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
   const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
 
@@ -47,6 +39,8 @@ export function AddToolModal({
       configValues: {},
       paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
       configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
+      icon: blueprint.icon as any,
+      enabled: true,
     });
 
     console.log("blueprint.configSchema", zodSchemaToJsonSchema(blueprint.configSchema));
