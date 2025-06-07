@@ -91,6 +91,8 @@ export function useTools() {
   
 
   const executeTool = async (toolId: string, params: Record<string, any>) => {
+    console.log("Finding tool", toolId);
+    console.log("tools", tools);
     const tool = getTool(toolId);
     if (!tool) {
       throw new Error(`Tool not found`);
