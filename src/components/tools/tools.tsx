@@ -8,10 +8,11 @@ import { ToolsList } from "./ToolsList";
 import { AddToolModal } from "./AddToolModal";
 import { EditToolModal } from "./EditToolModal";
 import { BlueprintManager } from "./BlueprintManager";
+import { ToolBlueprint } from "@/src/tools/tool.interface";
 
 interface ToolsProps {
   tools: Tool[];
-  toolBlueprints: Record<string, { paramsSchema: any; configSchema: any }>;
+  toolBlueprints: ToolBlueprint[];
   onToolAdded: (formData: CreateToolDto) => Promise<string>;
   onToolUpdated: (toolId: string, formData: UpdateToolDto) => Promise<boolean>;
   onToolDeleted: (toolId: string) => Promise<boolean>;
@@ -26,6 +27,7 @@ export default function Tools({ tools, toolBlueprints, onToolAdded, onToolUpdate
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCodeEditor, setShowCodeEditor] = useState(false);
+  const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
 
   // Default code template
   const defaultCodeTemplate = `// Tool implementation
@@ -122,6 +124,7 @@ return result;`;
       paramsSchema: tool.paramsSchema,
       configSchema: tool.configSchema,
     });
+    setSelectedBlueprint(toolBlueprints.find((blueprint) => blueprint.name === tool.type) || null);
     setShowEditModal(true);
   };
 
@@ -184,7 +187,7 @@ return result;`;
         formData={formData}
         setFormData={setFormData}
         onUpdateTool={handleUpdateTool}
-        toolBlueprints={toolBlueprints}
+        toolBlueprint={selectedBlueprint!}
         showCodeEditor={showCodeEditor}
         setShowCodeEditor={setShowCodeEditor}
         defaultCodeTemplate={defaultCodeTemplate}

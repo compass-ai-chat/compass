@@ -19,7 +19,7 @@ import { toastService } from "@/src/services/toastService";
 import { DocumentService } from "../services/document/DocumentService";
 import { DropdownElement } from "@/src/components/ui/Dropdown";
 import { User } from "@/src/types/user";
-import { ToolHandler } from "../tools/tool.interface";
+import { ToolBlueprint, ToolHandler } from "../tools/tool.interface";
 import { ToolDefinition } from "../tools/registry";
 
 export const createDefaultThread = (name: string = "New thread"): Thread => {
@@ -579,5 +579,4 @@ export const userNotesAtom = atomWithAsyncStorage<Note[]>(
   [],
 );
 
-export const toolBlueprintsAtom = atom<Record<string, ToolHandler>>({});
-export const blueprintDefinitionsAtom = atom<Record<string, ToolDefinition>>({});
+export const toolBlueprintsAtom = atom<Record<string, ToolBlueprint>>({});

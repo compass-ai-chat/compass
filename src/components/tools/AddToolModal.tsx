@@ -5,7 +5,7 @@ import CodeEditor from "@/src/components/ui/CodeEditor";
 import { CreateToolDto } from "@/src/types/tools";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
-import { IconSelector } from "@/src/components/character/IconSelector";
+import { ToolBlueprint } from "@/src/tools/tool.interface";
 
 interface AddToolModalProps {
   isVisible: boolean;
@@ -14,31 +14,11 @@ interface AddToolModalProps {
   formData: CreateToolDto;
   setFormData: (data: CreateToolDto) => void;
   onAddTool: () => Promise<void>;
-  toolBlueprints: Record<string, { paramsSchema: any; configSchema: any }>;
+  toolBlueprints: ToolBlueprint[];
   showCodeEditor: boolean;
   setShowCodeEditor: (show: boolean) => void;
   defaultCodeTemplate: string;
 }
-
-// Map tool types to appropriate Ionicons
-const getIconForToolType = (type: string): string => {
-  const iconMap: Record<string, string> = {
-    email: "mail",
-    search: "search",
-    weather: "cloudy",
-    calendar: "calendar",
-    calculator: "calculator",
-    browser: "globe",
-    code: "code-slash",
-    database: "server",
-    file: "document",
-    image: "image",
-    note: "pencil",
-    // Add more mappings as needed
-  };
-
-  return iconMap[type.toLowerCase()] || "construct"; // Default to a generic tool icon
-};
 
 export function AddToolModal({
   isVisible,
@@ -56,6 +36,7 @@ export function AddToolModal({
   const isDark = colorScheme === 'dark';
   const [showIconSelector, setShowIconSelector] = useState(false);
 
+  const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
   return (
     <Modal
       isVisible={isVisible}
@@ -77,19 +58,6 @@ export function AddToolModal({
             />
           </View>
           
-          <View className="items-center">
-            <Text className="text-secondary mb-1">Icon</Text>
-            <TouchableOpacity
-              onPress={() => setShowIconSelector(true)}
-              className="w-[60px] h-[60px] rounded-full bg-primary items-center justify-center hover:opacity-80"
-            >
-              <Ionicons
-                name={(formData.icon) as any}
-                size={32}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
         </View>
         
         <View>
@@ -109,30 +77,31 @@ export function AddToolModal({
         <View>
           <Text className="text-secondary mb-1">Type *</Text>
           <View className="border border-border rounded-lg p-2 bg-surface">
-            {Object.keys(toolBlueprints).length > 0 ? (
+            {toolBlueprints.length > 0 ? (
               <View className="flex-row flex-wrap gap-2">
-                {Object.keys(toolBlueprints).map((type) => (
+                {toolBlueprints.map((blueprint) => (
                   <TouchableOpacity
-                    key={type}
+                    key={blueprint.name}
                     onPress={() => {
+                      setSelectedBlueprint(blueprint);
                       setFormData({
                         ...formData, 
-                        type,
+                        type: blueprint.name,
                         configValues: {},
-                        paramsSchema: toolBlueprints[type].paramsSchema,
-                        configSchema: toolBlueprints[type].configSchema,
+                        paramsSchema: blueprint.paramsSchema,
+                        configSchema: blueprint.configSchema,
                       });
                     }}
-                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === blueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
                   >
                     <Ionicons
-                      name={getIconForToolType(type) as any}
+                      name={blueprint.icon as any}
                       size={20}
-                      color={formData.type === type ? 'white' : '#6366F1'}
+                      color={formData.type === blueprint.name ? 'white' : '#6366F1'}
                       className="mr-2"
                     />
-                    <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
-                      {type}
+                    <Text className={`${formData.type === blueprint.name ? 'text-white' : 'text-primary'}`}>
+                      {blueprint.name}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -148,13 +117,13 @@ export function AddToolModal({
           </View>
         </View>
         
-        {formData.type && toolBlueprints[formData.type]?.configSchema && (
+        {formData.type && toolBlueprints.find((blueprint) => blueprint.name === formData.type)?.configSchema && (
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolBlueprints[formData.type].configSchema;
-                const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
+              {Object.keys(selectedBlueprint?.configSchema || {}).slice(0, 5).map((key) => {
+                const schema = selectedBlueprint?.configSchema;
+                const fieldConfig = typeof schema?.[key as keyof typeof schema] === 'object' ? schema?.[key as keyof typeof schema] : { type: 'string' };
                 const description = fieldConfig.description || '';
                 const isSecret = fieldConfig.type === 'password' || 
                                 key.toLowerCase().includes('secret') || 
@@ -185,7 +154,7 @@ export function AddToolModal({
                 );
               })}
               
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).length === 0 && (
+              {Object.keys(toolBlueprints.find((blueprint) => blueprint.name === formData.type)?.configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>
@@ -251,15 +220,6 @@ export function AddToolModal({
         </View>
       </View>
 
-      <IconSelector
-        isVisible={showIconSelector}
-        onClose={() => setShowIconSelector(false)}
-        onSelect={(iconName) => {
-          setFormData({ ...formData, icon: iconName });
-          setShowIconSelector(false);
-        }}
-        currentIcon={formData.icon}
-      />
     </Modal>
   );
 } 

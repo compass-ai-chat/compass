@@ -6,6 +6,7 @@ import { Tool, UpdateToolDto } from "@/src/types/tools";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
 import { IconSelector } from "@/src/components/character/IconSelector";
+import { ToolBlueprint } from "@/src/tools/tool.interface";
 
 interface EditToolModalProps {
   isVisible: boolean;
@@ -15,7 +16,7 @@ interface EditToolModalProps {
   formData: UpdateToolDto;
   setFormData: (data: UpdateToolDto) => void;
   onUpdateTool: () => Promise<void>;
-  toolBlueprints: Record<string, { paramsSchema: any; configSchema: any }>;
+  toolBlueprint: ToolBlueprint;
   showCodeEditor: boolean;
   setShowCodeEditor: (show: boolean) => void;
   defaultCodeTemplate: string;
@@ -49,7 +50,7 @@ export function EditToolModal({
   formData,
   setFormData,
   onUpdateTool,
-  toolBlueprints,
+  toolBlueprint,
   showCodeEditor,
   setShowCodeEditor,
   defaultCodeTemplate,
@@ -57,6 +58,7 @@ export function EditToolModal({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [showIconSelector, setShowIconSelector] = useState(false);
+  const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
 
   if (!selectedTool) return null;
 
@@ -113,33 +115,31 @@ export function EditToolModal({
         <View>
           <Text className="text-secondary mb-1">Type *</Text>
           <View className="border border-border rounded-lg p-2 bg-surface">
-            {Object.keys(toolBlueprints).length > 0 ? (
+            {toolBlueprint ? (
               <View className="flex-row flex-wrap gap-2">
-                {Object.keys(toolBlueprints).map((type) => (
                   <TouchableOpacity
-                    key={type}
+                    key={toolBlueprint.name}
                     onPress={() => {
                       setFormData({
                         ...formData, 
-                        type,
+                        type: toolBlueprint.name,
                         configValues: {},
-                        paramsSchema: toolBlueprints[type].paramsSchema,
-                        configSchema: toolBlueprints[type].configSchema,
+                        paramsSchema: toolBlueprint.paramsSchema,
+                        configSchema: toolBlueprint.configSchema,
                       });
                     }}
-                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === toolBlueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
                   >
                     <Ionicons
-                      name={getIconForToolType(type) as any}
+                      name={toolBlueprint.icon as any}
                       size={20}
-                      color={formData.type === type ? 'white' : '#6366F1'}
+                      color={formData.type === toolBlueprint.name ? 'white' : '#6366F1'}
                       className="mr-2"
                     />
-                    <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
-                      {type}
+                    <Text className={`${formData.type === toolBlueprint.name ? 'text-white' : 'text-primary'}`}>
+                      {toolBlueprint.name}
                     </Text>
                   </TouchableOpacity>
-                ))}
               </View>
             ) : (
               <TextInput
@@ -152,13 +152,12 @@ export function EditToolModal({
           </View>
         </View>
         
-        {formData.type && toolBlueprints[formData.type]?.configSchema && (
+        {formData.type && toolBlueprint?.configSchema && (
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolBlueprints[formData.type].configSchema;
-                const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
+              {Object.keys(toolBlueprint.configSchema || {}).slice(0, 5).map((key) => {
+                const fieldConfig = typeof toolBlueprint.configSchema?.[key as keyof typeof toolBlueprint.configSchema] === 'object' ? toolBlueprint.configSchema?.[key as keyof typeof toolBlueprint.configSchema] : { type: 'string' };
                 const description = fieldConfig.description || '';
                 const isSecret = fieldConfig.type === 'password' || 
                                 key.toLowerCase().includes('secret') || 
@@ -189,7 +188,7 @@ export function EditToolModal({
                 );
               })}
               
-              {Object.keys(toolBlueprints[formData.type].configSchema || {}).length === 0 && (
+              {Object.keys(toolBlueprint.configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>

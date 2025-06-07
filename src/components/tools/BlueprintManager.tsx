@@ -4,7 +4,7 @@ import { Modal } from '@/src/components/ui/Modal';
 import { Ionicons } from '@expo/vector-icons';
 import { useTools } from '@/src/hooks/useTools';
 import { useAtom } from 'jotai';
-import { blueprintDefinitionsAtom } from '@/src/hooks/atoms';
+import { toolBlueprintsAtom } from '@/src/hooks/atoms';
 import { useColorScheme } from 'nativewind';
 import CodeEditor from '@/src/components/ui/CodeEditor';
 import { toastService } from '@/src/services/toastService';
@@ -12,6 +12,7 @@ import { DEFAULT_TOOLS } from '@/src/tools/registerTools';
 import { CreateBlueprintModal } from './CreateBlueprintModal';
 import { z } from 'zod';
 import { CreateToolData } from './CreateBlueprintModal';
+import { ToolBlueprint } from '@/src/tools/tool.interface';
 
 interface BlueprintManagerProps {
   isVisible: boolean;
@@ -27,7 +28,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
     description: "",
     code: "// Tool implementation\n// Define your function parameters and config values using TypeScript types\n// The schema will be automatically generated from these types\n\n// Your implementation here\nconst result = {\n  title: params.title,\n  count: params.count || 0,\n  apiKey: configValues.apiKey\n};\n\nreturn result;"
   });
-  const [blueprintDefinitions] = useAtom(blueprintDefinitionsAtom);
+  const [toolBlueprints] = useAtom(toolBlueprintsAtom);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { registerToolBlueprint } = useTools();
@@ -73,18 +74,18 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
     }
   };
 
-  const filteredBlueprints = Object.entries(blueprintDefinitions).filter(([name, definition]) => {
+  const filteredBlueprints = Object.entries(toolBlueprints).filter(([name, blueprint]) => {
     const searchLower = searchQuery.toLowerCase();
     return (
       name.toLowerCase().includes(searchLower) ||
-      definition.description.toLowerCase().includes(searchLower)
+      blueprint.description.toLowerCase().includes(searchLower)
     );
   });
 
-  const handleEditBlueprint = async (name: string, definition: any) => {
+  const handleEditBlueprint = async (name: string, blueprint: ToolBlueprint) => {
     try {
       await registerToolBlueprint({
-        ...definition,
+        ...blueprint,
         name,
       });
       toastService.success({ title: 'Blueprint updated successfully' });
@@ -146,7 +147,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
               <View className="space-y-2">
                 {filteredBlueprints
                   .filter(([name]) => builtInTools.includes(name))
-                  .map(([name, definition]) => (
+                  .map(([name, blueprint]) => (
                     <View
                       key={name}
                       className="bg-surface p-4 rounded-lg border border-border"
@@ -154,13 +155,13 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                       <View className="flex-row justify-between items-center">
                         <View className="flex-row items-center">
                           <Ionicons
-                            name={(definition.icon as any) || 'cube-outline'}
+                            name={(blueprint.icon as any) || 'cube-outline'}
                             size={24}
                             className="text-primary mr-2"
                           />
                           <View>
                             <Text className="text-lg font-medium text-text">{name}</Text>
-                            <Text className="text-secondary">{definition.description}</Text>
+                            <Text className="text-secondary">{blueprint.description}</Text>
                           </View>
                         </View>
                         <View className="bg-primary/10 px-3 py-1 rounded-lg">
@@ -178,7 +179,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
               <View className="space-y-2">
                 {filteredBlueprints
                   .filter(([name]) => !builtInTools.includes(name))
-                  .map(([name, definition]) => (
+                  .map(([name, blueprint]) => (
                     <View
                       key={name}
                       className="bg-surface p-4 rounded-lg border border-border"
@@ -186,13 +187,13 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                       <View className="flex-row justify-between items-center">
                         <View className="flex-row items-center">
                           <Ionicons
-                            name={(definition.icon as any) || 'code-outline'}
+                            name={(blueprint.icon as any) || 'code-outline'}
                             size={24}
                             className="text-primary mr-2"
                           />
                           <View>
                             <Text className="text-lg font-medium text-text">{name}</Text>
-                            <Text className="text-secondary">{definition.description}</Text>
+                            <Text className="text-secondary">{blueprint.description}</Text>
                           </View>
                         </View>
                         <View className="flex-row space-x-2">
@@ -209,9 +210,9 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                         <View className="mt-4">
                           <View className="border border-primary rounded-lg overflow-hidden h-full">
                             <CodeEditor
-                              value={definition.code || ''}
+                              value={blueprint.code || ''}
                               onChangeText={(code: string) =>
-                                handleEditBlueprint(name, { ...definition, code })
+                                handleEditBlueprint(name, { ...blueprint, code })
                               }
                               language="typescript"
                               style={{ height: 800 }}
