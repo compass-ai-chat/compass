@@ -17,30 +17,7 @@ interface EditToolModalProps {
   setFormData: (data: UpdateToolDto) => void;
   onUpdateTool: () => Promise<void>;
   toolBlueprint: ToolBlueprint;
-  showCodeEditor: boolean;
-  setShowCodeEditor: (show: boolean) => void;
-  defaultCodeTemplate: string;
 }
-
-// Map tool types to appropriate Ionicons
-const getIconForToolType = (type: string): string => {
-  const iconMap: Record<string, string> = {
-    email: "mail",
-    search: "search",
-    weather: "cloudy",
-    calendar: "calendar",
-    calculator: "calculator",
-    browser: "globe",
-    code: "code-slash",
-    database: "server",
-    file: "document",
-    image: "image",
-    note: "pencil",
-    // Add more mappings as needed
-  };
-
-  return iconMap[type.toLowerCase()] || "construct"; // Default to a generic tool icon
-};
 
 export function EditToolModal({
   isVisible,
@@ -51,13 +28,9 @@ export function EditToolModal({
   setFormData,
   onUpdateTool,
   toolBlueprint,
-  showCodeEditor,
-  setShowCodeEditor,
-  defaultCodeTemplate,
 }: EditToolModalProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const [showIconSelector, setShowIconSelector] = useState(false);
   const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
 
   if (!selectedTool) return null;
@@ -83,19 +56,6 @@ export function EditToolModal({
             />
           </View>
           
-          <View className="items-center">
-            <Text className="text-secondary mb-1">Icon</Text>
-            <TouchableOpacity
-              onPress={() => setShowIconSelector(true)}
-              className="w-[60px] h-[60px] rounded-full bg-primary items-center justify-center hover:opacity-80"
-            >
-              <Ionicons
-                name={formData.icon as any}
-                size={32}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
         </View>
         
         <View>
@@ -195,39 +155,6 @@ export function EditToolModal({
           </View>
         )}
         
-        {formData.type && (
-          <View>
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="text-secondary">Implementation</Text>
-              <TouchableOpacity
-                onPress={() => setShowCodeEditor(!showCodeEditor)}
-                className="flex-row items-center"
-              >
-                <Text className="text-primary mr-2">
-                  {showCodeEditor ? 'Hide Code' : 'Show Code'}
-                </Text>
-                <Ionicons
-                  name={showCodeEditor ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  className="!text-primary"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {showCodeEditor && (
-              <View className="border border-border rounded-lg overflow-hidden">
-                <CodeEditor
-                  value={formData.code || defaultCodeTemplate}
-                  onChangeText={(code: string) => setFormData({ ...formData, code })}
-                  language="typescript"
-                  style={{ height: 256 }}
-                  textStyle={{ color: isDark ? '#f5f5f5' : '#333' }}
-                />
-              </View>
-            )}
-          </View>
-        )}
-        
         <View className="flex-row items-center justify-between">
           <Text className="text-secondary">Enabled</Text>
           <Switch
@@ -254,15 +181,6 @@ export function EditToolModal({
         </View>
       </View>
 
-      <IconSelector
-        isVisible={showIconSelector}
-        onClose={() => setShowIconSelector(false)}
-        onSelect={(iconName) => {
-          setFormData({ ...formData, icon: iconName });
-          setShowIconSelector(false);
-        }}
-        currentIcon={formData.icon}
-      />
     </Modal>
   );
 } 
