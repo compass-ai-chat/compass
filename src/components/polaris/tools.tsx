@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { toastService } from "@/src/services/toastService";
 import { Tool, CreateToolDto, UpdateToolDto } from "@/src/types/tools";
 import { Modal } from "@/src/components/ui/Modal";
-import CodeEditor from "@/src/components/ui/CodeEditor";
+import { AddToolModal } from "@/src/components/tools/AddToolModal";
 import { ToolBlueprint } from "@/src/tools/tool.interface";
 import { SimpleSchema, zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
 import { z } from "zod";
@@ -263,132 +263,15 @@ export default function Tools() {
       </View>
 
       {/* Add Tool Modal */}
-      <Modal
+      <AddToolModal
         isVisible={showAddModal}
         onClose={() => setShowAddModal(false)}
-        className="w-2/3"
-      >
-        <View className="space-y-4 p-4">
-          <Text className="text-xl font-bold text-primary">Add New Tool</Text>
-          
-          <View>
-            <Text className="text-secondary mb-1">Name *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool name"
-              value={formData.name}
-              onChangeText={(text) => setFormData({...formData, name: text})}
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Description *</Text>
-            <TextInput
-              className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
-              placeholder="Tool description"
-              value={formData.description}
-              onChangeText={(text) => setFormData({...formData, description: text})}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
-          
-          <View>
-            <Text className="text-secondary mb-1">Blueprint *</Text>
-            <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolBlueprints).length > 0 ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {Object.entries(toolBlueprints).map(([type, schemas]) => (
-                    <TouchableOpacity
-                      key={type}
-                      onPress={() => {
-                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.id === type) || null);
-                        setFormData({
-                          ...formData, 
-                          blueprintId: type,
-                          configValues: {},
-                        });
-                      }}
-                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.id === type ? 'bg-primary' : 'bg-primary/10'}`}
-                    >
-                      <Text className={`${selectedBlueprint?.id === type ? 'text-white' : 'text-primary'}`}>
-                        {type}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : (
-                <Text className="text-secondary italic">No blueprints available</Text>
-              )}
-            </View>
-          </View>
-          
-          {selectedBlueprint?.configSchema && (
-            <View>
-              <Text className="text-secondary mb-1">Configuration</Text>
-              <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-                {Object.entries(selectedBlueprint?.configSchema || {}).map(([key, schema]: [string, any]) => {
-                  const isSecret = schema.type === 'string' && (
-                    key.toLowerCase().includes('secret') || 
-                    key.toLowerCase().includes('token') ||
-                    key.toLowerCase().includes('password')
-                  );
-                  
-                  return (
-                    <View key={key}>
-                      <View className="flex-row justify-between items-center mb-1">
-                        <Text className="text-secondary">{key}</Text>
-                        {schema.description && (
-                          <Text className="text-xs text-secondary/70 italic">{schema.description}</Text>
-                        )}
-                      </View>
-                      <TextInput
-                        className="border border-border rounded-lg p-2 bg-surface text-text"
-                        placeholder={`Enter ${key}`}
-                        value={formData.configValues?.[key] || ''}
-                        onChangeText={(text) => setFormData({
-                          ...formData,
-                          configValues: {
-                            ...(formData.configValues || {}),
-                            [key]: text
-                          }
-                        })}
-                        secureTextEntry={isSecret}
-                      />
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-          
-          <View className="flex-row items-center justify-between">
-            <Text className="text-secondary">Enabled</Text>
-            <Switch
-              value={formData.enabled}
-              onValueChange={(value) => setFormData({...formData, enabled: value})}
-            />
-          </View>
-          
-          <View className="flex-row justify-end space-x-2 mt-4">
-            <TouchableOpacity
-              onPress={() => setShowAddModal(false)}
-              className="bg-surface border border-border px-4 py-2 rounded-lg"
-            >
-              <Text className="text-text">Cancel</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={handleAddTool}
-              className="bg-primary px-4 py-2 rounded-lg"
-              disabled={isLoading}
-            >
-              <Text className="text-white">Add Tool</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        isLoading={isLoading}
+        formData={formData}
+        setFormData={setFormData}
+        onAddTool={handleAddTool}
+        toolBlueprints={toolBlueprints}
+      />
 
       {/* Edit Tool Modal */}
       <Modal
