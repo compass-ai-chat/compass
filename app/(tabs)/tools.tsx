@@ -41,7 +41,6 @@ export default function ToolsScreen() {
           blueprintId: tool.blueprintId,
           configValues: tool.configValues,
           enabled: tool.enabled ?? true,
-          icon: tool.icon,
           updatedAt: new Date().toISOString(),
         };
       }

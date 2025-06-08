@@ -19,7 +19,6 @@ export interface Tool {
     description: string;
     blueprintId: string;
     enabled?: boolean;
-    icon?: string;
     code?: string;
     configValues?: Record<string, any>;
     paramsSchema?: z.ZodSchema;

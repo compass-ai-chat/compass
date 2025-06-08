@@ -1132,8 +1132,7 @@ export class PolarisServer {
   async createTool(tool: CreateToolDto): Promise<string | null> {
     try {
       const response = await this.makeRequest("/api/admin/tools", "POST", {
-        ...tool,
-        blueprintId: tool.blueprintId,
+        ...tool
       });
       return response.id;
     } catch (error) {
@@ -1158,8 +1157,7 @@ export class PolarisServer {
   async updateTool(id: string, tool: UpdateToolDto): Promise<boolean> {
     try {
       await this.makeRequest(`/api/admin/tools/${id}`, "PUT", {
-        ...tool,
-        blueprintId: tool.blueprintId,
+        ...tool
       });
       return true;
     } catch (error) {

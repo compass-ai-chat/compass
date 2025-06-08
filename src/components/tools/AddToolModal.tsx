@@ -39,7 +39,6 @@ export function AddToolModal({
       configValues: {},
       paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
       configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
-      icon: blueprint.icon as any,
       enabled: true,
     });
 
