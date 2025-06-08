@@ -7,22 +7,23 @@ import { toastService } from '@/src/services/toastService';
 import { Ionicons } from "@expo/vector-icons";
 import { IconSelector } from "@/src/components/character/IconSelector";
 import { compileTypescript } from '@/src/utils/tsCompiler';
+import { SimpleSchema } from '@/src/utils/zodHelpers';
 
-export interface CreateToolData {
+export interface CreateToolBlueprintData {
   name: string;
   description: string;
   code: string;
   icon?: string;
-  paramsSchema?: string;
-  configSchema?: string;
+  paramsSchema?: SimpleSchema;
+  configSchema?: SimpleSchema;
 }
 
 interface CreateBlueprintModalProps {
   isVisible: boolean;
   onClose: () => void;
   isLoading: boolean;
-  createToolData: CreateToolData;
-  setCreateToolData: (data: CreateToolData) => void;
+  createToolData: CreateToolBlueprintData;
+  setCreateToolBlueprintData: (data: CreateToolBlueprintData) => void;
   onCreateBlueprint: () => Promise<void>;
 }
 
@@ -31,7 +32,7 @@ export function CreateBlueprintModal({
   onClose,
   isLoading,
   createToolData,
-  setCreateToolData,
+  setCreateToolBlueprintData,
   onCreateBlueprint,
 }: CreateBlueprintModalProps) {
   const { colorScheme } = useColorScheme();
@@ -41,7 +42,7 @@ export function CreateBlueprintModal({
   const handleCodeChange = (code: string) => {
     try {
       const { compiledCode, paramsSchema, configSchema } = compileTypescript(code);
-      setCreateToolData({
+      setCreateToolBlueprintData({
         ...createToolData,
         code,
         paramsSchema,
@@ -69,7 +70,7 @@ export function CreateBlueprintModal({
               placeholder="Tool name"
               placeholderTextColor="#9CA3AF"
               value={createToolData.name}
-              onChangeText={(text) => setCreateToolData({...createToolData, name: text})}
+              onChangeText={(text) => setCreateToolBlueprintData({...createToolData, name: text})}
             />
           </View>
           
@@ -95,7 +96,7 @@ export function CreateBlueprintModal({
             placeholder="Tool description"
             placeholderTextColor="#9CA3AF"
             value={createToolData.description}
-            onChangeText={(text) => setCreateToolData({...createToolData, description: text})}
+            onChangeText={(text) => setCreateToolBlueprintData({...createToolData, description: text})}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
@@ -138,7 +139,7 @@ export function CreateBlueprintModal({
         isVisible={showIconSelector}
         onClose={() => setShowIconSelector(false)}
         onSelect={(iconName) => {
-          setCreateToolData({ ...createToolData, icon: iconName });
+          setCreateToolBlueprintData({ ...createToolData, icon: iconName });
           setShowIconSelector(false);
         }}
         currentIcon={createToolData.icon}

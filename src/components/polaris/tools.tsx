@@ -10,7 +10,7 @@ import { Tool, CreateToolDto, UpdateToolDto } from "@/src/types/tools";
 import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
 import { ToolBlueprint } from "@/src/tools/tool.interface";
-import { zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
+import { SimpleSchema, zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
 import { z } from "zod";
 
 export default function Tools() {
@@ -20,8 +20,8 @@ export default function Tools() {
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [toolBlueprints, setToolBlueprints] = useState<Record<string, { paramsSchema: any; configSchema: any }>>({});
-  const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>(null);
+  const [toolBlueprints, setToolBlueprints] = useState<ToolBlueprint[]>([]);
+  const [selectedBlueprint, setSelectedBlueprint] = useState<ToolBlueprint | null>(null);
 
   // Form states
   const [formData, setFormData] = useState<CreateToolDto>({
@@ -30,8 +30,6 @@ export default function Tools() {
     blueprintId: "",
     enabled: true,
     configValues: {},
-    paramsSchema: z.object({}),
-    configSchema: z.object({}),
   });
 
   useEffect(() => {
@@ -47,8 +45,8 @@ export default function Tools() {
   };
 
   const loadToolBlueprints = async () => {
-    const types = await PolarisServer.getToolTypes();
-    setToolBlueprints(types);
+    const blueprints = await PolarisServer.getToolBlueprints();
+    setToolBlueprints(blueprints);
   };
 
   const handleAddTool = async () => {
@@ -101,8 +99,6 @@ export default function Tools() {
       blueprintId: "",
       enabled: true,
       configValues: {},
-      paramsSchema: z.object({}),
-      configSchema: z.object({}),
     });
     setSelectedBlueprint(null);
   };
@@ -115,10 +111,8 @@ export default function Tools() {
       blueprintId: tool.blueprintId,
       enabled: tool.enabled,
       configValues: tool.configValues || {},
-      paramsSchema: tool.paramsSchema || z.object({}),
-      configSchema: tool.configSchema || z.object({}),
     });
-    setSelectedBlueprint(tool.blueprintId);
+    setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.name === tool.blueprintId) || null);
     setShowEditModal(true);
   };
 
@@ -309,18 +303,16 @@ export default function Tools() {
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
-                        setSelectedBlueprint(type);
+                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.name === type) || null);
                         setFormData({
                           ...formData, 
                           blueprintId: type,
                           configValues: {},
-                          paramsSchema: schemas.paramsSchema,
-                          configSchema: schemas.configSchema,
                         });
                       }}
-                      className={`px-3 py-1 rounded-full ${selectedBlueprint === type ? 'bg-primary' : 'bg-primary/10'}`}
+                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.name === type ? 'bg-primary' : 'bg-primary/10'}`}
                     >
-                      <Text className={`${selectedBlueprint === type ? 'text-white' : 'text-primary'}`}>
+                      <Text className={`${selectedBlueprint?.name === type ? 'text-white' : 'text-primary'}`}>
                         {type}
                       </Text>
                     </TouchableOpacity>
@@ -332,11 +324,11 @@ export default function Tools() {
             </View>
           </View>
           
-          {selectedBlueprint && toolBlueprints[selectedBlueprint]?.configSchema && (
+          {selectedBlueprint?.configSchema && (
             <View>
               <Text className="text-secondary mb-1">Configuration</Text>
               <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-                {Object.entries(toolBlueprints[selectedBlueprint].configSchema.properties || {}).map(([key, schema]: [string, any]) => {
+                {Object.entries(selectedBlueprint?.configSchema || {}).map(([key, schema]: [string, any]) => {
                   const isSecret = schema.type === 'string' && (
                     key.toLowerCase().includes('secret') || 
                     key.toLowerCase().includes('token') ||
@@ -439,18 +431,16 @@ export default function Tools() {
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
-                        setSelectedBlueprint(type);
+                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.name === type) || null);
                         setFormData({
                           ...formData, 
                           blueprintId: type,
                           configValues: {},
-                          paramsSchema: schemas.paramsSchema,
-                          configSchema: schemas.configSchema,
                         });
                       }}
-                      className={`px-3 py-1 rounded-full ${selectedBlueprint === type ? 'bg-primary' : 'bg-primary/10'}`}
+                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.name === type ? 'bg-primary' : 'bg-primary/10'}`}
                     >
-                      <Text className={`${selectedBlueprint === type ? 'text-white' : 'text-primary'}`}>
+                      <Text className={`${selectedBlueprint?.name === type ? 'text-white' : 'text-primary'}`}>
                         {type}
                       </Text>
                     </TouchableOpacity>
@@ -462,11 +452,11 @@ export default function Tools() {
             </View>
           </View>
           
-          {selectedBlueprint && toolBlueprints[selectedBlueprint]?.configSchema && (
+          {selectedBlueprint?.configSchema && (
             <View>
               <Text className="text-secondary mb-1">Configuration</Text>
               <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-                {Object.entries(toolBlueprints[selectedBlueprint].configSchema.properties || {}).map(([key, schema]: [string, any]) => {
+                {Object.entries(selectedBlueprint?.configSchema || {}).map(([key, schema]: [string, any]) => {
                   const isSecret = schema.type === 'string' && (
                     key.toLowerCase().includes('secret') || 
                     key.toLowerCase().includes('token') ||

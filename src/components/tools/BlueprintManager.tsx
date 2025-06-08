@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Modal } from '@/src/components/ui/Modal';
 import { Ionicons } from '@expo/vector-icons';
-import { useTools } from '@/src/hooks/useTools';
+import { simpleSchemaHasConfigOptions, useTools } from '@/src/hooks/useTools';
 import { useAtom } from 'jotai';
 import { toolBlueprintsAtom } from '@/src/hooks/atoms';
 import { useColorScheme } from 'nativewind';
@@ -11,11 +11,9 @@ import { toastService } from '@/src/services/toastService';
 import { DEFAULT_TOOLS } from '@/src/tools/registerTools';
 import { CreateBlueprintModal } from './CreateBlueprintModal';
 import { z } from 'zod';
-import { CreateToolData } from './CreateBlueprintModal';
+import { CreateToolBlueprintData } from './CreateBlueprintModal';
 import { ToolBlueprint } from '@/src/tools/tool.interface';
 import { compileTypescript } from '@/src/utils/tsCompiler';
-import { hasConfigOptions } from '@/src/hooks/useTools';
-import { zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
 
 interface BlueprintManagerProps {
   isVisible: boolean;
@@ -40,7 +38,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>(null);
   const [showCreateBlueprintModal, setShowCreateBlueprintModal] = useState(false);
-  const [createToolData, setCreateToolData] = useState<CreateToolData>(defaultBlueprint);
+  const [createToolData, setCreateToolBlueprintData] = useState<CreateToolBlueprintData>(defaultBlueprint);
   const [toolBlueprints] = useAtom(toolBlueprintsAtom);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -70,13 +68,13 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
         description: createToolData.description,
         icon: createToolData.icon || 'code',
         code: compiledCode, // Use the compiled JavaScript code
-        paramsSchema: evalWithContext(paramsSchema),
-        configSchema: evalWithContext(configSchema),
+        paramsSchema: paramsSchema,
+        configSchema: configSchema,
       });
 
       console.log("new blueprint", blueprint);
 
-      if(!hasConfigOptions(blueprint.configSchema as z.ZodSchema)){
+      if(!simpleSchemaHasConfigOptions(blueprint.configSchema)){
         console.log("adding tool", blueprint);
         addTool({
           id: Date.now().toString(),
@@ -86,13 +84,11 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
           description: blueprint.description,
           enabled: true,
           icon: blueprint.icon,
-          paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
-          configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
         });
       }
 
       setShowCreateBlueprintModal(false);
-      setCreateToolData(defaultBlueprint);
+      setCreateToolBlueprintData(defaultBlueprint);
       toastService.success({ title: "Blueprint created successfully" });
     } catch (error) {
       console.error('Blueprint creation error:', error);
@@ -268,7 +264,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
           onClose={() => setShowCreateBlueprintModal(false)}
           isLoading={false}
           createToolData={createToolData}
-          setCreateToolData={setCreateToolData}
+          setCreateToolBlueprintData={setCreateToolBlueprintData}
           onCreateBlueprint={handleCreateToolBlueprint}
         />
       </View>

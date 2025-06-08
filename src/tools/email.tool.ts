@@ -1,6 +1,7 @@
 //import * as nodemailer from 'nodemailer';
 import { z } from 'zod';
 import { ToolHandler } from './tool.interface';
+import { SimpleSchema } from '../utils/zodHelpers';
 
 export class EmailToolService implements ToolHandler {
   async execute(params: any, config: any): Promise<any> {
@@ -51,22 +52,22 @@ export class EmailToolService implements ToolHandler {
     }
   }
 
-  getParamsSchema(): z.ZodSchema {
-    return z.object({
-      to: z.string().email(),
-      subject: z.string(),
-      body: z.string()
-    });
+  getParamsSchema(): SimpleSchema {
+    return {
+      to: { type: 'string' },
+      subject: { type: 'string' },
+      body: { type: 'string' }
+    };
   }
 
-  getConfigSchema(): z.ZodSchema {
-    return z.object({
-        host: z.string(),
-        port: z.number().optional(),
-        secure: z.boolean().optional(),
-        user: z.string().email(),
-        password: z.string()
-    });
+  getConfigSchema(): SimpleSchema {
+    return {
+      host: { type: 'string' },
+      port: { type: 'number' },
+      secure: { type: 'boolean' },
+      user: { type: 'string' },
+      password: { type: 'string' }
+    };
   }
 
   getIcon(): string {

@@ -9,7 +9,7 @@ import { EmailToolService } from '../tools/email.tool';
 import { NoteToolService } from '../tools/note.tool';
 import { WebSearchService } from '../tools/websearch.tool';
 import { toolBlueprintsAtom } from './atoms';
-import { zodSchemaToJsonSchema } from '../utils/zodHelpers';
+import { SimpleSchema, simpleSchemaToZod, zodSchemaToJsonSchema } from '../utils/zodHelpers';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
@@ -22,13 +22,12 @@ export function useTools() {
       if (tools.length === 0) {
         // Filter out tools that have config options
         const toolsWithoutConfig = defaultTools.filter(tool => {
-          return !hasConfigOptions(tool.configSchema as z.ZodSchema);
+          const blueprint = toolBlueprints.find(t => t.name === tool.blueprintId);
+          return !simpleSchemaHasConfigOptions(blueprint?.configSchema);
         });
 
         setTools(toolsWithoutConfig.map((tool) => ({
-          ...tool,
-          configSchema: zodSchemaToJsonSchema(tool.configSchema as z.ZodSchema),
-          paramsSchema: zodSchemaToJsonSchema(tool.paramsSchema as z.ZodSchema),
+          ...tool
         })));
       }
     } catch (error) {
@@ -63,19 +62,18 @@ export function useTools() {
     return DEFAULT_TOOLS;
   } 
 
-  const createToolBlueprint = async (tool: Tool) => {
+  const createToolBlueprint = async (tool: ToolBlueprint) => {
     console.log("Creating tool", tool);
-    if (tool.blueprintId === 'dynamic') {
+    if (tool.name === 'dynamic') {
       await registerToolBlueprint({
-        name: tool.id,
+        name: tool.name,
         description: tool.description,
         icon: tool.icon || 'code',
         code: tool.code || '',
-        paramsSchema: tool.paramsSchema || z.object({}),
-        configSchema: tool.configSchema || z.object({}),
+        paramsSchema: tool.paramsSchema || {},
+        configSchema: tool.configSchema || {},
       });
     }
-    setTools([...tools, tool]);
   };
 
   const updateTool = (tool: Tool) => {
@@ -111,6 +109,7 @@ export function useTools() {
 
     const handler = toolBlueprints.find(t => t.name === tool.blueprintId);
     console.log("handler", handler);
+    console.log("handler paramsSchema", handler?.paramsSchema);
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
     }
@@ -142,7 +141,7 @@ export function useTools() {
 
         toolSet[tool.name] = {
           description: blueprint.description,
-          parameters: blueprint.paramsSchema,
+          parameters: simpleSchemaToZod(blueprint.paramsSchema),
           execute: async (params: any) => {
             console.log("Executing tool", tool.name, params);
             return await blueprint.execute?.(params, tool.configValues || {});
@@ -161,12 +160,7 @@ export function useTools() {
   }
 
   const getToolBlueprints = () : ToolBlueprint[] => {
-    try {
       return toolBlueprints;
-    } catch (error) {
-      console.error('Error in getToolBlueprints:', error);
-      return [];
-    }
   }
 
   const registerToolBlueprint = (blueprint: ToolBlueprint) : ToolBlueprint => {
@@ -185,8 +179,8 @@ export function useTools() {
             name: "${blueprint.name}",
             description: "${blueprint.description}",
             icon: "${blueprint.icon}",
-            paramsSchema: ${serializeSchema(blueprint.paramsSchema)},
-            configSchema: ${serializeSchema(blueprint.configSchema)},
+            paramsSchema: ${JSON.stringify(blueprint.paramsSchema)},
+            configSchema: ${JSON.stringify(blueprint.configSchema)},
             async execute(params, configValues) {
               try {
                 ${blueprint.code+"\nreturn execute(params, configValues);"}
@@ -233,7 +227,7 @@ export function useTools() {
   };
 }
 
-export function hasConfigOptions(schema: z.ZodSchema): boolean {
+export function zodHasConfigOptions(schema: z.ZodSchema): boolean {
   if (!schema) return false;
 
   // Check if the config schema is an empty object
@@ -242,6 +236,12 @@ export function hasConfigOptions(schema: z.ZodSchema): boolean {
   }
   return false;
 }
+
+export function simpleSchemaHasConfigOptions(schema: SimpleSchema | undefined): boolean {
+  if (!schema) return false;
+  return Object.keys(schema).length > 0;
+}
+
 
 
 function serializeSchema(schema: z.ZodSchema | undefined): string {

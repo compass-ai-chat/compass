@@ -32,17 +32,16 @@ export function AddToolModal({
 
 
   const onBlueprintSelected = (blueprint: ToolBlueprint) => {
+    console.log("blueprint", blueprint);
     setSelectedBlueprint(blueprint);
     setFormData({
       ...formData, 
       blueprintId: blueprint.name,
       configValues: {},
-      paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
-      configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
       enabled: true,
     });
 
-    console.log("blueprint.configSchema", zodSchemaToJsonSchema(blueprint.configSchema));
+    console.log("blueprint.configSchema", blueprint.configSchema);
   };
 
   return (
@@ -121,12 +120,9 @@ export function AddToolModal({
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(formData.configSchema || {}).slice(0, 5).map((key) => {
-                const schema = formData.configSchema;
-                const fieldConfig = typeof schema?.[key as keyof typeof schema] === 'object' ? schema?.[key as keyof typeof schema] : { type: 'string' };
-                const description = fieldConfig.description || '';
-                const isSecret = fieldConfig.type === 'password' || 
-                                key.toLowerCase().includes('secret') || 
+              {Object.keys(selectedBlueprint?.configSchema || {}).slice(0, 5).map((key) => {
+                const description = '';
+                const isSecret = key.toLowerCase().includes('secret') || 
                                 key.toLowerCase().includes('token');
                 
                 return (

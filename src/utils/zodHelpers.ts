@@ -82,3 +82,45 @@ export function getZodFieldInfo(fieldSchema: any): any {
         return { type: typeName.replace('Zod', '').toLowerCase() };
     }
   }
+
+
+export interface SimpleSchemaProperty {
+  type: string;
+}
+
+export interface SimpleSchema {
+  [key: string]: SimpleSchemaProperty;
+}
+
+/**
+ * Converts a SimpleSchema to a Zod schema
+ * @param schema The simple schema to convert
+ * @returns A Zod schema object
+ */
+export function simpleSchemaToZod(schema: SimpleSchema): z.ZodObject<any> {
+  const zodShape: Record<string, z.ZodTypeAny> = {};
+
+  for (const [key, property] of Object.entries(schema)) {
+    switch (property.type.toLowerCase()) {
+      case 'string':
+        zodShape[key] = z.string();
+        break;
+      case 'number':
+        zodShape[key] = z.number();
+        break;
+      case 'boolean':
+        zodShape[key] = z.boolean();
+        break;
+      case 'array':
+        zodShape[key] = z.array(z.any());
+        break;
+      case 'object':
+        zodShape[key] = z.object({});
+        break;
+      default:
+        zodShape[key] = z.any();
+    }
+  }
+
+  return z.object(zodShape);
+} 

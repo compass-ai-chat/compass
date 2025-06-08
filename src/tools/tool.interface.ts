@@ -1,8 +1,9 @@
-import { z } from 'zod';
+
+import { SimpleSchema } from '../utils/zodHelpers';
 export interface ToolHandler {
   execute: (params: any, configValues: Record<string, any>) => Promise<any>;
-  getParamsSchema: () => z.ZodSchema;
-  getConfigSchema: () => z.ZodSchema;
+  getParamsSchema: () => SimpleSchema;
+  getConfigSchema: () => SimpleSchema;
   getIcon: () => string;
   getDescription: () => string;
 }
@@ -14,8 +15,8 @@ export interface ToolBlueprint {
   icon: string;
   
   // Schema definitions
-  paramsSchema: z.ZodSchema;
-  configSchema: z.ZodSchema;
+  paramsSchema: SimpleSchema;
+  configSchema: SimpleSchema;
   
   // For dynamic tools
   code?: string;

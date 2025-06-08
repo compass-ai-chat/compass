@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { SimpleSchema, SimpleSchemaProperty } from './zodHelpers';
 
 interface ExtractedTypes {
   paramsType: Record<string, string>;
@@ -32,37 +32,40 @@ function extractTypeInfo(code: string): ExtractedTypes {
   return { paramsType, configType };
 }
 
-function typeToZodSchema(type: Record<string, string>): string {
-  const entries = Object.entries(type).map(([key, value]) => {
-    let schema: string;
+function typeToSimpleSchema(type: Record<string, string>): SimpleSchema {
+  const schema: SimpleSchema = {};
+  
+  for (const [key, value] of Object.entries(type)) {
+    let schemaProperty: SimpleSchemaProperty;
+    
     if (value.endsWith('[]')) {
-      const baseType = value.slice(0, -2);
-      schema = `z.array(z.${baseType}())`;
+      schemaProperty = { type: 'array' };
     } else {
-      schema = `z.${value}()`;
+      schemaProperty = { type: value };
     }
-    return `${key}: ${schema}`;
-  });
+    
+    schema[key] = schemaProperty;
+  }
 
-  return `z.object({ ${entries.join(', ')} })`;
+  return schema;
 }
 
 export function compileTypescript(code: string): { 
   compiledCode: string;
-  paramsSchema: string;
-  configSchema: string;
+  paramsSchema: SimpleSchema;
+  configSchema: SimpleSchema;
 } {
   // Extract type information
   const { paramsType, configType } = extractTypeInfo(code);
 
-  // Generate Zod schemas
+  // Generate SimpleSchema schemas
   const paramsSchema = Object.keys(paramsType).length > 0 
-    ? typeToZodSchema(paramsType)
-    : 'z.object({})';
+    ? typeToSimpleSchema(paramsType)
+    : {};
   
   const configSchema = Object.keys(configType).length > 0
-    ? typeToZodSchema(configType)
-    : 'z.object({})';
+    ? typeToSimpleSchema(configType)
+    : {};
 
   // Strip out TypeScript types
   const compiledCode = code

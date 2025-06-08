@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SimpleSchema } from '../utils/zodHelpers';
 
 export interface Tool {
     id: string;
@@ -9,8 +10,6 @@ export interface Tool {
     isServerResource?: boolean;
     icon?: string;
     code?: string;
-    paramsSchema?: z.ZodSchema;
-    configSchema?: z.ZodSchema;
     configValues?: Record<string, any>;
   }
   
@@ -21,8 +20,6 @@ export interface Tool {
     enabled?: boolean;
     code?: string;
     configValues?: Record<string, any>;
-    paramsSchema?: z.ZodSchema;
-    configSchema?: z.ZodSchema;
   }
   
   export interface UpdateToolDto extends CreateToolDto {}
@@ -32,8 +29,8 @@ export interface Tool {
     description: string;
     icon?: string;
     code?: string;
-    paramsSchema: z.ZodSchema;
-    configSchema: z.ZodSchema;
+    paramsSchema: SimpleSchema;
+    configSchema: SimpleSchema;
   }
 
   export interface UpdateBlueprintDto extends CreateBlueprintDto {}

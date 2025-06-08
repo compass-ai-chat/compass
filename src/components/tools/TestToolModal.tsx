@@ -20,7 +20,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-  const { executeTool } = useTools();
+  const { executeTool, getToolBlueprints } = useTools();
 
   const handleTest = async () => {
     if (!tool) return;
@@ -28,7 +28,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
     setIsLoading(true);
     setIsError(false);
     setResponse(null);
-    
+
     try {
       const result = await executeTool(tool.id, params);
       setResponse(result);
@@ -45,12 +45,10 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
 
   const renderParamsInput = () => {
     console.log("tool", tool);
-    if (!tool?.paramsSchema) return null;
+    const blueprint = getToolBlueprints().find(t => t.name === tool?.blueprintId);
+    if (!blueprint?.paramsSchema) return null;
 
-    //const schema = zodSchemaToJsonSchema(tool.paramsSchema);
-    //if (!schema.properties) return null;
-
-    return Object.entries(tool.paramsSchema).map(([key, value]: [string, any]) => (
+    return Object.entries(blueprint.paramsSchema).map(([key, value]: [string, any]) => (
       <View key={key} className="mb-4">
         <Text className="text-secondary mb-1 capitalize">{key}</Text>
         <TextInput

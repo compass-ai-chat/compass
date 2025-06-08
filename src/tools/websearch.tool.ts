@@ -4,6 +4,7 @@ import { ToolHandler } from './tool.interface';
 import { userNotesAtom } from '@/src/hooks/atoms';
 import { getDefaultStore } from 'jotai';
 import { SearxngSearchService } from '@/src/services/search/SearxngSearchService';
+import { SimpleSchema } from '../utils/zodHelpers';
 
 export class WebSearchService implements ToolHandler {
   async execute(params: any, config: any): Promise<any> {
@@ -28,15 +29,14 @@ export class WebSearchService implements ToolHandler {
     }
   }
 
-  getParamsSchema(): z.ZodSchema {
-    return z.object({
-      query: z.string()
-    });
+  getParamsSchema(): SimpleSchema {
+    return {
+      query: { type: 'string' }
+    };
   }
 
-  getConfigSchema(): z.ZodSchema {
-    return z.object({
-    });
+  getConfigSchema(): SimpleSchema {
+    return {};
   }
 
   getIcon(): string {

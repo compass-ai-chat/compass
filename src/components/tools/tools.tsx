@@ -9,7 +9,7 @@ import { AddToolModal } from "./AddToolModal";
 import { EditToolModal } from "./EditToolModal";
 import { BlueprintManager } from "./BlueprintManager";
 import { ToolBlueprint } from "@/src/tools/tool.interface";
-import { hasConfigOptions } from "@/src/hooks/useTools";
+import { simpleSchemaHasConfigOptions } from "@/src/hooks/useTools";
 
 interface ToolsProps {
   tools: Tool[];
@@ -52,8 +52,6 @@ return result;`;
     enabled: true,
     code: "",
     configValues: {},
-    paramsSchema: undefined,
-    configSchema: undefined,
   });
 
   useEffect(() => {
@@ -108,8 +106,6 @@ return result;`;
       enabled: true,
       code: "",
       configValues: {},
-      paramsSchema: undefined,
-      configSchema: undefined,
     });
   };
 
@@ -122,8 +118,6 @@ return result;`;
       enabled: tool.enabled,
       code: tool.code || "",
       configValues: tool.configValues || {},
-      paramsSchema: tool.paramsSchema,
-      configSchema: tool.configSchema,
     });
     setSelectedBlueprint(toolBlueprints.find((blueprint) => blueprint.name === tool.blueprintId) || null);
     setShowEditModal(true);
@@ -174,7 +168,7 @@ return result;`;
         formData={formData}
         setFormData={setFormData}
         onAddTool={handleAddTool}
-        toolBlueprints={toolBlueprints.filter(blueprint => hasConfigOptions(blueprint.configSchema))}
+        toolBlueprints={toolBlueprints.filter(blueprint => simpleSchemaHasConfigOptions(blueprint.configSchema))}
       />
 
       <EditToolModal
