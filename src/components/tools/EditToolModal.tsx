@@ -78,26 +78,26 @@ export function EditToolModal({
             {toolBlueprint ? (
               <View className="flex-row flex-wrap gap-2">
                   <TouchableOpacity
-                    key={toolBlueprint.name}
+                    key={toolBlueprint.id}
                     onPress={() => {
                       setFormData({
                         ...formData, 
-                        blueprintId: toolBlueprint.name,
+                        blueprintId: toolBlueprint.id,
                         configValues: {},
                         paramsSchema: toolBlueprint.paramsSchema,
                         configSchema: toolBlueprint.configSchema,
                       });
                     }}
-                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === toolBlueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === toolBlueprint.id ? 'bg-primary' : 'bg-primary/10'}`}
                   >
                     <Ionicons
                       name={toolBlueprint.icon as any}
                       size={20}
-                      color={formData.blueprintId === toolBlueprint.name ? 'white' : '#6366F1'}
+                      color={formData.blueprintId === toolBlueprint.id ? 'white' : '#6366F1'}
                       className="mr-2"
                     />
-                    <Text className={`${formData.blueprintId === toolBlueprint.name ? 'text-white' : 'text-primary'}`}>
-                      {toolBlueprint.name}
+                    <Text className={`${formData.blueprintId === toolBlueprint.id ? 'text-white' : 'text-primary'}`}>
+                      {toolBlueprint.id}
                     </Text>
                   </TouchableOpacity>
               </View>

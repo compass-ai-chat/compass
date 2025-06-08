@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { SimpleSchema } from '../utils/zodHelpers';
 
 export interface Tool {

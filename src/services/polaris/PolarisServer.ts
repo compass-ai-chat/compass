@@ -1108,7 +1108,7 @@ export class PolarisServer {
     try {
       const blueprints = await this.getToolBlueprints();
       return blueprints.reduce((acc, blueprint) => {
-        acc[blueprint.name] = {
+        acc[blueprint.id] = {
           paramsSchema: blueprint.paramsSchema,
           configSchema: blueprint.configSchema,
         };

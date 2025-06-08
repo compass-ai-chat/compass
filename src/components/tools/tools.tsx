@@ -119,7 +119,7 @@ return result;`;
       code: tool.code || "",
       configValues: tool.configValues || {},
     });
-    setSelectedBlueprint(toolBlueprints.find((blueprint) => blueprint.name === tool.blueprintId) || null);
+    setSelectedBlueprint(toolBlueprints.find((blueprint) => blueprint.id === tool.blueprintId) || null);
     setShowEditModal(true);
   };
 

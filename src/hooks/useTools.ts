@@ -22,8 +22,8 @@ export function useTools() {
     setTools(toolsWithoutConfig.map((tool: ToolBlueprint) => {
       return {
         ...tool,
-        id: tool.name,
-        blueprintId: tool.name,
+        id: tool.id,
+        blueprintId: tool.id,
         enabled: true,
         configValues: {},
       }
@@ -45,7 +45,7 @@ export function useTools() {
     for (const [type, handler] of Object.entries(handlers)) {
       // First register the tool structure
       await registerToolBlueprint({
-        name: type,
+        id: type,
         description: handler.getDescription(),
         icon: handler.getIcon(),
         code: '', // Built-in tools don't need code
@@ -63,9 +63,9 @@ export function useTools() {
 
   const createToolBlueprint = async (tool: ToolBlueprint) => {
     console.log("Creating tool", tool);
-    if (tool.name === 'dynamic') {
+    if (tool.id === 'dynamic') {
       await registerToolBlueprint({
-        name: tool.name,
+        id: tool.id,
         description: tool.description,
         icon: tool.icon || 'code',
         code: tool.code || '',
@@ -106,7 +106,7 @@ export function useTools() {
 
     console.log("tool found", tool);
 
-    const handler = toolBlueprints.find(t => t.name === tool.blueprintId);
+    const handler = toolBlueprints.find(t => t.id === tool.blueprintId);
     console.log("handler", handler);
     console.log("handler paramsSchema", handler?.paramsSchema);
     if (!handler) {
@@ -131,7 +131,7 @@ export function useTools() {
 
     for (const tool of filteredTools) {
       try {
-        const blueprint = toolBlueprints.find(t => t.name === tool.blueprintId);
+        const blueprint = toolBlueprints.find(t => t.id === tool.blueprintId);
 
         if(!blueprint?.execute){
           console.error("Missing execute function for tool", tool.name);
@@ -175,7 +175,7 @@ export function useTools() {
         
         const wrappedCode = `
           return {
-            name: "${blueprint.name}",
+            name: "${blueprint.id}",
             description: "${blueprint.description}",
             icon: "${blueprint.icon}",
             paramsSchema: ${JSON.stringify(blueprint.paramsSchema)},
@@ -199,12 +199,12 @@ export function useTools() {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      throw new Error(`Failed to register tool ${blueprint.name}: ${error}`);
+      throw new Error(`Failed to register tool ${blueprint.id}: ${error}`);
     }
   }
 
   const setToolExecutor = (name: string, executor: (params: any, configValues: any) => Promise<any>) => {
-    const tool = toolBlueprints.find(t => t.name === name);
+    const tool = toolBlueprints.find(t => t.id === name);
     if (tool) {
       tool.execute = executor;
     }

@@ -112,7 +112,7 @@ export default function Tools() {
       enabled: tool.enabled,
       configValues: tool.configValues || {},
     });
-    setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.name === tool.blueprintId) || null);
+    setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.id === tool.blueprintId) || null);
     setShowEditModal(true);
   };
 
@@ -303,16 +303,16 @@ export default function Tools() {
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
-                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.name === type) || null);
+                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.id === type) || null);
                         setFormData({
                           ...formData, 
                           blueprintId: type,
                           configValues: {},
                         });
                       }}
-                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.name === type ? 'bg-primary' : 'bg-primary/10'}`}
+                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.id === type ? 'bg-primary' : 'bg-primary/10'}`}
                     >
-                      <Text className={`${selectedBlueprint?.name === type ? 'text-white' : 'text-primary'}`}>
+                      <Text className={`${selectedBlueprint?.id === type ? 'text-white' : 'text-primary'}`}>
                         {type}
                       </Text>
                     </TouchableOpacity>
@@ -431,16 +431,16 @@ export default function Tools() {
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
-                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.name === type) || null);
+                        setSelectedBlueprint(toolBlueprints.find(blueprint => blueprint.id === type) || null);
                         setFormData({
                           ...formData, 
                           blueprintId: type,
                           configValues: {},
                         });
                       }}
-                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.name === type ? 'bg-primary' : 'bg-primary/10'}`}
+                      className={`px-3 py-1 rounded-full ${selectedBlueprint?.id === type ? 'bg-primary' : 'bg-primary/10'}`}
                     >
-                      <Text className={`${selectedBlueprint?.name === type ? 'text-white' : 'text-primary'}`}>
+                      <Text className={`${selectedBlueprint?.id === type ? 'text-white' : 'text-primary'}`}>
                         {type}
                       </Text>
                     </TouchableOpacity>

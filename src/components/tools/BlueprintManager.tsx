@@ -64,7 +64,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
       };
 
       let blueprint = await registerToolBlueprint({
-        name: createToolData.name,
+        id: createToolData.name,
         description: createToolData.description,
         icon: createToolData.icon || 'code',
         code: compiledCode, // Use the compiled JavaScript code
@@ -78,9 +78,9 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
         console.log("adding tool", blueprint);
         addTool({
           id: Date.now().toString(),
-          blueprintId: blueprint.name,
+          blueprintId: blueprint.id,
           configValues: {},
-          name: blueprint.name,
+          name: blueprint.id,
           description: blueprint.description,
           enabled: true,
           icon: blueprint.icon,
@@ -102,7 +102,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const filteredBlueprints = toolBlueprints.filter((blueprint: ToolBlueprint) => {
     const searchLower = searchQuery.toLowerCase();
     return (
-      blueprint.name.toLowerCase().includes(searchLower) ||
+      blueprint.id.toLowerCase().includes(searchLower) ||
       blueprint.description.toLowerCase().includes(searchLower)
     );
   });
@@ -113,7 +113,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
 
       await registerToolBlueprint({
         ...blueprint,
-        name,
+        id: name,
         code: compiledCode,
         paramsSchema: new Function('z', `return ${paramsSchema}`)(z),
         configSchema: new Function('z', `return ${configSchema}`)(z),
@@ -176,10 +176,10 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
               <Text className="text-lg font-semibold text-primary mb-2">Built-in Blueprints</Text>
               <View className="space-y-2">
                 {filteredBlueprints
-                  .filter((blueprint: ToolBlueprint) => builtInTools.includes(blueprint.name))
+                  .filter((blueprint: ToolBlueprint) => builtInTools.includes(blueprint.id))
                   .map((blueprint: ToolBlueprint) => (
                     <View
-                      key={blueprint.name}
+                      key={blueprint.id}
                       className="bg-surface p-4 rounded-lg border border-border"
                     >
                       <View className="flex-row justify-between items-center">
@@ -190,7 +190,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                             className="text-primary mr-2"
                           />
                           <View>
-                            <Text className="text-lg font-medium text-text">{blueprint.name}</Text>
+                            <Text className="text-lg font-medium text-text">{blueprint.id}</Text>
                             <Text className="text-secondary">{blueprint.description}</Text>
                           </View>
                         </View>
@@ -208,10 +208,10 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
               <Text className="text-lg font-semibold text-primary mb-2">User-defined Blueprints</Text>
               <View className="space-y-2">
                 {filteredBlueprints
-                  .filter((blueprint: ToolBlueprint) => !builtInTools.includes(blueprint.name))
+                  .filter((blueprint: ToolBlueprint) => !builtInTools.includes(blueprint.id))
                   .map((blueprint: ToolBlueprint) => (
                     <View
-                      key={blueprint.name}
+                      key={blueprint.id}
                       className="bg-surface p-4 rounded-lg border border-border"
                     >
                       <View className="flex-row justify-between items-center">
@@ -222,13 +222,13 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                             className="text-primary mr-2"
                           />
                           <View>
-                            <Text className="text-lg font-medium text-text">{blueprint.name}</Text>
+                            <Text className="text-lg font-medium text-text">{blueprint.id}</Text>
                             <Text className="text-secondary">{blueprint.description}</Text>
                           </View>
                         </View>
                         <View className="flex-row space-x-2">
                           <TouchableOpacity
-                            onPress={() => selectedBlueprint === blueprint.name ? setSelectedBlueprint(null) : setSelectedBlueprint(blueprint.name)}
+                            onPress={() => selectedBlueprint === blueprint.id ? setSelectedBlueprint(null) : setSelectedBlueprint(blueprint.id)}
                             className="bg-primary px-3 py-1 rounded-lg"
                           >
                             <Text className="text-white">Edit</Text>
@@ -236,13 +236,13 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
                         </View>
                       </View>
 
-                      {selectedBlueprint === blueprint.name && (
+                      {selectedBlueprint === blueprint.id && (
                         <View className="mt-4">
                           <View className="border border-primary rounded-lg overflow-hidden h-full">
                             <CodeEditor
                               value={blueprint.code || ''}
                               onChangeText={(code: string) =>
-                                handleEditBlueprint(blueprint.name, { ...blueprint, code })
+                                handleEditBlueprint(blueprint.id, { ...blueprint, code })
                               }
                               language="typescript"
                               style={{ height: 800 }}

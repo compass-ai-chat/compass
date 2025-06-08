@@ -36,7 +36,7 @@ export function AddToolModal({
     setSelectedBlueprint(blueprint);
     setFormData({
       ...formData, 
-      blueprintId: blueprint.name,
+      blueprintId: blueprint.id,
       configValues: {},
       enabled: true,
     });
@@ -60,19 +60,19 @@ export function AddToolModal({
               <View className="flex-row flex-wrap gap-2">
                 {toolBlueprints.map((blueprint) => (
                   <TouchableOpacity
-                    key={blueprint.name}
+                    key={blueprint.id}
                     onPress={() => {
                       onBlueprintSelected(blueprint);
                     }}
-                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === blueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === blueprint.id ? 'bg-primary' : 'bg-primary/10'}`}
                   >
                     <Ionicons
                       name={blueprint.icon as any}
                       size={20}
-                      className={`${formData.blueprintId === blueprint.name ? '!text-white' : '!text-primary'} mr-2`}
+                      className={`${formData.blueprintId === blueprint.id ? '!text-white' : '!text-primary'} mr-2`}
                     />
-                    <Text className={`${formData.blueprintId === blueprint.name ? 'text-white' : 'text-primary'}`}>
-                      {blueprint.name}
+                    <Text className={`${formData.blueprintId === blueprint.id ? 'text-white' : 'text-primary'}`}>
+                      {blueprint.id}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -116,7 +116,7 @@ export function AddToolModal({
           />
         </View>
         
-        {formData.blueprintId && toolBlueprints.find((blueprint) => blueprint.name === formData.blueprintId)?.configSchema && (
+        {formData.blueprintId && toolBlueprints.find((blueprint) => blueprint.id === formData.blueprintId)?.configSchema && (
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
@@ -150,7 +150,7 @@ export function AddToolModal({
                 );
               })}
               
-              {Object.keys(toolBlueprints.find((blueprint) => blueprint.name === formData.blueprintId)?.configSchema || {}).length === 0 && (
+              {Object.keys(toolBlueprints.find((blueprint) => blueprint.id === formData.blueprintId)?.configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>

@@ -47,7 +47,7 @@ export async function registerBuiltInTools() {
   for (const [type, handler] of Object.entries(handlers)) {
     // First register the tool structure
     await registerToolBlueprint({
-      name: type,
+      id: type,
       description: handler.getDescription(),
       icon: handler.getIcon(),
       code: '', // Built-in tools don't need code

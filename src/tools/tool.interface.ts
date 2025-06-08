@@ -10,7 +10,7 @@ export interface ToolHandler {
 
 export interface ToolBlueprint {
   // Static metadata
-  name: string;
+  id: string;
   description: string;
   icon: string;
   
