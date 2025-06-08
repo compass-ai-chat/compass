@@ -16,7 +16,7 @@ export default function ToolsScreen() {
     const newTool = {
       ...tool,
       id: Date.now().toString(),
-      blueprintId: tool.type,
+      blueprintId: tool.blueprintId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as Tool;
@@ -38,7 +38,7 @@ export default function ToolsScreen() {
           ...t,
           name: tool.name,
           description: tool.description,
-          type: tool.type,
+          blueprintId: tool.blueprintId,
           configValues: tool.configValues,
           enabled: tool.enabled ?? true,
           icon: tool.icon,

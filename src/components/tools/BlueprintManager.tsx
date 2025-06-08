@@ -47,7 +47,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const { registerToolBlueprint, addTool } = useTools();
 
   // Get built-in tool types
-  const builtInTools = DEFAULT_TOOLS.map(tool => tool.type);
+  const builtInTools = DEFAULT_TOOLS.map(tool => tool.blueprintId);
 
   const handleCreateToolBlueprint = async () => {
     try {
@@ -84,7 +84,6 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
           configValues: {},
           name: blueprint.name,
           description: blueprint.description,
-          type: blueprint.name,
           enabled: true,
           icon: blueprint.icon,
           paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),

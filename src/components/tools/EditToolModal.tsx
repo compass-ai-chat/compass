@@ -82,21 +82,21 @@ export function EditToolModal({
                     onPress={() => {
                       setFormData({
                         ...formData, 
-                        type: toolBlueprint.name,
+                        blueprintId: toolBlueprint.name,
                         configValues: {},
                         paramsSchema: toolBlueprint.paramsSchema,
                         configSchema: toolBlueprint.configSchema,
                       });
                     }}
-                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === toolBlueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === toolBlueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
                   >
                     <Ionicons
                       name={toolBlueprint.icon as any}
                       size={20}
-                      color={formData.type === toolBlueprint.name ? 'white' : '#6366F1'}
+                      color={formData.blueprintId === toolBlueprint.name ? 'white' : '#6366F1'}
                       className="mr-2"
                     />
-                    <Text className={`${formData.type === toolBlueprint.name ? 'text-white' : 'text-primary'}`}>
+                    <Text className={`${formData.blueprintId === toolBlueprint.name ? 'text-white' : 'text-primary'}`}>
                       {toolBlueprint.name}
                     </Text>
                   </TouchableOpacity>
@@ -105,14 +105,14 @@ export function EditToolModal({
               <TextInput
                 className="text-text"
                 placeholder="Tool type"
-                value={formData.type}
-                onChangeText={(text) => setFormData({...formData, type: text})}
+                value={formData.blueprintId}
+                onChangeText={(text) => setFormData({...formData, blueprintId: text})}
               />
             )}
           </View>
         </View>
         
-        {formData.type && formData.configSchema && (
+        {formData.blueprintId && formData.configSchema && (
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">

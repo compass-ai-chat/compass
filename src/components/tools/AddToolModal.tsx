@@ -35,7 +35,7 @@ export function AddToolModal({
     setSelectedBlueprint(blueprint);
     setFormData({
       ...formData, 
-      type: blueprint.name,
+      blueprintId: blueprint.name,
       configValues: {},
       paramsSchema: zodSchemaToJsonSchema(blueprint.paramsSchema),
       configSchema: zodSchemaToJsonSchema(blueprint.configSchema),
@@ -66,14 +66,14 @@ export function AddToolModal({
                     onPress={() => {
                       onBlueprintSelected(blueprint);
                     }}
-                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.type === blueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
+                    className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === blueprint.name ? 'bg-primary' : 'bg-primary/10'}`}
                   >
                     <Ionicons
                       name={blueprint.icon as any}
                       size={20}
-                      className={`${formData.type === blueprint.name ? '!text-white' : '!text-primary'} mr-2`}
+                      className={`${formData.blueprintId === blueprint.name ? '!text-white' : '!text-primary'} mr-2`}
                     />
-                    <Text className={`${formData.type === blueprint.name ? 'text-white' : 'text-primary'}`}>
+                    <Text className={`${formData.blueprintId === blueprint.name ? 'text-white' : 'text-primary'}`}>
                       {blueprint.name}
                     </Text>
                   </TouchableOpacity>
@@ -83,8 +83,8 @@ export function AddToolModal({
               <TextInput
                 className="text-text"
                 placeholder="Tool type"
-                value={formData.type}
-                onChangeText={(text) => setFormData({...formData, type: text})}
+                value={formData.blueprintId}
+                onChangeText={(text) => setFormData({...formData, blueprintId: text})}
               />
             )}
           </View>
@@ -118,7 +118,7 @@ export function AddToolModal({
           />
         </View>
         
-        {formData.type && toolBlueprints.find((blueprint) => blueprint.name === formData.type)?.configSchema && (
+        {formData.blueprintId && toolBlueprints.find((blueprint) => blueprint.name === formData.blueprintId)?.configSchema && (
           <View>
             <Text className="text-secondary mb-1">Configuration</Text>
             <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
@@ -155,7 +155,7 @@ export function AddToolModal({
                 );
               })}
               
-              {Object.keys(toolBlueprints.find((blueprint) => blueprint.name === formData.type)?.configSchema || {}).length === 0 && (
+              {Object.keys(toolBlueprints.find((blueprint) => blueprint.name === formData.blueprintId)?.configSchema || {}).length === 0 && (
                 <Text className="text-secondary italic p-2">No configuration fields available</Text>
               )}
             </View>

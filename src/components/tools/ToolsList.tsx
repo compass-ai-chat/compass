@@ -54,7 +54,7 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
             <View className="w-24 items-center">
               <View className="px-2 py-1 rounded-full bg-blue-100">
                 <Text className="text-xs text-blue-800">
-                  {tool.type}
+                  {tool.blueprintId}
                 </Text>
               </View>
             </View>

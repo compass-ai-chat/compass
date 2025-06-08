@@ -5,7 +5,6 @@ export interface Tool {
     name: string;
     blueprintId: string;
     description: string;
-    type: string;
     enabled: boolean;
     isServerResource?: boolean;
     icon?: string;
@@ -18,7 +17,7 @@ export interface Tool {
   export interface CreateToolDto {
     name: string;
     description: string;
-    type: string;
+    blueprintId: string;
     enabled?: boolean;
     icon?: string;
     code?: string;

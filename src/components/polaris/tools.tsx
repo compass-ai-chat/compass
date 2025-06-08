@@ -27,7 +27,7 @@ export default function Tools() {
   const [formData, setFormData] = useState<CreateToolDto>({
     name: "",
     description: "",
-    type: "",
+    blueprintId: "",
     enabled: true,
     configValues: {},
     paramsSchema: z.object({}),
@@ -52,7 +52,7 @@ export default function Tools() {
   };
 
   const handleAddTool = async () => {
-    if (!formData.name || !formData.description || !formData.type) {
+    if (!formData.name || !formData.description || !formData.blueprintId) {
       toastService.warning({ title: "Please fill all required fields" });
       return;
     }
@@ -98,7 +98,7 @@ export default function Tools() {
     setFormData({
       name: "",
       description: "",
-      type: "",
+      blueprintId: "",
       enabled: true,
       configValues: {},
       paramsSchema: z.object({}),
@@ -112,13 +112,13 @@ export default function Tools() {
     setFormData({
       name: tool.name,
       description: tool.description,
-      type: tool.type,
+      blueprintId: tool.blueprintId,
       enabled: tool.enabled,
       configValues: tool.configValues || {},
       paramsSchema: tool.paramsSchema || z.object({}),
       configSchema: tool.configSchema || z.object({}),
     });
-    setSelectedBlueprint(tool.type);
+    setSelectedBlueprint(tool.blueprintId);
     setShowEditModal(true);
   };
 
@@ -127,7 +127,7 @@ export default function Tools() {
     return (
       tool.name.toLowerCase().includes(searchLower) ||
       tool.description.toLowerCase().includes(searchLower) ||
-      tool.type.toLowerCase().includes(searchLower)
+      tool.blueprintId.toLowerCase().includes(searchLower)
     );
   });
 
@@ -223,7 +223,7 @@ export default function Tools() {
                     <View className="w-10 items-center justify-center">
                       <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
                         <Ionicons 
-                          name={getToolTypeIcon(tool.type)} 
+                          name={getToolTypeIcon(tool.blueprintId)} 
                           size={16} 
                           className="!text-primary" 
                         />
@@ -234,7 +234,7 @@ export default function Tools() {
                     <View className="w-24 items-center">
                       <View className="px-2 py-1 rounded-full bg-blue-100">
                         <Text className="text-xs text-blue-800">
-                          {tool.type}
+                          {tool.blueprintId}
                         </Text>
                       </View>
                     </View>
@@ -312,7 +312,7 @@ export default function Tools() {
                         setSelectedBlueprint(type);
                         setFormData({
                           ...formData, 
-                          type,
+                          blueprintId: type,
                           configValues: {},
                           paramsSchema: schemas.paramsSchema,
                           configSchema: schemas.configSchema,
@@ -442,7 +442,7 @@ export default function Tools() {
                         setSelectedBlueprint(type);
                         setFormData({
                           ...formData, 
-                          type,
+                          blueprintId: type,
                           configValues: {},
                           paramsSchema: schemas.paramsSchema,
                           configSchema: schemas.configSchema,

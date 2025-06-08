@@ -48,7 +48,7 @@ return result;`;
   const [formData, setFormData] = useState<CreateToolDto>({
     name: "",
     description: "",
-    type: "",
+    blueprintId: "",
     enabled: true,
     code: "",
     configValues: {},
@@ -61,7 +61,7 @@ return result;`;
   }, []);
 
   const handleAddTool = async () => {
-    if (!formData.name || !formData.description || !formData.type) {
+    if (!formData.name || !formData.description || !formData.blueprintId) {
       toastService.warning({ title: "Please fill all required fields" });
       return;
     }
@@ -104,7 +104,7 @@ return result;`;
     setFormData({
       name: "",
       description: "",
-      type: "",
+      blueprintId: "",
       enabled: true,
       code: "",
       configValues: {},
@@ -118,14 +118,14 @@ return result;`;
     setFormData({
       name: tool.name,
       description: tool.description,
-      type: tool.type,
+      blueprintId: tool.blueprintId,
       enabled: tool.enabled,
       code: tool.code || "",
       configValues: tool.configValues || {},
       paramsSchema: tool.paramsSchema,
       configSchema: tool.configSchema,
     });
-    setSelectedBlueprint(toolBlueprints.find((blueprint) => blueprint.name === tool.type) || null);
+    setSelectedBlueprint(toolBlueprints.find((blueprint) => blueprint.name === tool.blueprintId) || null);
     setShowEditModal(true);
   };
 
@@ -134,7 +134,7 @@ return result;`;
     return (
       tool.name.toLowerCase().includes(searchLower) ||
       tool.description.toLowerCase().includes(searchLower) ||
-      tool.type.toLowerCase().includes(searchLower)
+      tool.blueprintId.toLowerCase().includes(searchLower)
     );
   });
 

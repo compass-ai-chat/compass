@@ -1133,7 +1133,7 @@ export class PolarisServer {
     try {
       const response = await this.makeRequest("/api/admin/tools", "POST", {
         ...tool,
-        blueprintId: tool.type,
+        blueprintId: tool.blueprintId,
       });
       return response.id;
     } catch (error) {
@@ -1159,7 +1159,7 @@ export class PolarisServer {
     try {
       await this.makeRequest(`/api/admin/tools/${id}`, "PUT", {
         ...tool,
-        blueprintId: tool.type,
+        blueprintId: tool.blueprintId,
       });
       return true;
     } catch (error) {

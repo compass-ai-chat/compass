@@ -19,28 +19,6 @@ export function ToolSelector({
 }: ToolSelectorProps) {
   const { t } = useLocalization();
 
-  // Map tool types to appropriate Ionicons
-  const getIconForToolType = (tool: Tool): string => {
-    if (tool.icon) return tool.icon;
-
-    const iconMap: Record<string, string> = {
-      email: "mail-outline",
-      search: "search-outline",
-      weather: "cloudy-outline",
-      calendar: "calendar-outline",
-      calculator: "calculator-outline",
-      browser: "globe-outline",
-      code: "code-slash-outline",
-      database: "server-outline",
-      file: "document-outline",
-      image: "image-outline",
-      note: "pencil-outline",
-      // Add more mappings as needed
-    };
-
-    return iconMap[tool.type.toLowerCase()] || "construct-outline"; // Default to a generic tool icon
-  };
-
   if (!tools || tools.length === 0) {
     return null;
   }
