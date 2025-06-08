@@ -21,7 +21,7 @@ interface BlueprintManagerProps {
 }
 
 const defaultBlueprint = {
-  name: "",
+  id: "",
   description: "",
   code: `
 // Define your function parameters and config values using TypeScript types
@@ -49,10 +49,12 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
 
   const handleCreateToolBlueprint = async () => {
     try {
-      if (!createToolData.name || !createToolData.description || !createToolData.code) {
+      if (!createToolData.id || !createToolData.description || !createToolData.code) {
         toastService.warning({ title: "Please fill all required fields" });
         return;
       }
+
+      console.log("createToolData", createToolData);
 
       // Compile TypeScript code and extract schemas
       const { compiledCode, paramsSchema, configSchema } = compileTypescript(createToolData.code);
@@ -64,7 +66,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
       };
 
       let blueprint = await registerToolBlueprint({
-        id: createToolData.name,
+        id: createToolData.id,
         description: createToolData.description,
         icon: createToolData.icon || 'code',
         code: compiledCode, // Use the compiled JavaScript code

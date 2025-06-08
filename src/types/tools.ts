@@ -19,6 +19,7 @@ export interface Tool {
     enabled?: boolean;
     code?: string;
     configValues?: Record<string, any>;
+    icon?: string;
   }
   
   export interface UpdateToolDto extends CreateToolDto {}

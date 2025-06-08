@@ -32,16 +32,17 @@ export function AddToolModal({
 
 
   const onBlueprintSelected = (blueprint: ToolBlueprint) => {
-    console.log("blueprint", blueprint);
     setSelectedBlueprint(blueprint);
     setFormData({
       ...formData, 
+      name: blueprint.id,
+      description: blueprint.description,
       blueprintId: blueprint.id,
       configValues: {},
       enabled: true,
+      icon: blueprint.icon as string,
     });
 
-    console.log("blueprint.configSchema", blueprint.configSchema);
   };
 
   return (

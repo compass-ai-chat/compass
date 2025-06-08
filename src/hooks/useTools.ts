@@ -10,24 +10,26 @@ import { NoteToolService } from '../tools/note.tool';
 import { WebSearchService } from '../tools/websearch.tool';
 import { toolBlueprintsAtom } from './atoms';
 import { SimpleSchema, simpleSchemaToZod, zodSchemaToJsonSchema } from '../utils/zodHelpers';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
   const [toolBlueprints, setToolBlueprints] = useAtom(toolBlueprintsAtom);
 
+
   useEffect(() => {
     const toolsWithoutConfig = toolBlueprints.filter(x=> 
-      !simpleSchemaHasConfigOptions(x.configSchema))
-    setTools(toolsWithoutConfig.map((tool: ToolBlueprint) => {
+      !simpleSchemaHasConfigOptions(x.configSchema) && !tools.find(y=>y.name==x.id))
+    setTools([...tools, ...toolsWithoutConfig.map((tool: ToolBlueprint) => {
       return {
         ...tool,
+        name: tool.id,
         id: tool.id,
         blueprintId: tool.id,
         enabled: true,
         configValues: {},
       }
-    }));
+    })]);
   }, [toolBlueprints]);
 
   const initializeTools = async () => {
@@ -175,7 +177,7 @@ export function useTools() {
         
         const wrappedCode = `
           return {
-            name: "${blueprint.id}",
+            id: "${blueprint.id}",
             description: "${blueprint.description}",
             icon: "${blueprint.icon}",
             paramsSchema: ${JSON.stringify(blueprint.paramsSchema)},

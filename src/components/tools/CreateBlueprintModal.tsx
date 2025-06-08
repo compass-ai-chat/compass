@@ -10,7 +10,7 @@ import { compileTypescript } from '@/src/utils/tsCompiler';
 import { SimpleSchema } from '@/src/utils/zodHelpers';
 
 export interface CreateToolBlueprintData {
-  name: string;
+  id: string;
   description: string;
   code: string;
   icon?: string;
@@ -69,8 +69,8 @@ export function CreateBlueprintModal({
               className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
               placeholder="Tool name"
               placeholderTextColor="#9CA3AF"
-              value={createToolData.name}
-              onChangeText={(text) => setCreateToolBlueprintData({...createToolData, name: text})}
+              value={createToolData.id}
+              onChangeText={(text) => setCreateToolBlueprintData({...createToolData, id: text})}
             />
           </View>
           
