@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Switch, Image } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Switch } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAtom } from "jotai";
 import { polarisToolsAtom } from "@/src/hooks/atoms";
@@ -9,6 +9,9 @@ import { toastService } from "@/src/services/toastService";
 import { Tool, CreateToolDto, UpdateToolDto } from "@/src/types/tools";
 import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
+import { ToolBlueprint } from "@/src/tools/tool.interface";
+import { zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
+import { z } from "zod";
 
 export default function Tools() {
   const [tools, setTools] = useAtom(polarisToolsAtom);
@@ -17,21 +20,23 @@ export default function Tools() {
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [toolTypes, setToolTypes] = useState<Record<string, { paramsSchema: any; configSchema: any }>>({});
+  const [toolBlueprints, setToolBlueprints] = useState<Record<string, { paramsSchema: any; configSchema: any }>>({});
+  const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>(null);
 
   // Form states
   const [formData, setFormData] = useState<CreateToolDto>({
     name: "",
     description: "",
     type: "",
-    config: {},
-    schema: {},
     enabled: true,
+    configValues: {},
+    paramsSchema: z.object({}),
+    configSchema: z.object({}),
   });
 
   useEffect(() => {
     loadTools();
-    loadToolTypes();
+    loadToolBlueprints();
   }, []);
 
   const loadTools = async () => {
@@ -41,9 +46,9 @@ export default function Tools() {
     setIsLoading(false);
   };
 
-  const loadToolTypes = async () => {
+  const loadToolBlueprints = async () => {
     const types = await PolarisServer.getToolTypes();
-    setToolTypes(types);
+    setToolBlueprints(types);
   };
 
   const handleAddTool = async () => {
@@ -94,10 +99,12 @@ export default function Tools() {
       name: "",
       description: "",
       type: "",
-      config: {},
-      schema: {},
       enabled: true,
+      configValues: {},
+      paramsSchema: z.object({}),
+      configSchema: z.object({}),
     });
+    setSelectedBlueprint(null);
   };
 
   const openEditModal = (tool: Tool) => {
@@ -106,10 +113,12 @@ export default function Tools() {
       name: tool.name,
       description: tool.description,
       type: tool.type,
-      config: tool.config,
-      schema: tool.schema,
       enabled: tool.enabled,
+      configValues: tool.configValues || {},
+      paramsSchema: tool.paramsSchema || z.object({}),
+      configSchema: tool.configSchema || z.object({}),
     });
+    setSelectedBlueprint(tool.type);
     setShowEditModal(true);
   };
 
@@ -134,22 +143,6 @@ export default function Tools() {
         return 'code';
       default:
         return 'construct';
-    }
-  };
-
-  const formatJson = (json: Record<string, any>) => {
-    return JSON.stringify(json, null, 2);
-  };
-
-  const parseJsonSafely = (jsonString: string): Record<string, any> => {
-    try {
-      return JSON.parse(jsonString);
-    } catch (error) {
-      toastService.warning({ 
-        title: "Invalid JSON", 
-        description: "Please check your JSON format" 
-      });
-      return {};
     }
   };
 
@@ -308,81 +301,75 @@ export default function Tools() {
           </View>
           
           <View>
-            <Text className="text-secondary mb-1">Type *</Text>
+            <Text className="text-secondary mb-1">Blueprint *</Text>
             <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolTypes).length > 0 ? (
+              {Object.keys(toolBlueprints).length > 0 ? (
                 <View className="flex-row flex-wrap gap-2">
-                  {Object.keys(toolTypes).map((type) => (
+                  {Object.entries(toolBlueprints).map(([type, schemas]) => (
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
+                        setSelectedBlueprint(type);
                         setFormData({
                           ...formData, 
                           type,
-                          config: toolTypes[type].configSchema || formData.config,
-                          schema: formData.schema
+                          configValues: {},
+                          paramsSchema: schemas.paramsSchema,
+                          configSchema: schemas.configSchema,
                         });
                       }}
-                      className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
+                      className={`px-3 py-1 rounded-full ${selectedBlueprint === type ? 'bg-primary' : 'bg-primary/10'}`}
                     >
-                      <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
+                      <Text className={`${selectedBlueprint === type ? 'text-white' : 'text-primary'}`}>
                         {type}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               ) : (
-                <TextInput
-                  className="text-text"
-                  placeholder="Tool type"
-                  value={formData.type}
-                  onChangeText={(text) => setFormData({...formData, type: text})}
-                />
+                <Text className="text-secondary italic">No blueprints available</Text>
               )}
             </View>
           </View>
           
-          {formData.type && toolTypes[formData.type]?.configSchema && (<View>
-            <Text className="text-secondary mb-1">Configuration</Text>
-            <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolTypes[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolTypes[formData.type].configSchema;
-                const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
-                const description = fieldConfig.description || '';
-                const isSecret = fieldConfig.type === 'password' || 
-                                key.toLowerCase().includes('secret') || 
-                                key.toLowerCase().includes('token');
-                
-                return (
-                  <View key={key}>
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="text-secondary">{key}</Text>
-                      {description && (
-                        <Text className="text-xs text-secondary/70 italic">{description}</Text>
-                      )}
+          {selectedBlueprint && toolBlueprints[selectedBlueprint]?.configSchema && (
+            <View>
+              <Text className="text-secondary mb-1">Configuration</Text>
+              <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
+                {Object.entries(toolBlueprints[selectedBlueprint].configSchema.properties || {}).map(([key, schema]: [string, any]) => {
+                  const isSecret = schema.type === 'string' && (
+                    key.toLowerCase().includes('secret') || 
+                    key.toLowerCase().includes('token') ||
+                    key.toLowerCase().includes('password')
+                  );
+                  
+                  return (
+                    <View key={key}>
+                      <View className="flex-row justify-between items-center mb-1">
+                        <Text className="text-secondary">{key}</Text>
+                        {schema.description && (
+                          <Text className="text-xs text-secondary/70 italic">{schema.description}</Text>
+                        )}
+                      </View>
+                      <TextInput
+                        className="border border-border rounded-lg p-2 bg-surface text-text"
+                        placeholder={`Enter ${key}`}
+                        value={formData.configValues?.[key] || ''}
+                        onChangeText={(text) => setFormData({
+                          ...formData,
+                          configValues: {
+                            ...(formData.configValues || {}),
+                            [key]: text
+                          }
+                        })}
+                        secureTextEntry={isSecret}
+                      />
                     </View>
-                    <TextInput
-                      className="border border-border rounded-lg p-2 bg-surface text-text"
-                      placeholder={`Enter ${key}`}
-                      value={typeof (formData.config || {})[key] === 'string' ? (formData.config || {})[key] : ''}
-                      onChangeText={(text) => setFormData({
-                        ...formData, 
-                        config: {
-                          ...(formData.config || {}),
-                          [key]: text
-                        }
-                      })}
-                      secureTextEntry={isSecret}
-                    />
-                  </View>
-                );
-              })}
-              
-              {Object.keys(toolTypes[formData.type].configSchema || {}).length === 0 && (
-                <Text className="text-secondary italic p-2">No configuration fields available</Text>
-              )}
+                  );
+                })}
+              </View>
             </View>
-          </View>) }
+          )}
           
           <View className="flex-row items-center justify-between">
             <Text className="text-secondary">Enabled</Text>
@@ -415,8 +402,9 @@ export default function Tools() {
       <Modal
         isVisible={showEditModal}
         onClose={() => setShowEditModal(false)}
+        className="w-2/3"
       >
-        <View className="space-y-4">
+        <View className="space-y-4 p-4">
           <Text className="text-xl font-bold text-primary">Edit Tool</Text>
           
           <View>
@@ -434,7 +422,6 @@ export default function Tools() {
             <TextInput
               className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
               placeholder="Tool description"
-              placeholderTextColor="#9CA3AF"
               value={formData.description}
               onChangeText={(text) => setFormData({...formData, description: text})}
               multiline
@@ -444,80 +431,75 @@ export default function Tools() {
           </View>
           
           <View>
-            <Text className="text-secondary mb-1">Type *</Text>
+            <Text className="text-secondary mb-1">Blueprint *</Text>
             <View className="border border-border rounded-lg p-2 bg-surface">
-              {Object.keys(toolTypes).length > 0 ? (
+              {Object.keys(toolBlueprints).length > 0 ? (
                 <View className="flex-row flex-wrap gap-2">
-                  {Object.keys(toolTypes).map((type) => (
+                  {Object.entries(toolBlueprints).map(([type, schemas]) => (
                     <TouchableOpacity
                       key={type}
                       onPress={() => {
+                        setSelectedBlueprint(type);
                         setFormData({
                           ...formData, 
                           type,
-                          schema: formData.schema
+                          configValues: {},
+                          paramsSchema: schemas.paramsSchema,
+                          configSchema: schemas.configSchema,
                         });
                       }}
-                      className={`px-3 py-1 rounded-full ${formData.type === type ? 'bg-primary' : 'bg-primary/10'}`}
+                      className={`px-3 py-1 rounded-full ${selectedBlueprint === type ? 'bg-primary' : 'bg-primary/10'}`}
                     >
-                      <Text className={`${formData.type === type ? 'text-white' : 'text-primary'}`}>
+                      <Text className={`${selectedBlueprint === type ? 'text-white' : 'text-primary'}`}>
                         {type}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               ) : (
-                <TextInput
-                  className="text-text"
-                  placeholder="Tool type"
-                  value={formData.type}
-                  onChangeText={(text) => setFormData({...formData, type: text})}
-                />
+                <Text className="text-secondary italic">No blueprints available</Text>
               )}
             </View>
           </View>
           
-          {formData.type && toolTypes[formData.type]?.configSchema && (<View>
-            <Text className="text-secondary mb-1">Configuration</Text>
-            <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
-              {Object.keys(toolTypes[formData.type].configSchema || {}).slice(0, 5).map((key) => {
-                const schema = toolTypes[formData.type].configSchema;
-                const fieldConfig = typeof schema[key] === 'object' ? schema[key] : { type: 'string' };
-                const description = fieldConfig.description || '';
-                const isSecret = fieldConfig.type === 'password' || 
-                                key.toLowerCase().includes('secret') || 
-                                key.toLowerCase().includes('token');
-                
-                return (
-                  <View key={key}>
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="text-secondary">{key}</Text>
-                      {description && (
-                        <Text className="text-xs text-secondary/70 italic">{description}</Text>
-                      )}
+          {selectedBlueprint && toolBlueprints[selectedBlueprint]?.configSchema && (
+            <View>
+              <Text className="text-secondary mb-1">Configuration</Text>
+              <View className="border border-border rounded-lg bg-surface p-3 space-y-3">
+                {Object.entries(toolBlueprints[selectedBlueprint].configSchema.properties || {}).map(([key, schema]: [string, any]) => {
+                  const isSecret = schema.type === 'string' && (
+                    key.toLowerCase().includes('secret') || 
+                    key.toLowerCase().includes('token') ||
+                    key.toLowerCase().includes('password')
+                  );
+                  
+                  return (
+                    <View key={key}>
+                      <View className="flex-row justify-between items-center mb-1">
+                        <Text className="text-secondary">{key}</Text>
+                        {schema.description && (
+                          <Text className="text-xs text-secondary/70 italic">{schema.description}</Text>
+                        )}
+                      </View>
+                      <TextInput
+                        className="border border-border rounded-lg p-2 bg-surface text-text"
+                        placeholder={`Enter ${key}`}
+                        value={formData.configValues?.[key] || ''}
+                        onChangeText={(text) => setFormData({
+                          ...formData,
+                          configValues: {
+                            ...(formData.configValues || {}),
+                            [key]: text
+                          }
+                        })}
+                        secureTextEntry={isSecret}
+                      />
                     </View>
-                    <TextInput
-                      className="border border-border rounded-lg p-2 bg-surface text-text"
-                      placeholder={`Enter ${key}`}
-                      value={typeof (formData.config || {})[key] === 'string' ? (formData.config || {})[key] : ''}
-                      onChangeText={(text) => setFormData({
-                        ...formData, 
-                        config: {
-                          ...(formData.config || {}),
-                          [key]: text
-                        }
-                      })}
-                      secureTextEntry={isSecret}
-                    />
-                  </View>
-                );
-              })}
-              
-              {Object.keys(toolTypes[formData.type].configSchema || {}).length === 0 && (
-                <Text className="text-secondary italic p-2">No configuration fields available</Text>
-              )}
+                  );
+                })}
+              </View>
             </View>
-          </View>) }
+          )}
           
           <View className="flex-row items-center justify-between">
             <Text className="text-secondary">Enabled</Text>

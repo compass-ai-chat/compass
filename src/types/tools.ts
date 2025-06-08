@@ -28,3 +28,14 @@ export interface Tool {
   }
   
   export interface UpdateToolDto extends CreateToolDto {}
+
+  export interface CreateBlueprintDto {
+    name: string;
+    description: string;
+    icon?: string;
+    code?: string;
+    paramsSchema: z.ZodSchema;
+    configSchema: z.ZodSchema;
+  }
+
+  export interface UpdateBlueprintDto extends CreateBlueprintDto {}
