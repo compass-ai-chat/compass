@@ -13,8 +13,6 @@ export const DEFAULT_TOOLS: Tool[] = [
     description: 'Send emails to recipients',
     enabled: true,
     icon: 'mail',
-    configSchema: new EmailToolService().getConfigSchema(),
-    paramsSchema: new EmailToolService().getParamsSchema(),
     configValues: {},
   },
   {
@@ -24,8 +22,6 @@ export const DEFAULT_TOOLS: Tool[] = [
     description: 'Create and manage notes',
     enabled: true,
     icon: 'pencil',
-    configSchema: new NoteToolService().getConfigSchema(),
-    paramsSchema: new NoteToolService().getParamsSchema(),
     configValues: {},
   },
   {
@@ -35,8 +31,6 @@ export const DEFAULT_TOOLS: Tool[] = [
     description: 'Search the web for information',
     enabled: true,
     icon: 'search',
-    configSchema: new WebSearchService().getConfigSchema(),
-    paramsSchema: new WebSearchService().getParamsSchema(),
     configValues: {},
   },
 ];

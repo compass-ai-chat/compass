@@ -10,29 +10,28 @@ import { NoteToolService } from '../tools/note.tool';
 import { WebSearchService } from '../tools/websearch.tool';
 import { toolBlueprintsAtom } from './atoms';
 import { SimpleSchema, simpleSchemaToZod, zodSchemaToJsonSchema } from '../utils/zodHelpers';
+import { useEffect } from 'react';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
   const [toolBlueprints, setToolBlueprints] = useAtom(toolBlueprintsAtom);
 
-  const initializeTools = async () => {
-    try {
-      const defaultTools = await registerBuiltInTools();
-      // Only initialize if no tools exist
-      if (tools.length === 0) {
-        // Filter out tools that have config options
-        const toolsWithoutConfig = defaultTools.filter(tool => {
-          const blueprint = toolBlueprints.find(t => t.name === tool.blueprintId);
-          return !simpleSchemaHasConfigOptions(blueprint?.configSchema);
-        });
-
-        setTools(toolsWithoutConfig.map((tool) => ({
-          ...tool
-        })));
+  useEffect(() => {
+    const toolsWithoutConfig = toolBlueprints.filter(x=> 
+      !simpleSchemaHasConfigOptions(x.configSchema))
+    setTools(toolsWithoutConfig.map((tool: ToolBlueprint) => {
+      return {
+        ...tool,
+        id: tool.name,
+        blueprintId: tool.name,
+        enabled: true,
+        configValues: {},
       }
-    } catch (error) {
-      console.error('Failed to initialize tools:', error);
-    }
+    }));
+  }, [toolBlueprints]);
+
+  const initializeTools = async () => {
+    await registerBuiltInTools();
   };
 
   const registerBuiltInTools = async () => {
