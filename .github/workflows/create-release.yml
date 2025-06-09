@@ -44,7 +44,7 @@ jobs:
             docker run --network host -p 80:80 ghcr.io/${{ github.repository }}:latest
             ```
 
-            Then you can use compass by visiting "http://localhost/compass" in your browser.
+            Then you can use compass by visiting "http://localhost" in your browser.
             This image comes pre-packaged with a proxy server that allows you to use Ollama without any configuration.
 
             🪟 Windows Application:
