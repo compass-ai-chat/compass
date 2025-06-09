@@ -32,7 +32,7 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
     }, [toggleColorScheme]);
 
     return (
-        <View className="absolute top-0 left-0 right-0 w-[25%] mx-auto p-2 flex-row justify-between items-center border-b border-border bg-surface shadow-2xl rounded-xl mt-2 z-10 opacity-60 hover:opacity-100 transition-all duration-200">
+        <View className="absolute top-0 left-0 right-0 min-w-[25%] w-fit mx-auto p-2 flex-row justify-between items-center border-b border-border bg-surface shadow-2xl rounded-xl mt-2 z-10 opacity-60 hover:opacity-100 transition-all duration-200">
         <Dropdown 
           openUpwards={false}
           showSearch={true}
