@@ -7,6 +7,8 @@
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "build:web": "npx expo export --platform web",
+    "serve:web": "npx serve dist -p 3000",
+    "dev:tauri-fast": "npm run build:web && npm run serve:web",
     "build:linux": "NO_STRIP=true npx tauri build",
     "build:android": "eas build -p android --profile preview",
     "build:android-local": "eas build -p android --profile preview --local",
@@ -103,6 +105,8 @@
     "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.0.7",
+    "cross-env": "^7.0.3",
+    "serve": "^14.2.1",
     "gh-pages": "^6.3.0",
     "typescript": "~5.3.3",
     "metro-config": "^0.81.1"
