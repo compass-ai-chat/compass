@@ -51,7 +51,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            windows-build/x86_64-pc-windows-msvc/release/bundle/msi/compass*.msi
-            windows-build/x86_64-pc-windows-msvc/release/bundle/nsis/compass*.exe
+            windows-build/msi/compass*.msi
+            windows-build/nsis/compass*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
