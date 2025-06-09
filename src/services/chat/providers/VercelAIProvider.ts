@@ -57,7 +57,7 @@ export function useVercelAIProvider() {
       case 'polaris':
         aiModel = createOpenAI({
           apiKey: provider.apiKey,
-          baseURL: provider.endpoint + '/v1',
+          baseURL: provider.endpoint + '/api/v1',
         })(modelId);
         break;
       default:
