@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Build the web version with the correct public URL
-RUN PUBLIC_URL=/compass npm run build:web
+RUN npm run build:web
 
 # Proxy stage
 FROM node:22.11.0-alpine AS proxy
@@ -28,7 +28,7 @@ RUN npm install express
 FROM nginx:alpine
 
 # Copy built static files from builder stage to the compass subdirectory
-COPY --from=builder /app/dist /usr/share/nginx/html/compass
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy proxy server from proxy stage
 COPY --from=proxy /app /proxy
