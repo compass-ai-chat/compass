@@ -43,7 +43,7 @@ export default function RootLayout() {
     return rawThemes[themePreset][colorScheme ?? 'light'];
   }, [themePreset, colorScheme]);
 
-  const isDesktop = Platform.isWeb && window.innerWidth >= 768;
+  const isDesktop = Platform.isDesktop && window.innerWidth >= 768;
 
   const myFunc = async function() {
     
