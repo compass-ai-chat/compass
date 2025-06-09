@@ -15,7 +15,7 @@ export class MistralProvider implements ChatProvider {
   constructor(provider: Provider) {
     this.provider = provider;
   }
-  async *sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): AsyncGenerator<string> {
+  async sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map(message => ({
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
@@ -32,7 +32,7 @@ export class MistralProvider implements ChatProvider {
       if (PlatformCust.isMobile) {
         let url = `${model.provider.endpoint}/v1/chat/completions`;
         if (PlatformCust.isTauri) url = await getProxyUrl(url);
-        yield* streamOpenAIResponse(url, {
+        return streamOpenAIResponse(url, {
           model: model.id,
           messages: newMessages,
           stream: true,
@@ -67,9 +67,7 @@ export class MistralProvider implements ChatProvider {
           maxSteps: 5
         });
 
-        for await (const textPart of textStream) {
-          yield textPart;
-        }
+        return textStream;
       }
     } catch (error: any) {
       LogService.log(error, { component: 'OpenAIProvider', function: 'sendMessage' }, 'error');

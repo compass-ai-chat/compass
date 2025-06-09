@@ -26,8 +26,8 @@ export default function HomeScreen() {
 
   if (isDesktop) {
     return (
-      <View className="bg-background flex-1 flex-row">
-        <View className="flex-1 bg-background rounded-t-xl">
+      <View className="flex-1 flex-row">
+        <View className="flex-1 rounded-t-xl">
           <ChatThread />
         </View>
       </View>
@@ -35,8 +35,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="bg-background flex-1">
-      <View className="flex-row items-center p-4 bg-background">
+    <View className="flex-1">
+      <View className="flex-row items-center p-4">
         <Ionicons name="compass" size={36} className='!text-primary' />
         <Text className="ms-2 text-2xl font-bold text-primary">Compass</Text>
       </View>

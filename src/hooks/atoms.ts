@@ -8,6 +8,7 @@ import {
   Provider,
   Voice,
   Document,
+  Note
 } from "@/src/types/core";
 import { Tool } from "@/src/types/tools";
 import { PREDEFINED_PROMPTS } from "@/constants/characters";
@@ -42,6 +43,8 @@ export const createDefaultThread = (name: string = "New thread"): Thread => {
         apiKey: "",
         logo: "",
       },
+      pricePerMillionInputTokens: 0,
+      pricePerMillionOutputTokens: 0,
     },
     character: undefined,
   };
@@ -562,3 +565,14 @@ export const polarisUsersAtom = atom<User[]>([]);
 
 // Add this with your other atoms
 export const polarisToolsAtom = atom<Tool[]>([]);
+
+
+export const userToolsAtom = atomWithAsyncStorage<Tool[]>(
+  "userTools",
+  [],
+);
+
+export const userNotesAtom = atomWithAsyncStorage<Note[]>(
+  "userNotes",
+  [],
+);

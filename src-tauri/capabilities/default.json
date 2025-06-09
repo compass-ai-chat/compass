@@ -23,12 +23,7 @@
     {
       "identifier": "shell:allow-execute",
       "allow": [
-        {
-          "name": "binaries/corsproxy",
-          "cmd": "binaries/corsproxy",
-          "sidecar": true,
-          "args": []
-        }
+        
       ]
     }
 

@@ -10,7 +10,7 @@ export class StreamHandlerService {
   constructor(private tts: any) {}
 
   async handleStream(
-    response: AsyncGenerator<string>,
+    response: AsyncIterable<string>,
     currentThread: Thread,
     dispatchThread: (action: ThreadAction) => Promise<void>,
     onComplete?: () => void

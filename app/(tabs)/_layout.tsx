@@ -14,21 +14,24 @@ import { useAtom } from 'jotai';
 import ImagesRoute from './images';
 import DocumentsRoute from './documents';
 import { Slot } from 'expo-router';
-
+import ToolsRoute from './tools';
 const renderScene = SceneMap({
   index: IndexRoute,
   characters: CharactersRoute,
   images: ImagesRoute,
   settings: SettingsRoute,
   documents: DocumentsRoute,
+  tools: ToolsRoute,
 });
 
 export const routes = [
   { key: 'index', title: 'chats.chats', icon: 'chatbubble' },
   { key: 'characters', title: 'characters.characters', icon: 'people' },
+  { key: 'tools', title: 'tools.tools', icon: 'construct' },
   { key: 'images', title: 'images.images', icon: 'image' },
   { key: 'documents', title: 'documents.documents', icon: 'document-text' },
   { key: 'settings', title: 'settings.settings', icon: 'cog' },
+  
 ];
 
 export default function TabLayout() {
@@ -67,11 +70,11 @@ export default function TabLayout() {
 
   if (isDesktop) {
     // Use Slot for proper routing on desktop
-    return <Slot />;
+    return <View className="flex-1"><Slot /></View>;
   }
   
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1">
       <TabView
         tabBarPosition='bottom'
         navigationState={{ index, routes }}

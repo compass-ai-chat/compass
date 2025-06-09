@@ -67,6 +67,7 @@ export const fetchAvailableModelsV2 = async (
         const providerInstance = ChatProviderFactory.getProvider(provider);
 
         const availableModels = await providerInstance.getAvailableModels();
+        console.log("Available models", availableModels);
 
         models.push(
           ...availableModels.map((model: any) => ({

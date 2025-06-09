@@ -1,8 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useAtomValue } from "jotai";
-import { documentsAtom } from "@/src/hooks/atoms";
 import { Document } from "@/src/types/core";
 import { useLocalization } from "@/src/hooks/useLocalization";
 interface DocumentSelectorProps {
@@ -26,9 +24,12 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
 
   return (
     <View className="mt-6">
-      <Text className="text-base font-medium mb-2 text-text">
-        {t('characters.edit_character.available_documents')}
-      </Text>
+      <View className="flex-row items-center mb-2">
+        <Ionicons name="document-text" size={24} className="!text-primary mr-2" />
+        <Text className="text-base font-medium text-text">
+          {t('characters.edit_character.available_documents')}
+        </Text>
+      </View>
       <ScrollView className="max-h-40 bg-surface rounded-lg border-2 border-border">
         {documents.map((doc) => (
           <TouchableOpacity

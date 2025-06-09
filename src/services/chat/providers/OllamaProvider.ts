@@ -22,7 +22,7 @@ export class OllamaProvider implements ChatProvider {
   constructor(provider: Provider) {
     this.provider = provider;
   }
-  async *sendMessage(messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): AsyncGenerator<string> {
+  async sendMessage(messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map(message => ({ 
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant', 
@@ -39,7 +39,7 @@ export class OllamaProvider implements ChatProvider {
       if(PlatformCust.isMobile){
         let url = `${model.provider.endpoint}/api/chat`;
         if(PlatformCust.isTauri) url = await getProxyUrl(url);
-        yield* streamOllamaResponse(url, {
+        return streamOllamaResponse(url, {
           model: model.id,
           messages: newMessages,
           stream: true
@@ -78,9 +78,7 @@ export class OllamaProvider implements ChatProvider {
         }
       );
 
-        for await (const textPart of textStream) {
-          yield textPart;
-        }
+        return textStream;
 
       }
       

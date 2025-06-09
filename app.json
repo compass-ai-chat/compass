@@ -74,8 +74,7 @@
       "expo-localization"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/compass"
+      "typedRoutes": true
     },
     "extra": {
       "router": {

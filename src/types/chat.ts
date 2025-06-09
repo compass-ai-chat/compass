@@ -7,7 +7,7 @@ import { Model } from "@/src/types/core";
 
 export interface ChatProvider {
   provider: Provider;
-  sendMessage(messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): AsyncGenerator<string>;
+  sendMessage(messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): Promise<AsyncIterable<string>>;
   sendSimpleMessage(message: string, model: Model, systemPrompt: string): Promise<string>;
   sendJSONMessage(message: string, model: Model, systemPrompt: string): Promise<any>;
   embedText(texts: string[]): Promise<number[][]>;

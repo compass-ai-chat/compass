@@ -4,12 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { threadsAtom, currentThreadAtom, threadActionsAtom, previewCodeAtom, defaultThreadAtom } from '@/src/hooks/atoms';
 import { modalService } from '@/src/services/modalService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Thread } from '@/src/types/core';
 import { router } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import Tooltip from '@/src/components/ui/Tooltip';
+import { useChat } from '@/src/hooks/useChat';
 
 
 interface Section {
@@ -26,7 +26,8 @@ const ChatThreads: React.FC = () => {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const { t } = useLocalization();
-  const defaultThread = useAtomValue(defaultThreadAtom);
+  const { addNewThread } = useChat();
+
 
   const groupThreadsByDate = useCallback((threads: Thread[]): Section[] => {
     const today = new Date();
@@ -56,19 +57,6 @@ const ChatThreads: React.FC = () => {
     // Remove empty sections
     return sections.filter(section => section.data.length > 0);
   }, []);
-
-  const addNewThread = async () => {
-    const newThread = {...defaultThread, id: Date.now().toString()};
-    
-    dispatchThread({ type: 'add', payload: newThread });
-    
-    if(Platform.OS != 'web' || window.innerWidth < 768){
-    // wait 100 ms before pushing to allow for thread to be added to state
-      setTimeout(() => {
-        router.push(`/thread/${newThread.id}`);
-      }, 100);
-    }
-  };
 
   const toggleDark = useCallback(() => {
     toggleColorScheme();

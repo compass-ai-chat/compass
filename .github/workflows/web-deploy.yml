@@ -1,0 +1,48 @@
+name: Web Deploy
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  web-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.11.0'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build and Deploy
+        run: |
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          npm run predeploy
+          npm run deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install qrencode
+        run: sudo apt-get install -y qrencode
+
+      - name: Generate QR Code
+        run: |
+          qrencode -o compass-qr.png "https://nordwestt.com/compass"
+        
+      - name: Upload QR Code
+        uses: actions/upload-artifact@v4
+        with:
+          name: compass-qr-web
+          path: compass-qr.png

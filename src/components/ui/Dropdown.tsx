@@ -14,6 +14,7 @@ export interface DropdownElement {
     image?: string;
     icon?: string;
     logo?: string;
+    metadata?: any;
 }
 
 interface DropdownProps {

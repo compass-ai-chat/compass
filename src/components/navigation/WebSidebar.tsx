@@ -36,7 +36,7 @@ export function WebSidebar({ className }: { className?: string }) {
   };
 
   return (
-    <View className={`group h-full bg-background ${className}`}>
+    <View className={`group h-full ${className}`}>
       {routes.map((route, index) => (
         <Pressable
           key={route.key}

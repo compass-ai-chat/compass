@@ -50,6 +50,7 @@
         "new_character": "New character",
         "reset_to_default": "Reset to default",
         "edit_character":{
+            "tools": "Tools",
             "edit_character": "Edit character",
             "name": "Name",
             "instructions": "Instructions",
@@ -89,6 +90,13 @@
         "provider_added_success": "Image provider added successfully",
         "failed_to_load_models": "Failed to load models",
         "models_fetch_error": "Could not fetch models from the new provider"
+    },
+    "tools":{
+        "tools": "Tools",
+        "no_tools": "You have no tools. Create a tool to get started.",
+        "new_tool": "New tool",
+        "tool_added": "Tool added",
+        "tool_added_success": "Tool added successfully"
     },
     "documents":{
         "documents": "Documents",

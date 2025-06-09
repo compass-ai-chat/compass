@@ -46,8 +46,7 @@ export default function RootLayout() {
   const isDesktop = Platform.isWeb && window.innerWidth >= 768;
 
   const myFunc = async function() {
-    const command = Command.sidecar("binaries/corsproxy");
-    const output = await command.execute();
+    
   }
   if(Platform.isTauri) {
     myFunc();
@@ -104,15 +103,18 @@ export default function RootLayout() {
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <ThemeProvider>
         <ProxyUrlSync />
-        <View className={`flex-row flex-1 ${syncToPolaris ? 'border-8 border-primary' : ''}`}>
+        <View className={`flex-row flex-1 bg-background`}>
           {isDesktop && <WebSidebar className="" />}
           <Stack screenOptions={{
             headerStyle: {
-              backgroundColor: theme.surface,
+              backgroundColor: theme.surface
             },
             headerTintColor: theme.text,
             headerShadowVisible: false,
-            header: () => <CustomHeader />
+            header: () => <CustomHeader />,
+            contentStyle: {
+              backgroundColor: theme.background
+            }
           }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />

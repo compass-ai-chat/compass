@@ -114,3 +114,9 @@ export interface Character extends ResourceMetadata {
 export interface Model extends ResourceMetadata {
   // existing Model properties
 }
+
+export interface Note extends ResourceMetadata {
+  title: string;
+  content: string;
+  createdAt: Date;
+}

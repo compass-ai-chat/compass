@@ -1,0 +1,65 @@
+name: Windows Build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.11.0'
+          cache: 'npm'
+
+      - name: Install Rust (Stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies (Rust)
+        run: |
+          rustup target add x86_64-pc-windows-msvc
+          rustup override set stable
+
+      - name: Install WebView2
+        run: |
+          $WebView2Setup = "$env:TEMP\MicrosoftEdgeWebView2Setup.exe"
+          Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $WebView2Setup
+          Start-Process -FilePath $WebView2Setup -Args "/silent /install" -Wait
+
+      - name: Install app dependencies
+        run: npm install
+      
+      - name: Build Tauri App
+        run: npm run build:windows
+
+      - name: Check if Windows installer was built
+        run: |
+          echo "Targets:"
+          ls src-tauri\target
+          echo "Windows:"
+          ls src-tauri\target\x86_64-pc-windows-msvc  
+          echo "Windows Release:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release
+          echo "Windows Release Bundle:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release\bundle
+          echo "MSI Files:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi
+          echo "EXE Files:"
+          ls src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis
+          
+
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/compass*.msi
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/compass*.exe
