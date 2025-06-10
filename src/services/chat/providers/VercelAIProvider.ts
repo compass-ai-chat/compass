@@ -95,12 +95,20 @@ export function useVercelAIProvider() {
     try {
         const provider = createProvider(model.provider, model.id);
 
-        const {textStream, steps} = streamText({
+        const {textStream} = streamText({
             model: provider,
             messages: newMessages as CoreUserMessage[],
             tools: toolSchemas,
             maxSteps: 3,
-            toolChoice: 'auto'
+            toolChoice: 'auto',
+            onChunk: (chunk) => {
+              if(chunk.chunk.type == 'tool-call'){
+                console.log('tool call', chunk.chunk.toolName);
+              }
+              else{
+                console.log('chunk', chunk);
+              }
+            }
         });
 
         return textStream;
