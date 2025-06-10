@@ -1,0 +1,59 @@
+name: Linux Build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.11.0'
+          cache: 'npm'
+
+      - name: Install Rust (Stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install app dependencies
+        run: npm install
+      
+      - name: Build Tauri App
+        run: npm run build:linux
+
+      - name: Check if Linux packages were built
+        run: |
+          echo "Targets:"
+          ls src-tauri/target
+          echo "Release:"
+          ls src-tauri/target/release
+          echo "Bundle:"
+          ls src-tauri/target/release/bundle
+          echo "DEB:"
+          ls src-tauri/target/release/bundle/deb
+          echo "RPM:"
+          ls src-tauri/target/release/bundle/rpm
+          echo "AppImage:"
+          ls src-tauri/target/release/bundle/appimage
+
+      - name: Upload Linux Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            src-tauri/target/release/bundle/deb/compass*.deb
+            src-tauri/target/release/bundle/rpm/compass*.rpm
+            src-tauri/target/release/bundle/appimage/compass*.AppImage 

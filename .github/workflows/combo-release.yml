@@ -37,13 +37,19 @@ jobs:
     with:
       version: ${{ needs.get-version.outputs.version }}
 
+  linux-build:
+    needs: get-version
+    uses: ./.github/workflows/linux-build.yml
+    with:
+      version: ${{ needs.get-version.outputs.version }}
+
   web-deploy:
     needs: get-version
     uses: ./.github/workflows/web-deploy.yml
     secrets: inherit
 
   create-release:
-    needs: [get-version, docker-build, web-deploy, windows-build]
+    needs: [get-version, docker-build, web-deploy, windows-build, linux-build]
     uses: ./.github/workflows/create-release.yml
     with:
       version: ${{ needs.get-version.outputs.version }}
