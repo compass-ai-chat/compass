@@ -9,7 +9,7 @@
     "build:web": "npx expo export --platform web",
     "serve:web": "npx serve dist -p 3059",
     "dev:tauri-fast": "npm run build:web && npm run serve:web",
-    "build:linux": "NO_STRIP=true npx tauri build",
+    "build:linux": "NO_STRIP=true WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 npx tauri build",
     "build:android": "eas build -p android --profile preview",
     "build:android-local": "eas build -p android --profile preview --local",
     "build:windows": "npx tauri build --target x86_64-pc-windows-msvc",
