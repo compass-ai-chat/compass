@@ -5,7 +5,7 @@
   "identifier": "com.nordwestt.compass",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://localhost:3059",
     "beforeDevCommand": "npm run web",
     "beforeBuildCommand": "npm run build:web"
   },
@@ -14,14 +14,14 @@
     "windows": [
       {
         "title": "Compass",
-        "width": 800,
-        "height": 600,
+        "width": 1024,
+        "minWidth": 1024,
+        "height": 768,
+        "minHeight": 768,
         "resizable": true,
         "fullscreen": false,
         "zoomHotkeysEnabled": true,
-        "center": true,
-        "minWidth": 600,
-        "minHeight": 400
+        "center": true
       }
     ],
     "security": {
