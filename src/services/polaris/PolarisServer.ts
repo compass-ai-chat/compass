@@ -6,6 +6,8 @@ import { Document } from "@/src/types/core";
 import { Platform } from "react-native";
 import { CreateUserDto, UpdateUserDto, User } from "@/src/types/user";
 import { Tool, CreateToolDto, UpdateToolDto } from "@/src/types/tools";
+import { CreateBlueprintDto, UpdateBlueprintDto } from "@/src/types/tools";
+import { ToolBlueprint } from "@/src/tools/tool.interface";
 /**
  * PolarisServer handles communication with the Compass server
  * for syncing characters, providers, and models.
@@ -967,10 +969,7 @@ export class PolarisServer {
    */
   async getTool(id: string): Promise<Tool | null> {
     try {
-      const response = await this.makeRequest(
-        `/api/admin/tools/${id}`,
-        "GET",
-      );
+      const response = await this.makeRequest(`/api/admin/tools/${id}`, "GET");
       return {
         ...response.tool,
         isServerResource: true,
@@ -992,15 +991,31 @@ export class PolarisServer {
   }
 
   /**
-   * Get available tool types from the server
+   * Get all tool blueprints from the server
    */
-  async getToolTypes(): Promise<Record<string, { paramsSchema: any; configSchema: any }>> {
+  async getToolBlueprints(): Promise<ToolBlueprint[]> {
     try {
-      const response = await this.makeRequest(
-        `/api/admin/tools/types`,
-        "GET",
-      );
-      return response.types || {};
+      const response = await this.makeRequest("/api/admin/tools/blueprints", "GET");
+      return response.blueprints;
+    } catch (error) {
+      if (error instanceof Error) {
+        LogService.log(
+          error,
+          { component: "PolarisServer", function: "getToolBlueprints" },
+          "error",
+        );
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Get a specific tool blueprint from the server
+   */
+  async getToolBlueprint(name: string): Promise<ToolBlueprint | null> {
+    try {
+      const response = await this.makeRequest(`/api/admin/tools/blueprints/${name}`, "GET");
+      return response.blueprint;
     } catch (error) {
       if (error instanceof Error) {
         toastService.danger({
@@ -1013,6 +1028,100 @@ export class PolarisServer {
           description: "Unknown error",
         });
       }
+      return null;
+    }
+  }
+
+  /**
+   * Create a new tool blueprint on the server
+   */
+  async createToolBlueprint(blueprint: CreateBlueprintDto): Promise<string | null> {
+    try {
+      const response = await this.makeRequest("/api/admin/tools/blueprints", "POST", blueprint);
+      return response.name;
+    } catch (error) {
+      if (error instanceof Error) {
+        toastService.danger({
+          title: "Error",
+          description: error.message,
+        });
+      } else {
+        toastService.danger({
+          title: "Error",
+          description: "Unknown error",
+        });
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Update an existing tool blueprint on the server
+   */
+  async updateToolBlueprint(name: string, blueprint: UpdateBlueprintDto): Promise<boolean> {
+    try {
+      await this.makeRequest(`/api/admin/tools/blueprints/${name}`, "PUT", blueprint);
+      return true;
+    } catch (error) {
+      if (error instanceof Error) {
+        toastService.danger({
+          title: "Error",
+          description: error.message,
+        });
+      } else {
+        toastService.danger({
+          title: "Error",
+          description: "Unknown error",
+        });
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Delete a tool blueprint from the server
+   */
+  async deleteToolBlueprint(name: string): Promise<boolean> {
+    try {
+      await this.makeRequest(`/api/admin/tools/blueprints/${name}`, "DELETE");
+      return true;
+    } catch (error) {
+      if (error instanceof Error) {
+        toastService.danger({
+          title: "Error",
+          description: error.message,
+        });
+      } else {
+        toastService.danger({
+          title: "Error",
+          description: "Unknown error",
+        });
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Get all tool types from the server
+   */
+  async getToolTypes(): Promise<Record<string, { paramsSchema: any; configSchema: any }>> {
+    try {
+      const blueprints = await this.getToolBlueprints();
+      return blueprints.reduce((acc, blueprint) => {
+        acc[blueprint.id] = {
+          paramsSchema: blueprint.paramsSchema,
+          configSchema: blueprint.configSchema,
+        };
+        return acc;
+      }, {} as Record<string, { paramsSchema: any; configSchema: any }>);
+    } catch (error) {
+      if (error instanceof Error) {
+        LogService.log(
+          error,
+          { component: "PolarisServer", function: "getToolTypes" },
+          "error",
+        );
+      }
       return {};
     }
   }
@@ -1022,12 +1131,9 @@ export class PolarisServer {
    */
   async createTool(tool: CreateToolDto): Promise<string | null> {
     try {
-      const response = await this.makeRequest(
-        "/api/admin/tools",
-        "POST",
-        tool,
-      );
-
+      const response = await this.makeRequest("/api/admin/tools", "POST", {
+        ...tool
+      });
       return response.id;
     } catch (error) {
       if (error instanceof Error) {
@@ -1050,11 +1156,9 @@ export class PolarisServer {
    */
   async updateTool(id: string, tool: UpdateToolDto): Promise<boolean> {
     try {
-      await this.makeRequest(
-        `/api/admin/tools/${id}`,
-        "PUT",
-        tool,
-      );
+      await this.makeRequest(`/api/admin/tools/${id}`, "PUT", {
+        ...tool
+      });
       return true;
     } catch (error) {
       if (error instanceof Error) {

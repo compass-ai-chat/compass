@@ -19,26 +19,6 @@ export function ToolSelector({
 }: ToolSelectorProps) {
   const { t } = useLocalization();
 
-  // Map tool types to appropriate Ionicons
-  const getIconForToolType = (type: string): string => {
-    const iconMap: Record<string, string> = {
-      email: "mail-outline",
-      search: "search-outline",
-      weather: "cloudy-outline",
-      calendar: "calendar-outline",
-      calculator: "calculator-outline",
-      browser: "globe-outline",
-      code: "code-slash-outline",
-      database: "server-outline",
-      file: "document-outline",
-      image: "image-outline",
-      note: "pencil-outline",
-      // Add more mappings as needed
-    };
-
-    return iconMap[type.toLowerCase()] || "construct-outline"; // Default to a generic tool icon
-  };
-
   if (!tools || tools.length === 0) {
     return null;
   }
@@ -69,7 +49,7 @@ export function ToolSelector({
             >
               <View className={`w-10 h-10 rounded-full ${isSelected ? "bg-primary" : "bg-primary/20"} items-center justify-center mr-3`}>
                 <Ionicons
-                  name={getIconForToolType(item.type) as any}
+                  name={item.icon as any}
                   size={20}
                   className={`${isSelected ? "!text-white" : "!text-text"}`}
                 />

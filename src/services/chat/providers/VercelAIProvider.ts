@@ -18,7 +18,7 @@ import { useTools } from '@/src/hooks/useTools';
 
 export function useVercelAIProvider() {
 
-    const { getToolSchemas } = useTools();
+    const { getVercelCompatibleToolSet } = useTools();
 
   const createProvider = (provider: any, modelId: string) => {
     let aiModel;
@@ -86,7 +86,7 @@ export function useVercelAIProvider() {
 
     let toolSchemas: ToolSet | undefined;
     if(character?.toolIds){
-      toolSchemas = await getToolSchemas(character.toolIds);
+      toolSchemas = await getVercelCompatibleToolSet(character.toolIds);
     }
     console.log("We're using VERCEL AI PROVIDER");
     console.log("Tool schemas", toolSchemas);
@@ -95,12 +95,20 @@ export function useVercelAIProvider() {
     try {
         const provider = createProvider(model.provider, model.id);
 
-        const {textStream, steps} = streamText({
+        const {textStream} = streamText({
             model: provider,
             messages: newMessages as CoreUserMessage[],
             tools: toolSchemas,
             maxSteps: 3,
-            toolChoice: 'auto'
+            toolChoice: 'auto',
+            onChunk: (chunk) => {
+              if(chunk.chunk.type == 'tool-call'){
+                console.log('tool call', chunk.chunk.toolName);
+              }
+              else{
+                console.log('chunk', chunk);
+              }
+            }
         });
 
         return textStream;

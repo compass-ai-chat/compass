@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ToolHandler } from './tool.interface';
 import { userNotesAtom } from '@/src/hooks/atoms';
 import { getDefaultStore } from 'jotai';
+import { SimpleSchema } from '../utils/zodHelpers';
 
 export class NoteToolService implements ToolHandler {
   async execute(params: any, config: any): Promise<any> {
@@ -34,16 +35,15 @@ export class NoteToolService implements ToolHandler {
     }
   }
 
-  getParamsSchema(): z.ZodSchema {
-    return z.object({
-      title: z.string(),
-      content: z.string()
-    });
+  getParamsSchema(): SimpleSchema {
+    return {
+      title: { type: 'string' },
+      content: { type: 'string' }
+    };
   }
 
-  getConfigSchema(): z.ZodSchema {
-    return z.object({
-    });
+  getConfigSchema(): SimpleSchema {
+    return {};
   }
 
   getIcon(): string {

@@ -25,6 +25,7 @@ import { StatusBar } from 'expo-status-bar';
 import { ProxyUrlSync } from "@/src/components/ProxyUrlSync";
 import { localeAtom } from '@/src/hooks/atoms';
 import { setupAuthCallbackListener, checkStoredAuthToken } from '@/src/utils/authCallback';
+import { useTools } from '@/src/hooks/useTools';
 import '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
@@ -34,6 +35,7 @@ export default function RootLayout() {
   const { colorScheme } = useColorScheme();
   const [syncToPolaris] = useAtom(syncToPolarisAtom);
   const locale = useAtomValue(localeAtom);
+  const { initializeTools } = useTools();
   useKeyboardShortcuts();
 
   const theme = React.useMemo(() => {
@@ -52,7 +54,6 @@ export default function RootLayout() {
     myFunc();
   }
 
-
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     'Caveat-Regular': require('../assets/fonts/Caveat-Regular.ttf'),
@@ -65,6 +66,11 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    // Initialize tools
+    initializeTools();
+  }, []);
 
   useEffect(() => {
   }, [locale])
