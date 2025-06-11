@@ -16,7 +16,7 @@ export const ThreadsSidebar = () => {
   const { addNewThread } = useChat();
 
   // Common sidebar classes
-  const sidebarWidthClass = isSidebarVisible ? 'w-64 h-[70%] overflow-hidden shadow-lg' : 'w-10';
+  const sidebarWidthClass = isSidebarVisible ? 'w-64 h-[70%] overflow-hidden shadow-lg' : 'w-20';
   
   return (
     <View className='absolute left-0 my-auto z-[1] flex flex-col top-20'>

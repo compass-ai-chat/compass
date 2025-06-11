@@ -8,7 +8,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import { Model, Character, Thread } from "@/src/types/core";
+import { Model, Character, Thread, Provider } from "@/src/types/core";
 import { getDefaultStore, useAtom, useAtomValue } from "jotai";
 import {
   availableProvidersAtom,
@@ -22,6 +22,9 @@ import { toastService } from "@/src/services/toastService";
 import { useLocalization } from "@/src/hooks/useLocalization";
 import { Modal as UIModal } from "@/src/components/ui/Modal";
 import YAML from 'yaml';
+import { PREDEFINED_PROVIDERS } from "@/src/constants/providers";
+import { getProxyUrl } from "@/src/utils/proxy";
+import { fetchAvailableModelsV2 } from "@/src/hooks/useModels";
 
 // Extend DropdownElement to include a model property
 interface ModelDropdownElement extends DropdownElement {
@@ -45,6 +48,10 @@ export const Settings: React.FC<SettingsProps> = ({
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('json');
   const [selectedDropdownOption, setSelectedDropdownOption] = useAtom(selectedChatDropdownOptionAtom);
+  const [providers, setProviders] = useAtom(availableProvidersAtom);
+  const [models, setModels] = useAtom(availableModelsAtom);
+  const [scanning, setScanning] = useState(false);
+
   const availableSettings = [
     {
       title: t('chats.set_model_as_default'),
@@ -54,13 +61,63 @@ export const Settings: React.FC<SettingsProps> = ({
       title: t('chats.export_chat'),
       id: "export_chat",
     },
+    {
+      title: "Scan for Local Ollama",
+      id: "scan_local_ollama",
+    },
   ];
+
+  const scanForLocalOllama = async () => {
+    setScanning(true);
+    try {
+      const endpoint = "http://localhost:11434";
+      const response = await fetch(await getProxyUrl(`${endpoint}/api/version`));
+      const data = await response.json();
+      
+      if (data && data.version) {
+        // Check if provider already exists
+        const existingProvider = providers.find(p => p.endpoint === endpoint);
+        if (!existingProvider) {
+          const newProvider: Provider = {
+            ...PREDEFINED_PROVIDERS.ollama,
+            id: Date.now().toString(),
+          };
+          
+          await setProviders([...providers, newProvider]);
+          
+          // Fetch models for the new provider
+          const modelsFound = await fetchAvailableModelsV2([newProvider]);
+          setModels([...models, ...modelsFound]);
+          
+          toastService.success({
+            title: "Local Ollama Found",
+            description: "Successfully connected to local Ollama instance",
+          });
+        } else {
+          toastService.info({
+            title: "Local Ollama Already Added",
+            description: "Local Ollama instance is already in your providers list",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error scanning for local Ollama:", error);
+      toastService.danger({
+        title: "Local Ollama Not Found",
+        description: "Could not connect to local Ollama instance at http://localhost:11434",
+      });
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const handleSettingSelect = (el: DropdownElement)=>{
     if(el.id == "set_model_as_default"){
         setCurrentModelAsDefault();
     } else if (el.id === "export_chat") {
       setExportModalVisible(true);
+    } else if (el.id === "scan_local_ollama") {
+      scanForLocalOllama();
     }
   };
 
@@ -147,7 +204,7 @@ export const Settings: React.FC<SettingsProps> = ({
         iconOpen="ellipsis-horizontal"
         iconClosed="ellipsis-horizontal"
         showSearch={false}
-        selected={null}
+        selected={undefined}
         onSelect={handleSettingSelect}
         children={availableSettings}
         className={`max-w-48 overflow-hidden bg-surface border-none`}

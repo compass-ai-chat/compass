@@ -70,10 +70,13 @@ export const fetchAvailableModelsV2 = async (
         console.log("Available models", availableModels);
 
         models.push(
-          ...availableModels.map((model: any) => ({
+          ...availableModels.map((model: string) => ({
             id: model,
             name: model,
             provider: provider,
+            providerId: provider.id,
+            pricePerMillionInputTokens: 0,
+            pricePerMillionOutputTokens: 0,
           })),
         );
       } catch (error: any) {
