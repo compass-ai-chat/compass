@@ -11,6 +11,7 @@ import { toastService } from '@/src/services/toastService';
 import { Ionicons } from '@expo/vector-icons';
 import { CharacterAvatar } from '../character/CharacterAvatar';
 import { MessageActions } from './MessageActions';
+import { ThinkBlock } from './ThinkBlock';
 
 interface MessageProps {
   content: string;
@@ -108,10 +109,23 @@ export const Message: React.FC<MessageProps> = ({ content, isUser, character, in
   const [displayContent, setDisplayContent] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [expandedCodeBlocks, setExpandedCodeBlocks] = useState<Set<string>>(new Set());
+  const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
+  const [thinkingContent, setThinkingContent] = useState<string | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
 
   useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
-      setDisplayContent(content);
+      // Check for thinking tags
+      const thinkMatch = content.match(/<think>(.*?)<\/think>/s);
+      if (thinkMatch) {
+        setThinkingContent(thinkMatch[1].trim());
+        setIsThinking(true);
+        // Remove the thinking tags from display content
+        setDisplayContent(content.replace(/<think>.*?<\/think>/s, '').trim());
+      } else {
+        setDisplayContent(content);
+        setIsThinking(false);
+      }
     });
   }, [content]);
 
@@ -186,6 +200,19 @@ export const Message: React.FC<MessageProps> = ({ content, isUser, character, in
     return parts;
   }
 
+  const handleToggleThinkBlock = () => {
+    setExpandedThinkBlocks(prev => {
+      const newSet = new Set(prev);
+      const blockId = `think-${index}`;
+      if (newSet.has(blockId)) {
+        newSet.delete(blockId);
+      } else {
+        newSet.add(blockId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}>
       {/* {!isUser && (
@@ -200,29 +227,40 @@ export const Message: React.FC<MessageProps> = ({ content, isUser, character, in
         </View>
       )} */}
       { !isUser && displayContent.length == 0 && isGenerating && (
-            <View className="relative">
-              <View className="bg-surface border border-border w-10 h-10 rounded-full items-center justify-center shadow-md">
-                <Ionicons 
-                  name="compass" 
-                  size={24} 
-                  className={`!text-primary ${Platform.OS === 'web' ? 'animate-spin duration-[2000ms]' : ''}`}
-                />
-              </View>
-            </View>
+        <View className="relative">
+          <View className="bg-surface border border-border w-10 h-10 rounded-full items-center justify-center shadow-md">
+            <Ionicons 
+              name="compass" 
+              size={24} 
+              className={`!text-primary ${Platform.OS === 'web' ? 'animate-spin duration-[2000ms]' : ''}`}
+            />
+          </View>
+        </View>
+      )}
+      { (displayContent.length > 0 || isThinking) && (
+        <View 
+          className={`relative px-4 py-2 mb-4 rounded-2xl max-w-[100%] ${
+            isUser ? "bg-primary rounded-tr-none" : "bg-surface rounded-tl-none"
+          } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
+          onPointerEnter={() => setIsHovered(true)}
+          onPointerLeave={() => setIsHovered(false)}
+        >
+          {editingMessageIndex === index && (
+            <Text className="text-yellow-400 text-xs mb-1">Editing...</Text>
           )}
-      { displayContent.length > 0 && (<View 
-        className={`relative px-4 py-2 mb-4 rounded-2xl max-w-[100%] ${
-          isUser ? "bg-primary rounded-tr-none" : "bg-surface rounded-tl-none"
-        } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
-        onPointerEnter={() => setIsHovered(true)}
-        onPointerLeave={() => setIsHovered(false)}
-      >
-        {editingMessageIndex === index && (
-          <Text className="text-yellow-400 text-xs mb-1">Editing...</Text>
-        )}
-        {editingMessageIndex !== index && (
-          <View>
-            <Markdown 
+          {editingMessageIndex !== index && (
+            <View>
+              {isThinking && thinkingContent && (
+                <ThinkBlock
+                  content={thinkingContent}
+                  isDark={isDark}
+                  style={markdownStyles.code_block}
+                  isExpanded={expandedThinkBlocks.has(`think-${index}`)}
+                  onToggleExpand={handleToggleThinkBlock}
+                />
+              )}
+              {displayContent && (
+                <Markdown 
                   style={markdownStyles}
                   rules={{
                     fence: renderCodeBlock,
@@ -231,19 +269,21 @@ export const Message: React.FC<MessageProps> = ({ content, isUser, character, in
                 >
                   {displayContent}
                 </Markdown>
-          </View>
-        )}
-        
-        {isHovered && (
-          <MessageActions
-            isUser={isUser}
-            hasPreviewableCode={hasPreviewableCode}
-            onCopy={handleCopyMessage}
-            onPreviewCode={onPreviewCode}
-            onEdit={() => onEdit?.(index)}
-          />
-        )}
-      </View>)}
+              )}
+            </View>
+          )}
+          
+          {isHovered && (
+            <MessageActions
+              isUser={isUser}
+              hasPreviewableCode={hasPreviewableCode}
+              onCopy={handleCopyMessage}
+              onPreviewCode={onPreviewCode}
+              onEdit={() => onEdit?.(index)}
+            />
+          )}
+        </View>
+      )}
     </View>
   );
 }; 
