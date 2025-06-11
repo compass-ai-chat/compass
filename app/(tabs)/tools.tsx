@@ -12,7 +12,6 @@ export default function ToolsScreen() {
 
   const handleAddTool = async (tool: CreateToolDto) => {
     // create a new tool with the same name as the tool
-    console.log("Adding tool", tool);
     const newTool = {
       ...tool,
       id: Date.now().toString(),
@@ -25,8 +24,6 @@ export default function ToolsScreen() {
     const updatedTools = [...userTools, newTool];
     await setUserTools(updatedTools);
     
-    console.log("New tool", newTool);
-    console.log("New usertools", updatedTools);
     return newTool.id;
   }
 

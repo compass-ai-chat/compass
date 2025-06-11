@@ -8,7 +8,6 @@ import { toolBlueprintsAtom } from '@/src/hooks/atoms';
 import { useColorScheme } from 'nativewind';
 import CodeEditor from '@/src/components/ui/CodeEditor';
 import { toastService } from '@/src/services/toastService';
-import { DEFAULT_TOOLS } from '@/src/tools/registerTools';
 import { CreateBlueprintModal } from './CreateBlueprintModal';
 import { z } from 'zod';
 import { CreateToolBlueprintData } from './CreateBlueprintModal';
@@ -44,9 +43,6 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
   const isDark = colorScheme === 'dark';
   const { registerToolBlueprint, addTool } = useTools();
 
-  // Get built-in tool types
-  const builtInTools = DEFAULT_TOOLS.map(tool => tool.blueprintId);
-
   const handleCreateToolBlueprint = async () => {
     try {
       if (!createToolData.id || !createToolData.description || !createToolData.code) {
@@ -54,16 +50,8 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
         return;
       }
 
-      console.log("createToolData", createToolData);
-
       // Compile TypeScript code and extract schemas
       const { compiledCode, paramsSchema, configSchema } = compileTypescript(createToolData.code);
-
-      console.log("compiledCode", compiledCode);
-      // Create a safe evaluation context with z
-      const evalWithContext = (code: string) => {
-        return new Function('z', `return ${code}`)(z);
-      };
 
       let blueprint = await registerToolBlueprint({
         id: createToolData.id,
@@ -74,10 +62,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
         configSchema: configSchema,
       });
 
-      console.log("new blueprint", blueprint);
-
       if(!simpleSchemaHasConfigOptions(blueprint.configSchema)){
-        console.log("adding tool", blueprint);
         addTool({
           id: Date.now().toString(),
           blueprintId: blueprint.id,
@@ -156,7 +141,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
           <View className="flex-1 bg-surface rounded-lg flex-row items-center px-3 py-2">
             <Ionicons name="search" size={20} className="text-secondary mr-2" />
             <TextInput
-              className="flex-1 text-text"
+              className="flex-1 text-text outline-none"
               placeholder="Search blueprints..."
               placeholderTextColor="#9CA3AF"
               value={searchQuery}
@@ -178,7 +163,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
               <Text className="text-lg font-semibold text-primary mb-2">Built-in Blueprints</Text>
               <View className="space-y-2">
                 {filteredBlueprints
-                  .filter((blueprint: ToolBlueprint) => builtInTools.includes(blueprint.id))
+                  .filter((blueprint: ToolBlueprint) => !blueprint.code)
                   .map((blueprint: ToolBlueprint) => (
                     <View
                       key={blueprint.id}
@@ -210,7 +195,7 @@ export function BlueprintManager({ isVisible, onClose }: BlueprintManagerProps) 
               <Text className="text-lg font-semibold text-primary mb-2">User-defined Blueprints</Text>
               <View className="space-y-2">
                 {filteredBlueprints
-                  .filter((blueprint: ToolBlueprint) => !builtInTools.includes(blueprint.id))
+                  .filter((blueprint: ToolBlueprint) => !!blueprint.code)
                   .map((blueprint: ToolBlueprint) => (
                     <View
                       key={blueprint.id}

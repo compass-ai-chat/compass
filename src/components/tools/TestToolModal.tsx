@@ -44,7 +44,6 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
   };
 
   const renderParamsInput = () => {
-    console.log("tool", tool);
     const blueprint = getToolBlueprints().find(t => t.id === tool?.blueprintId);
     if (!blueprint?.paramsSchema) return null;
 

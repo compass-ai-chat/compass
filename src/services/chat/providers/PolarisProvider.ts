@@ -165,7 +165,6 @@ export class PolarisProvider implements ChatProvider {
           }
         });
         const openaiData = await openaiResponse.json();
-        console.log("OpenAI models", openaiData);
         return openaiData.data
           .map((model: any) => model.id);
       },
