@@ -1,48 +1,163 @@
-import { getDefaultStore, useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { currentThreadAtom, threadActionsAtom, ThreadAction, searchEnabledAtom, documentsAtom, availableModelsAtom, defaultThreadAtom, availableProvidersAtom, sidebarVisibleAtom, isGeneratingAtom, editingMessageIndexAtom, threadsAtom } from './atoms';
-import { useEffect, useRef, useState } from 'react';
-import { MentionedCharacter } from '@/src/components/chat/ChatInput';
-import { useTTS } from './useTTS';
-import { CharacterContextManager } from '@/src/services/chat/CharacterContextManager';
-import { StreamHandlerService } from '@/src/services/chat/StreamHandlerService';
-import { ChatProviderFactory } from '@/src/services/chat/ChatProviderFactory';
-import { useSearch } from './useSearch';
-import { Character, ChatMessage, Thread, Document, Model, Provider } from '@/src/types/core';
-import LogService from '@/utils/LogService';
-import { toastService } from '@/src/services/toastService';
-import { MessageContext, MessageTransformPipeline, relevantPassagesTransform, urlContentTransform, webSearchTransform, threadUpdateTransform, firstMessageTransform, documentContextTransform, templateVariableTransform } from './pipelines';
-import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
-import { router } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
+import { router } from 'expo-router';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+
+// Types
+import { Character, ChatMessage, Thread, Document, Model, Provider } from '@/src/types/core';
+import { MentionedCharacter } from '@/src/components/chat/ChatInput';
+
+// Atoms  
+import { 
+  currentThreadAtom, 
+  threadActionsAtom, 
+  searchEnabledAtom, 
+  documentsAtom, 
+  availableModelsAtom, 
+  defaultThreadAtom, 
+  availableProvidersAtom, 
+  sidebarVisibleAtom, 
+  isGeneratingAtom, 
+  editingMessageIndexAtom, 
+  threadsAtom 
+} from './atoms';
+
+// Hooks
+import { useTTS } from './useTTS';
+import { useSearch } from './useSearch';
 import { useCharacterModelSelection } from './useCharacterModelSelection';
 import { useVercelAIProvider } from '@/src/services/chat/providers/VercelAIProvider';
+
+// Services
+import { CharacterContextManager } from '@/src/services/chat/CharacterContextManager';
+import { ChatProviderFactory } from '@/src/services/chat/ChatProviderFactory';
+import LogService from '@/utils/LogService';
+import { toastService } from '@/src/services/toastService';
+
+// Pipelines
+import { 
+  MessageContext, 
+  MessageTransformPipeline, 
+  relevantPassagesTransform, 
+  urlContentTransform, 
+  webSearchTransform, 
+  threadUpdateTransform, 
+  firstMessageTransform, 
+  documentContextTransform, 
+  templateVariableTransform 
+} from './pipelines';
+
+// Exceptions
+import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
+
 export function useChat() {
-  
+  // ========== State Management ==========
   const currentThread = useAtomValue(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const documents = useAtomValue(documentsAtom);
   const [threads] = useAtom(threadsAtom);
-
   const [searchEnabled] = useAtom(searchEnabledAtom);
-  const abortController = useRef<AbortController | null>(null);
-  const { search } = useSearch();
-  const tts = useTTS();
   const [models, setModels] = useAtom(availableModelsAtom);
   const [providers] = useAtom(availableProvidersAtom);
   const [sidebarVisible, setSidebarVisible] = useAtom(sidebarVisibleAtom);
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
   const [editingMessageIndex, setEditingMessageIndex] = useAtom(editingMessageIndexAtom);
-  const previousThreadId = useRef(currentThread.id);
-
-  const { selectedModel, selectedCharacter } = useCharacterModelSelection();
   const defaultThread = useAtomValue(defaultThreadAtom);
 
-
-  const contextManager = new CharacterContextManager();
-  const streamHandler = new StreamHandlerService(tts);
-  
+  // ========== Refs and External Hooks ==========
+  const abortController = useRef<AbortController | null>(null);
+  const previousThreadId = useRef(currentThread.id);
+  const { search } = useSearch();
+  const tts = useTTS();
+  const { selectedModel, selectedCharacter } = useCharacterModelSelection();
   const { sendMessage } = useVercelAIProvider();
 
+  // ========== Services ==========
+  const contextManager = new CharacterContextManager();
+  
+  const pipeline = new MessageTransformPipeline()
+    .addTransform(templateVariableTransform)
+    .addTransform(documentContextTransform)  
+    .addTransform(urlContentTransform)
+    .addTransform(relevantPassagesTransform)
+    .addTransform(webSearchTransform)
+    .addTransform(threadUpdateTransform)
+    .addTransform(firstMessageTransform);
+
+  // ========== Stream Handling ==========
+  const handleStream = async (
+    response: AsyncIterable<string>,
+    thread: Thread,
+  ) => {
+    try {
+      console.log("handling stream", typeof response, response);
+    
+      let assistantMessage = thread.messages[thread.messages.length - 1].content;
+      let chunkCount = 0;
+    
+      for await (const content of response) {
+        chunkCount++;
+        assistantMessage += content;
+        await updateMessageContent(content, chunkCount, assistantMessage, thread);
+      }
+
+      if (tts.isSupported) {
+        await tts.streamText("");
+      }
+    } 
+    catch(error: any) {
+      if(error instanceof ModelNotFoundException){
+        throw error;
+      }
+      
+      console.log('Stream handling error:', error);
+      const vercelErrorResponse = error?.error?.lastError?.responseBody;
+      if(vercelErrorResponse){
+        try{
+          const json = JSON.parse(vercelErrorResponse);
+          toastService.warning({
+            title: "Error", 
+            description: json.error.charAt(0).toUpperCase() + json.error.slice(1)
+          });
+        }
+        catch(e){
+          toastService.danger({title: "Error", description: vercelErrorResponse});
+        }
+      }
+      LogService.log(error, {component: 'useChat', function: 'handleStream'}, 'error');
+    }
+  };
+
+  const updateMessageContent = async (
+    content: string,
+    chunkCount: number,
+    assistantMessage: string,
+    thread: Thread,
+  ): Promise<void> => {
+    // Handle TTS if supported
+    if (tts.isSupported) {
+      if (chunkCount === 1) await tts.streamText(" ");
+      tts.streamText(content);
+    }
+
+    // Update the thread with new content
+    const updatedMessages = [...thread.messages];
+    const lastMessage = updatedMessages[updatedMessages.length - 1];
+    if (lastMessage && !lastMessage.isUser) {
+      lastMessage.content = assistantMessage;
+      dispatchThread({
+        type: 'updateMessages',
+        payload: {
+          threadId: thread.id,
+          messages: updatedMessages
+        }
+      });
+      // RN has a debounce for rendering, so it's better to wait a bit before updating the message
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  };
+
+  // ========== Thread Management ==========
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
 
@@ -61,7 +176,7 @@ export function useChat() {
     dispatchThread({ type: 'add', payload: newThread });
     
     if(Platform.OS != 'web' || window.innerWidth < 768){
-    // wait 100 ms before pushing to allow for thread to be added to state
+      // wait 100 ms before pushing to allow for thread to be added to state
       setTimeout(() => {
         router.push(`/thread/${newThread.id}`);
       }, 100);
@@ -76,18 +191,12 @@ export function useChat() {
     tts.stopStreaming();
   };
 
-
-  const pipeline = new MessageTransformPipeline()
-    .addTransform(templateVariableTransform)
-    .addTransform(documentContextTransform)  
-    .addTransform(urlContentTransform)
-    .addTransform(relevantPassagesTransform)
-    .addTransform(webSearchTransform)
-    .addTransform(threadUpdateTransform)
-    .addTransform(firstMessageTransform)
-    
-
-  const handleSend = async (messages: ChatMessage[], message: string, mentionedCharacters: MentionedCharacter[] = []) => {
+  // ========== Message Handling ==========
+  const sendChatMessage = async (
+    messages: ChatMessage[], 
+    message: string, 
+    mentionedCharacters: MentionedCharacter[] = []
+  ) => {
     abortController.current = new AbortController();
     currentThread.messages = messages;
     let context = contextManager.prepareContext(message, currentThread, mentionedCharacters);
@@ -95,14 +204,15 @@ export function useChat() {
     if(!currentThread.selectedModel?.provider){
       throw new Error('No provider found');
     }
-    
 
     const chatProvider = ChatProviderFactory.getProvider(currentThread.selectedModel?.provider);
 
-    
-
-    let relevantDocuments = documents.filter((doc: Document) => currentThread.character?.documentIds?.includes(doc.id) ?? false);
-    relevantDocuments.push(...documents.filter((doc: Document) => currentThread.metadata?.documentIds?.includes(doc.id) ?? []));
+    let relevantDocuments = documents.filter((doc: Document) => 
+      currentThread.character?.documentIds?.includes(doc.id) ?? false
+    );
+    relevantDocuments.push(...documents.filter((doc: Document) => 
+      currentThread.metadata?.documentIds?.includes(doc.id) ?? []
+    ));
 
     const initialContext: MessageContext = {
       message,
@@ -119,41 +229,39 @@ export function useChat() {
         documents: relevantDocuments
       }
     };
+
     console.log("initialContext", initialContext);
 
     try {
       const transformedContext = await pipeline.process(initialContext);
-
       transformedContext.context.messagesToSend.push(transformedContext.context.assistantPlaceholder);
 
-      let messages = [...transformedContext.context.historyToSend, ...transformedContext.context.messagesToSend];
+      let messagesToSend = [
+        ...transformedContext.context.historyToSend, 
+        ...transformedContext.context.messagesToSend
+      ];
+      
       if(transformedContext.systemPrompt.trim().length > 0){
-        messages.unshift({content: transformedContext.systemPrompt, isUser: false, isSystem: true});
+        messagesToSend.unshift({
+          content: transformedContext.systemPrompt, 
+          isUser: false, 
+          isSystem: true
+        });
       }
 
-      let response: AsyncIterable<string>;
-      response = await sendMessage(messages, currentThread.selectedModel, context.characterToUse, abortController.current.signal);
-      // if(true){
-      //   response = await sendMessage(messages, currentThread.selectedModel, context.characterToUse, abortController.current.signal);
-      // }
-      // else{
-      //   response = await chatProvider.sendMessage(
-      //     messages,
-      //     currentThread.selectedModel,
-      //     context.characterToUse,
-      //     abortController.current.signal
-      //   );
-      // }
-      
-      
+      const response = await sendMessage(
+        messagesToSend, 
+        currentThread.selectedModel, 
+        context.characterToUse, 
+        abortController.current.signal
+      );
 
-      await streamHandler.handleStream(response, transformedContext.metadata.updatedThread, dispatchThread);
+      await handleStream(response, transformedContext.metadata.updatedThread);
 
     } catch (error: any) {
-      console.log('error', error);
+      console.log('Error sending message:', error);
       
       if (error instanceof ModelNotFoundException && currentThread.selectedModel) {
-        
         const updatedModels = models.filter(
           (m: Model) => !(m.id === currentThread.selectedModel?.id && 
                          m.provider.id === currentThread.selectedModel?.provider.id)
@@ -172,13 +280,13 @@ export function useChat() {
         });
       }
       
-      LogService.log(error, {component: 'useChat', function: 'handleSend'}, 'error');
+      LogService.log(error, {component: 'useChat', function: 'sendChatMessage'}, 'error');
     } finally {
       abortController.current = null;
     }
   };
 
-  const wrappedHandleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
+  const handleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
     if (!providers.length) return;
 
     if (Platform.OS == 'web') {
@@ -202,7 +310,7 @@ export function useChat() {
 
     setIsGenerating(true);
     try {
-      await handleSend(messages, message, mentionedCharacters);
+      await sendChatMessage(messages, message, mentionedCharacters);
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -213,16 +321,35 @@ export function useChat() {
   const handleMessagePress = (index: number, message: ChatMessage) => {
     if (message.isUser) {
       setEditingMessageIndex(index);
-      // You'll need to expose this method from ChatInput or handle differently
     }
   };
 
+  // ========== Effects ==========
   useEffect(() => {
     if (previousThreadId.current !== currentThread.id) {
       previousThreadId.current = currentThread.id;
     }
   }, [currentThread.id]);
 
-  return { handleSend, handleInterrupt, addNewThread, handleMessagePress, wrappedHandleSend, isGenerating, setIsGenerating, editingMessageIndex, sidebarVisible, currentThread };
+  // ========== Return Interface ==========
+  return { 
+    // Core message handling
+    handleSend,
+    handleInterrupt,
+    handleMessagePress,
+    
+    // Thread management  
+    addNewThread,
+    
+    // State
+    isGenerating,
+    setIsGenerating,
+    editingMessageIndex,
+    sidebarVisible,
+    currentThread,
+    
+    // Legacy support (deprecated)
+    wrappedHandleSend: handleSend
+  };
 }
 
