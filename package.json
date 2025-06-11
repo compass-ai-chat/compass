@@ -69,7 +69,7 @@
     "i18next": "^25.2.0",
     "jotai": "^2.10.3",
     "nativewind": "^4.1.21",
-    "ollama-ai-provider": "^1.2.0",
+    "ollama-ai-provider-v2": "^0.0.3",
     "pdfjs-dist": "^4.10.38",
     "react": "^18.2.0",
     "react-dom": "18.3.1",
@@ -105,10 +105,10 @@
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.0.7",
     "cross-env": "^7.0.3",
-    "serve": "^14.2.1",
     "gh-pages": "^6.3.0",
-    "typescript": "~5.3.3",
-    "metro-config": "^0.81.1"
+    "metro-config": "^0.81.1",
+    "serve": "^14.2.1",
+    "typescript": "~5.3.3"
   },
   "private": true,
   "react-native-windows": {

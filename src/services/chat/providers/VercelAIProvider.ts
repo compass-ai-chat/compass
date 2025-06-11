@@ -10,7 +10,7 @@ import { streamOpenAIResponse } from '@/src/services/chat/streamUtils';
 import { z } from 'zod';
 import { getProxyUrl } from '@/src/utils/proxy';
 import { Cache } from '@/src/utils/cache';
-import { createOllama } from 'ollama-ai-provider';
+import { createOllama } from 'ollama-ai-provider-v2';
 import { createGroq } from '@ai-sdk/groq';
 import { createXai } from '@ai-sdk/xai';
 import { createAnthropic } from '@ai-sdk/anthropic';

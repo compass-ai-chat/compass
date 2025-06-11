@@ -5,7 +5,7 @@ import { Model } from '@/src/types/core';
 import LogService from '@/utils/LogService';
 import { toastService } from '@/src/services/toastService';
 import { CoreMessage, embedMany, generateText, streamText, tool } from 'ai';
-import { createOllama } from 'ollama-ai-provider';
+import { createOllama } from 'ollama-ai-provider-v2';
 import { fetch as expoFetch } from 'expo/fetch';
 import { z } from 'zod';
 import { getProxyUrl } from '@/src/utils/proxy';
