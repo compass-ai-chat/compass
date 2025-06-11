@@ -101,37 +101,56 @@ export class PolarisProvider implements ChatProvider {
     }
   }
 
-  async sendSimpleMessage(
-    message: string,
-    model: Model,
-    systemPrompt: string,
-  ): Promise<string> {
-    return "Demo chat";
-  }
-
-  async sendJSONMessage(
-    message: string,
-    model: Model,
-    systemPrompt: string,
-  ): Promise<any> {
-    let url = `${model.provider.endpoint}/api/chat`;
-    let response = await fetch(await getProxyUrl(url), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+  async sendSimpleMessage(message: string, model: Model, systemPrompt: string): Promise<string> {
+    let url = `${model.provider.endpoint}`;
+    if(PlatformCust.isMobile) url = await getProxyUrl(url);
+    const response = await fetch(url+"/api/v1/chat/completions", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${model.provider.apiKey}`
+      },
       body: JSON.stringify({
         model: model.id,
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
         ],
-        stream: false,
-        format: "json",
+        stream: false
       }),
     });
-    let data = await response.json();
 
+    const data = await response.json();
+    if(!data.choices) {
+      throw new Error(`Unexpected format: ${data}`);
+    }
+    return data.choices[0].message.content;
+  }
+
+  async sendJSONMessage(message: string, model: Model, systemPrompt: string): Promise<any> {
+    let url = `${model.provider.endpoint}`;
+    if(PlatformCust.isMobile) url = await getProxyUrl(url);
+    const response = await fetch(url+"/api/v1/chat/completions", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${model.provider.apiKey}`
+      },
+      body: JSON.stringify({
+        model: model.id,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        stream: false,
+        response_format: { type: "json_object" }
+      }),
+    });
+
+    const data = await response.json();
+    
     try {
-      return JSON.parse(data.message.content);
+      return JSON.parse(data.choices[0].message.content);
     } catch (error) {
       return { query: "", searchRequired: false };
     }
