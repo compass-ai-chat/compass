@@ -2,7 +2,6 @@ import { getDefaultStore, useAtom } from 'jotai';
 import { userToolsAtom } from './atoms';
 import { Tool } from '../types/tools';
 import { ToolSet } from 'ai';
-import { DEFAULT_TOOLS } from '../tools/registerTools';
 import { ToolBlueprint } from '../tools/tool.interface';
 import { z } from 'zod';
 import { EmailToolService } from '../tools/email.tool';
@@ -11,6 +10,10 @@ import { WebSearchService } from '../tools/websearch.tool';
 import { toolBlueprintsAtom } from './atoms';
 import { SimpleSchema, simpleSchemaToZod, zodSchemaToJsonSchema } from '../utils/zodHelpers';
 import { useEffect, useRef } from 'react';
+import { CalculatorToolService } from '../tools/calculator.tool';
+import { WeatherToolService } from '../tools/weather.tool';
+import { UnitConverterToolService } from '../tools/unitconverter.tool';
+import { LengthConverterToolService } from '../tools/lengthconverter.tool';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
@@ -38,9 +41,12 @@ export function useTools() {
 
   const registerBuiltInTools = async () => {
     const handlers = {
-      email: new EmailToolService(),
-      note: new NoteToolService(),
-      websearch: new WebSearchService(),
+      Email: new EmailToolService(),
+      Note: new NoteToolService(),
+      WebSearch: new WebSearchService(),
+      Calculator: new CalculatorToolService(),
+      Weather: new WeatherToolService(),
+      LengthConverter: new LengthConverterToolService()
     };
   
     // Register handlers in the registry
@@ -60,7 +66,6 @@ export function useTools() {
       setToolExecutor(type, (params: any, configValues: any) => handler.execute(params, configValues));
     }
   
-    return DEFAULT_TOOLS;
   } 
 
   const createToolBlueprint = async (tool: ToolBlueprint) => {

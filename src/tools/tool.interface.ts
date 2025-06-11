@@ -1,7 +1,7 @@
 
 import { SimpleSchema } from '../utils/zodHelpers';
 export interface ToolHandler {
-  execute: (params: any, configValues: Record<string, any>) => Promise<any>;
+  execute: (params: any, configValues: any) => Promise<{success: boolean, message: string, data: any | null}>;
   getParamsSchema: () => SimpleSchema;
   getConfigSchema: () => SimpleSchema;
   getIcon: () => string;

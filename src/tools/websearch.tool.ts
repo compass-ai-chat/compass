@@ -7,7 +7,7 @@ import { SearxngSearchService } from '@/src/services/search/SearxngSearchService
 import { SimpleSchema } from '../utils/zodHelpers';
 
 export class WebSearchService implements ToolHandler {
-  async execute(params: any, config: any): Promise<any> {
+  async execute(params: { query: string }): Promise<{ success: boolean, message: string, data: string | null }> {
 
     try {
 
@@ -18,13 +18,15 @@ export class WebSearchService implements ToolHandler {
 
         return {
             success: true,
-            message: message,
+            message: 'Web search successful',
+            data: message
         };
     } catch (error: any) {
       console.error('Error sending email:', error);
       return {
         success: false,
-        error: error.message
+        message: 'Web search failed',
+        data: null
       };
     }
   }

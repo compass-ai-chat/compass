@@ -2,6 +2,9 @@ import { ToolRegistry } from './registry';
 import { EmailToolService } from './email.tool';
 import { NoteToolService } from './note.tool';
 import { WebSearchService } from './websearch.tool';
+import { CalculatorToolService } from './calculator.tool';
+import { WeatherToolService } from './weather.tool';
+import { UnitConverterToolService } from './unitconverter.tool';
 import { Tool } from '../types/tools';
 import { useTools } from '../hooks/useTools';
 
@@ -33,31 +36,58 @@ export const DEFAULT_TOOLS: Tool[] = [
     icon: 'search',
     configValues: {},
   },
+  {
+    id: 'calculator',
+    name: 'Calculator',
+    blueprintId: 'calculator',
+    description: 'Perform mathematical calculations',
+    enabled: true,
+    icon: 'calculator',
+    configValues: {},
+  },
+  {
+    id: 'weather',
+    name: 'Weather',
+    blueprintId: 'weather',
+    description: 'Get current weather information',
+    enabled: true,
+    icon: 'cloud',
+    configValues: {},
+  },
+  {
+    id: 'qrcode',
+    name: 'QR Code Generator',
+    blueprintId: 'qrcode',
+    description: 'Generate QR codes for text or URLs',
+    enabled: true,
+    icon: 'qr-code',
+    configValues: {},
+  },
+  {
+    id: 'password',
+    name: 'Password Generator',
+    blueprintId: 'password',
+    description: 'Generate secure passwords',
+    enabled: true,
+    icon: 'key',
+    configValues: {},
+  },
+  {
+    id: 'unitconverter',
+    name: 'Unit Converter',
+    blueprintId: 'unitconverter',
+    description: 'Convert between different units',
+    enabled: true,
+    icon: 'swap-horizontal',
+    configValues: {},
+  },
+  {
+    id: 'timer',
+    name: 'Timer',
+    blueprintId: 'timer',
+    description: 'Set timers and reminders',
+    enabled: true,
+    icon: 'timer',
+    configValues: {},
+  },
 ];
-
-export async function registerBuiltInTools() {
-  const {registerToolBlueprint, setToolExecutor} = useTools();
-  const handlers = {
-    email: new EmailToolService(),
-    note: new NoteToolService(),
-    websearch: new WebSearchService(),
-  };
-
-  // Register handlers in the registry
-  for (const [type, handler] of Object.entries(handlers)) {
-    // First register the tool structure
-    await registerToolBlueprint({
-      id: type,
-      description: handler.getDescription(),
-      icon: handler.getIcon(),
-      code: '', // Built-in tools don't need code
-      paramsSchema: handler.getParamsSchema(),
-      configSchema: handler.getConfigSchema(),
-    });
-
-    // Then set the actual executor
-    setToolExecutor(type, (params: any, configValues: any) => handler.execute(params, configValues));
-  }
-
-  return DEFAULT_TOOLS;
-} 

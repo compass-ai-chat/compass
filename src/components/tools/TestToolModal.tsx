@@ -54,6 +54,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
         <TextInput
           className="border border-border rounded-lg p-2 bg-surface text-text outline-none"
           placeholder={`Enter ${key}`}
+          placeholderTextColor="gray"
           value={params[key] || ""}
           onChangeText={(text) => setParams({ ...params, [key]: text })}
         />
@@ -82,7 +83,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
             language="json"
             readOnly
             onChangeText={() => {}}
-            className="min-h-[200px] h-full"
+            className="h-full"
           />
         </View>
       </View>
@@ -93,7 +94,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      className="w-2/3"
+      className="min-w-[30%]"
     >
       <View className="p-6 bg-background rounded-lg">
         <View className="flex-row items-center justify-between mb-6">

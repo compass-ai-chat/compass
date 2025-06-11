@@ -83,9 +83,7 @@ export function EditToolModal({
                       setFormData({
                         ...formData, 
                         blueprintId: toolBlueprint.id,
-                        configValues: {},
-                        paramsSchema: toolBlueprint.paramsSchema,
-                        configSchema: toolBlueprint.configSchema,
+                        configValues: {}
                       });
                     }}
                     className={`flex-row items-center px-3 py-2 rounded-lg ${formData.blueprintId === toolBlueprint.id ? 'bg-primary' : 'bg-primary/10'}`}
