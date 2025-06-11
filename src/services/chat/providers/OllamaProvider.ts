@@ -94,20 +94,30 @@ export class OllamaProvider implements ChatProvider {
     let url = `${model.provider.endpoint}/api/chat`;
     if(PlatformCust.isTauri) url = await getProxyUrl(url);
 
-    if(!PlatformCust.isMobile){
-    const ollama = createOllama({
-      // optional settings, e.g.
-      baseURL: model.provider.endpoint+'/api',
-      fetch: expoFetch as unknown as typeof globalThis.fetch,
-    });
-
-    const result = await generateText({
-      model: ollama(model.id),
-      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }]
-    });
-
-    return result.text;
-  }
+    try{
+      if(!PlatformCust.isMobile){
+        const ollama = createOllama({
+          // optional settings, e.g.
+          baseURL: model.provider.endpoint+'/api',
+          fetch: expoFetch as unknown as typeof globalThis.fetch,
+        });
+  
+        const result = await generateText({
+          model: ollama(model.id),
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }]
+        });
+  
+        return result.text;
+      }
+    }
+    catch(error:any){
+      if(error.errors){
+        const errorMessage = JSON.parse(error.errors[0]?.responseBody || '{}').error;
+        throw new Error(errorMessage);
+      }
+      throw error;
+    }
+    
 
     if(PlatformCust.isTauri) url = await getProxyUrl(url);
     let response = await fetch(url, {

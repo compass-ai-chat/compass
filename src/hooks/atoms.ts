@@ -585,3 +585,12 @@ export const userNotesAtom = atomWithAsyncStorage<Note[]>(
 );
 
 export const toolBlueprintsAtom = atom<ToolBlueprint[]>([]);
+
+
+export const downloadingModelsAtom = atomWithAsyncStorage<{
+  modelId: string;
+  startTime: number;
+}[]>(
+  "downloadingModels",
+  [],
+);

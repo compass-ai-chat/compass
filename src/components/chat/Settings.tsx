@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Model, Character, Thread, Provider } from "@/src/types/core";
 import { getDefaultStore, useAtom, useAtomValue } from "jotai";
@@ -15,6 +16,7 @@ import {
   availableModelsAtom,
   defaultChatDropdownOptionAtom,
   selectedChatDropdownOptionAtom,
+  downloadingModelsAtom,
 } from "@/src/hooks/atoms";
 import { DropdownElement } from "@/src/components/ui/Dropdown";
 import { Dropdown } from "@/src/components/ui/Dropdown";
@@ -25,6 +27,7 @@ import YAML from 'yaml';
 import { PREDEFINED_PROVIDERS } from "@/src/constants/providers";
 import { getProxyUrl } from "@/src/utils/proxy";
 import { fetchAvailableModelsV2 } from "@/src/hooks/useModels";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 // Extend DropdownElement to include a model property
 interface ModelDropdownElement extends DropdownElement {
@@ -37,6 +40,18 @@ interface SettingsProps {
 }
 
 type ExportFormat = 'json' | 'yaml';
+
+interface OllamaModel {
+  name: string;
+  digest: string;
+  size: number;
+  modified_at?: string;
+}
+
+interface AvailableModel {
+  id: string;
+  description?: string;
+}
 
 export const Settings: React.FC<SettingsProps> = ({
     thread,
@@ -51,6 +66,31 @@ export const Settings: React.FC<SettingsProps> = ({
   const [providers, setProviders] = useAtom(availableProvidersAtom);
   const [models, setModels] = useAtom(availableModelsAtom);
   const [scanning, setScanning] = useState(false);
+  const [ollamaModalVisible, setOllamaModalVisible] = useState(false);
+  const [localModels, setLocalModels] = useState<OllamaModel[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [isPulling, setPulling] = useState<string | null>(null);
+  const [downloadingModels, setDownloadingModels] = useAtom(downloadingModelsAtom);
+
+  const recommendedModels: AvailableModel[] = [
+    { 
+      id: "goekdenizguelmez/JOSIEFIED-Qwen3:4b",
+      description: "Qwen3 with limitations removed"
+    },
+    { 
+      id: "llama3.2:latest",
+      description: "Balanced performance and efficiency"
+    },
+    { 
+      id: "qwen3:4b",
+      description: "Balanced performance and efficiency"
+    },
+    { 
+      id: "dengcao/Qwen3-Embedding-0.6B:Q8_0",
+      description: "Light multilingual embedding model (100+ languages)"
+    }
+    
+  ];
 
   const availableSettings = [
     {
@@ -60,6 +100,10 @@ export const Settings: React.FC<SettingsProps> = ({
     {
       title: t('chats.export_chat'),
       id: "export_chat",
+    },
+    {
+      title: "Manage Ollama Models",
+      id: "manage_ollama",
     },
     {
       title: "Scan for Local Ollama",
@@ -111,6 +155,91 @@ export const Settings: React.FC<SettingsProps> = ({
     }
   };
 
+  const fetchLocalModels = async () => {
+    setIsLoadingModels(true);
+    try {
+      const ollamaProvider = providers.find(p => p.name === 'Ollama');
+      if (!ollamaProvider) {
+        throw new Error('No Ollama provider found');
+      }
+      const response = await fetch(await getProxyUrl(`${ollamaProvider.endpoint}/api/tags`));
+      const data = await response.json();
+      if (data && Array.isArray(data.models)) {
+        setLocalModels(data.models);
+      }
+    } catch (error: any) {
+      console.error("Error fetching local models:", error);
+      toastService.danger({
+        title: 'Failed to fetch models',
+        description: error.message
+      });
+    } finally {
+      setIsLoadingModels(false);
+      // check if any models are now downloaded and should be removed from downloadingModels or have a startTime older than 30 minutes
+      setDownloadingModels(downloadingModels.filter(m => !localModels.some(local => local.name.includes(m.modelId)) || m.startTime < Date.now() - 30 * 60 * 1000));
+    }
+  };
+
+  const pullModel = async (modelId: string) => {
+    setPulling(modelId);
+    try {
+      const ollamaProvider = providers.find(p => p.name === 'Ollama');
+      if (!ollamaProvider) {
+        throw new Error('No Ollama provider found');
+      }
+      await fetch(await getProxyUrl(`${ollamaProvider.endpoint}/api/pull`), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: modelId,
+          stream: false
+        })
+      });
+      setDownloadingModels([...downloadingModels, { modelId, startTime: Date.now() }]);
+      toastService.success({
+        title: 'Model download started',
+        description: `${modelId} is being downloaded in the background`
+      });
+      fetchLocalModels();
+    } catch (error: any) {
+      toastService.danger({
+        title: 'Failed to pull model',
+        description: error.message
+      });
+    } finally {
+      setPulling(null);
+      setDownloadingModels(downloadingModels.filter(m => m.modelId !== modelId));
+    }
+  };
+
+  const deleteModel = async (modelName: string) => {
+    try {
+      const ollamaProvider = providers.find(p => p.name === 'Ollama');
+      if (!ollamaProvider) {
+        throw new Error('No Ollama provider found');
+      }
+      await fetch(await getProxyUrl(`${ollamaProvider.endpoint}/api/delete`), {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: modelName })
+      });
+      toastService.success({
+        title: 'Model deleted',
+        description: `${modelName} has been removed`
+      });
+      fetchLocalModels();
+    } catch (error: any) {
+      toastService.danger({
+        title: 'Failed to delete model',
+        description: error.message
+      });
+    }
+  };
+
   const handleSettingSelect = (el: DropdownElement)=>{
     if(el.id == "set_model_as_default"){
         setCurrentModelAsDefault();
@@ -118,6 +247,9 @@ export const Settings: React.FC<SettingsProps> = ({
       setExportModalVisible(true);
     } else if (el.id === "scan_local_ollama") {
       scanForLocalOllama();
+    } else if (el.id === "manage_ollama") {
+      setOllamaModalVisible(true);
+      fetchLocalModels();
     }
   };
 
@@ -248,6 +380,92 @@ export const Settings: React.FC<SettingsProps> = ({
           >
             <Text className="text-center text-white">
               {t('chats.export')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </UIModal>
+
+      <UIModal isVisible={ollamaModalVisible} onClose={() => setOllamaModalVisible(false)}>
+        <ScrollView className="p-6" contentContainerStyle={{ paddingBottom: 30 }}>
+          <View className="mb-6">
+            <Text className="text-xl font-bold text-text mb-4">
+              Manage Ollama Models
+            </Text>
+            
+            <Text className="text-secondary mb-6">
+              Install and manage your local Ollama models
+            </Text>
+
+            <Text className="text-lg font-semibold text-text mb-4">
+              Installed Models
+            </Text>
+            
+            {isLoadingModels ? (
+              <ActivityIndicator size="large" className="my-4" />
+            ) : (
+              <View className="mb-6">
+                {localModels.map((model) => (
+                  <View key={model.digest} className="bg-surface p-4 rounded-lg mb-2 border border-border">
+                    <View className="flex-row justify-between items-center">
+                      <View>
+                        <Text className="font-medium text-text">{model.name}</Text>
+                        <Text className="text-sm text-secondary">
+                          Size: {(model.size / 1024 / 1024 / 1024).toFixed(2)} GB
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => deleteModel(model.name)}
+                        className="bg-red-500/10 p-2 rounded-lg"
+                      >
+                        <Ionicons name="trash" size={20} className="text-red-500" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <Text className="text-lg font-semibold text-text mb-4">
+              Recommended Models
+            </Text>
+            
+            <View>
+              {recommendedModels
+                .filter(model => !localModels.some(local => local.name.includes(model.id)))
+                .map((model) => (
+                <View key={model.id} className="bg-surface p-4 rounded-lg mb-2 border border-border">
+                  <View className="flex-row justify-between items-center">
+                    <View className="flex-1 mr-4">
+                      <Text className="font-medium text-text">{model.id}</Text>
+                      {model.description && (
+                        <Text className="text-sm text-secondary">{model.description}</Text>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => pullModel(model.id)}
+                      disabled={isPulling === model.id}
+                      className="bg-primary/10 p-2 rounded-lg"
+                    >
+                      {isPulling === model.id ? (
+                        <ActivityIndicator size="small" className="text-primary" />
+                      ) : (
+                        <Ionicons name="download" size={20} className="text-primary" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+        
+        <View className="flex-row justify-end space-x-4 mt-6 m-2">
+          <TouchableOpacity
+            onPress={() => setOllamaModalVisible(false)}
+            className="px-6 py-3 rounded-lg bg-background"
+          >
+            <Text className="text-center text-text">
+              Close
             </Text>
           </TouchableOpacity>
         </View>

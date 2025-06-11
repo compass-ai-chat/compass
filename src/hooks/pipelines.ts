@@ -148,7 +148,7 @@ export const firstMessageTransform: MessageTransform = {
     } catch (error: any) {
       toastService.danger({
         title: 'Error generating title',
-        description: "The AI service may be experiencing issues. Please try again later."
+        description: error.message
       });
       LogService.log(error, { component: 'firstMessageTransform', function: 'transform' }, 'error');
     }
