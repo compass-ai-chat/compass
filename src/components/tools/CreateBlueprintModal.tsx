@@ -53,6 +53,13 @@ export function CreateBlueprintModal({
     }
   };
 
+  const handleNameChange = (text: string) => {
+    let sanitizedText = text.replace(/[^a-zA-Z0-9]/g, '');
+    // remove all spaces
+    sanitizedText = sanitizedText.replace(/\s+/g, '');
+    setCreateToolBlueprintData({...createToolData, id: sanitizedText});
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -70,7 +77,7 @@ export function CreateBlueprintModal({
               placeholder="Tool name"
               placeholderTextColor="#9CA3AF"
               value={createToolData.id}
-              onChangeText={(text) => setCreateToolBlueprintData({...createToolData, id: text})}
+              onChangeText={handleNameChange}
             />
           </View>
           
