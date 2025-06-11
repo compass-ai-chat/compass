@@ -88,7 +88,6 @@ export function useVercelAIProvider() {
     if(character?.toolIds){
       toolSchemas = await getVercelCompatibleToolSet(character.toolIds);
     }
-    console.log("We're using VERCEL AI PROVIDER");
     console.log("Tool schemas", toolSchemas);
 
 
@@ -103,10 +102,10 @@ export function useVercelAIProvider() {
             toolChoice: 'auto',
             onChunk: (chunk) => {
               if(chunk.chunk.type == 'tool-call'){
-                console.log('tool call', chunk.chunk.toolName);
+                //console.log('tool call', chunk.chunk.toolName);
               }
               else{
-                console.log('chunk', chunk);
+                //console.log('chunk', chunk);
               }
             }
         });
