@@ -78,6 +78,10 @@ export const Settings: React.FC<SettingsProps> = ({
       description: "Qwen3 with limitations removed"
     },
     { 
+      id: "goekdenizguelmez/JOSIEFIED-Qwen2.5:3b",
+      description: "Qwen2.5 with limitations removed"
+    },
+    { 
       id: "llama3.2:latest",
       description: "Balanced performance and efficiency"
     },
@@ -177,6 +181,9 @@ export const Settings: React.FC<SettingsProps> = ({
       setIsLoadingModels(false);
       // check if any models are now downloaded and should be removed from downloadingModels or have a startTime older than 30 minutes
       setDownloadingModels(downloadingModels.filter(m => !localModels.some(local => local.name.includes(m.modelId)) || m.startTime < Date.now() - 30 * 60 * 1000));
+
+      // if any models are still downloading, then set as pulling
+      setPulling(downloadingModels.map(m => m.modelId).join(','));
     }
   };
 
@@ -446,7 +453,7 @@ export const Settings: React.FC<SettingsProps> = ({
                       disabled={isPulling === model.id}
                       className="bg-primary/10 p-2 rounded-lg"
                     >
-                      {isPulling === model.id ? (
+                      {isPulling && isPulling.split(',').includes(model.id) ? (
                         <ActivityIndicator size="small" className="text-primary" />
                       ) : (
                         <Ionicons name="download" size={20} className="text-primary" />

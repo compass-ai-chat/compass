@@ -116,16 +116,28 @@ export const Message: React.FC<MessageProps> = ({ content, isUser, character, in
   useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
       // Check for thinking tags
-      const thinkMatch = content.match(/<think>(.*?)<\/think>/s);
-      if (thinkMatch) {
-        setThinkingContent(thinkMatch[1].trim());
-        setIsThinking(true);
-        // Remove the thinking tags from display content
+    const thinkOpenIndex = content.indexOf('<think>');
+    const thinkCloseIndex = content.indexOf('</think>');
+
+    if (thinkOpenIndex !== -1) {
+      // Extract content after <think> tag
+      const thinkStart = thinkOpenIndex + '<think>'.length;
+      
+      if (thinkCloseIndex !== -1) {
+        // We have both opening and closing tags
+        setThinkingContent(content.substring(thinkStart, thinkCloseIndex).trim());
         setDisplayContent(content.replace(/<think>.*?<\/think>/s, '').trim());
       } else {
-        setDisplayContent(content);
-        setIsThinking(false);
+        // Only opening tag exists - everything after is thinking
+        setThinkingContent(content.substring(thinkStart).trim());
+        setDisplayContent('');
       }
+      setIsThinking(true);
+    } else {
+      setDisplayContent(content);
+      setIsThinking(false);
+      setThinkingContent(null);
+    }
     });
   }, [content]);
 
