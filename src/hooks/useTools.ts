@@ -14,6 +14,7 @@ import { CalculatorToolService } from '../tools/calculator.tool';
 import { WeatherToolService } from '../tools/weather.tool';
 import { UnitConverterToolService } from '../tools/unitconverter.tool';
 import { LengthConverterToolService } from '../tools/lengthconverter.tool';
+import { WeightConverterToolService } from '../tools/weightconverter.tool';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
@@ -46,7 +47,8 @@ export function useTools() {
       WebSearch: new WebSearchService(),
       Calculator: new CalculatorToolService(),
       Weather: new WeatherToolService(),
-      LengthConverter: new LengthConverterToolService()
+      LengthConverter: new LengthConverterToolService(),
+      WeightConverter: new WeightConverterToolService()
     };
   
     // Register handlers in the registry
