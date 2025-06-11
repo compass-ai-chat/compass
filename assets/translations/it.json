@@ -22,6 +22,9 @@
         "confirm": "Conferma"
     },
     "chats": {
+        "clear_all": "Elimina tutto",
+        "clear_all_confirm": "Sei sicuro di voler eliminare tutte le conversazioni?",
+        "clear_all_tooltip": "Elimina tutte le conversazioni",
         "start_a_conversation_with_character": "Inizia una conversazione con {{character}}",
         "ask_a_question_or_start_a_conversation": "Chiedi una domanda o inizia una conversazione.",
         "before": "Prima",

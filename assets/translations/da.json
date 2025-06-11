@@ -22,6 +22,9 @@
         "confirm": "Bekræft"
     },
     "chats":{
+        "clear_all": "Ryd alle",
+        "clear_all_confirm": "Er du sikker på, at du vil rydde alle samtaler?",
+        "clear_all_tooltip": "Ryd alle samtaler",
         "start_a_conversation_with_character": "Start en samtale med {{character}}",
         "ask_a_question_or_start_a_conversation": "Stil et spørgsmål eller start en samtale",
         "before": "Før",

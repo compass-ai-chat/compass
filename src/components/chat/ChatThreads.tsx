@@ -27,6 +27,7 @@ const ChatThreads: React.FC = () => {
   const isDarkMode = colorScheme === 'dark';
   const { t } = useLocalization();
   const { addNewThread } = useChat();
+  const defaultThread = useAtomValue(defaultThreadAtom);
 
 
   const groupThreadsByDate = useCallback((threads: Thread[]): Section[] => {
@@ -95,6 +96,17 @@ const ChatThreads: React.FC = () => {
     } else {
       dispatchThread({ type: 'setCurrent', payload: thread });
       router.push(`/thread/${thread.id}`);
+    }
+  };
+
+  const clearAllThreads = async () => {
+    const confirmed = await modalService.confirm({
+      title: t('chats.clear_all'),
+      message: t('chats.clear_all_confirm')
+    });
+
+    if (confirmed) {
+      dispatchThread({ type: 'clearAll' });
     }
   };
 
@@ -185,6 +197,18 @@ const ChatThreads: React.FC = () => {
           >
             <Ionicons 
               name={isDarkMode ? 'sunny' : 'moon'} 
+              size={24}
+              className="!text-text"
+            />
+          </TouchableOpacity>
+        </Tooltip>
+        <Tooltip text={t('chats.clear_all_tooltip')} tooltipClassName="w-20">
+          <TouchableOpacity 
+            onPress={clearAllThreads}
+            className="p-2 rounded-full bg-surface hover:bg-background"
+          >
+            <Ionicons 
+              name="trash-outline" 
               size={24}
               className="!text-text"
             />

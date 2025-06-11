@@ -103,6 +103,7 @@ export type ThreadAction =
   | { type: "update"; payload: Thread }
   | { type: "delete"; payload: string }
   | { type: "setCurrent"; payload: Thread }
+  | { type: "clearAll" }
   | {
       type: "updateMessages";
       payload: { threadId: string; messages: ChatMessage[] };
@@ -141,11 +142,15 @@ export const threadActionsAtom = atom(
             await set(currentThreadAtom, await get(defaultThreadAtom));
           }
         }
-
         break;
 
       case "setCurrent":
         await set(currentThreadAtom, action.payload);
+        break;
+
+      case "clearAll":
+        await set(threadsAtom, []);
+        await set(currentThreadAtom, await get(defaultThreadAtom));
         break;
 
       case "updateMessages":

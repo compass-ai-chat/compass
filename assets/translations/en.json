@@ -22,6 +22,9 @@
         "confirm": "Confirm"
     },
     "chats": {
+        "clear_all": "Clear all",
+        "clear_all_confirm": "Are you sure you want to clear all chats?",
+        "clear_all_tooltip": "Clear all chats",
         "start_a_conversation_with_character": "Start a conversation with {{character}}",
         "ask_a_question_or_start_a_conversation": "Ask a question or start a conversation to get help with anything.",
         "before": "Before",
