@@ -138,6 +138,7 @@ export function AddToolModal({
                       className="border border-border rounded-lg p-2 bg-surface text-text"
                       placeholder={`Enter ${key}`}
                       value={typeof (formData.configValues || {})[key] === 'string' ? (formData.configValues || {})[key] : ''}
+                      placeholderTextColor="#9CA3AF"
                       onChangeText={(text) => setFormData({
                         ...formData, 
                         configValues: {

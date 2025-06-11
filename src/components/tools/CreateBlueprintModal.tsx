@@ -57,7 +57,7 @@ export function CreateBlueprintModal({
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      className="w-3/4"
+      className="w-[70%]"
     >
       <View className="space-y-4 p-4">
         <Text className="text-xl font-bold text-primary">Create New Blueprint</Text>
