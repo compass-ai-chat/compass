@@ -29,6 +29,7 @@ jobs:
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          cp app.web.json app.json
           npm run predeploy
           npm run deploy
         env:
@@ -39,7 +40,7 @@ jobs:
 
       - name: Generate QR Code
         run: |
-          qrencode -o compass-qr.png "https://nordwestt.com/compass"
+          qrencode -o compass-qr.png "https://compass-ai.chat/compass"
         
       - name: Upload QR Code
         uses: actions/upload-artifact@v4
