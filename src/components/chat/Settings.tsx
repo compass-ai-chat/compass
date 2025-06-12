@@ -28,6 +28,7 @@ import { PREDEFINED_PROVIDERS } from "@/src/constants/providers";
 import { getProxyUrl } from "@/src/utils/proxy";
 import { fetchAvailableModelsV2 } from "@/src/hooks/useModels";
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { modalService } from "@/src/services/modalService";
 
 // Extend DropdownElement to include a model property
 interface ModelDropdownElement extends DropdownElement {
@@ -74,12 +75,12 @@ export const Settings: React.FC<SettingsProps> = ({
 
   const recommendedModels: AvailableModel[] = [
     { 
-      id: "goekdenizguelmez/JOSIEFIED-Qwen3:4b",
-      description: "Qwen3 with limitations removed"
-    },
-    { 
       id: "goekdenizguelmez/JOSIEFIED-Qwen2.5:3b",
       description: "Qwen2.5 with limitations removed"
+    },
+    { 
+      id: "goekdenizguelmez/JOSIEFIED-Qwen3:4b",
+      description: "Qwen3 with limitations removed"
     },
     { 
       id: "llama3.2:latest",
@@ -115,9 +116,19 @@ export const Settings: React.FC<SettingsProps> = ({
     },
   ];
 
+  useEffect(() => {
+    scanForLocalOllama();
+  }, []);
+
   const scanForLocalOllama = async () => {
     setScanning(true);
     try {
+
+      // return if ollama is already in providers
+      if(providers.find(p => p.name === 'Ollama')){
+        return;
+      }
+
       const endpoint = "http://localhost:11434";
       const response = await fetch(await getProxyUrl(`${endpoint}/api/version`));
       const data = await response.json();
@@ -136,6 +147,18 @@ export const Settings: React.FC<SettingsProps> = ({
           // Fetch models for the new provider
           const modelsFound = await fetchAvailableModelsV2([newProvider]);
           setModels([...models, ...modelsFound]);
+          
+          if(modelsFound.length ==0 ){
+            console.log("downloading models", downloadingModels);
+            const answer = await modalService.confirm({
+              title: "Let's get you started",
+              message: "Want to install a recommended model? This will pull the model to your local Ollama instance.",
+            });
+            if(answer){
+              pullModel(recommendedModels[0].id);
+            }
+          }
+          
           
           toastService.success({
             title: "Local Ollama Found",
@@ -179,22 +202,25 @@ export const Settings: React.FC<SettingsProps> = ({
       });
     } finally {
       setIsLoadingModels(false);
+      const updatedDownloadingModels = await getDefaultStore().get(downloadingModelsAtom);
       // check if any models are now downloaded and should be removed from downloadingModels or have a startTime older than 30 minutes
-      setDownloadingModels(downloadingModels.filter(m => !localModels.some(local => local.name.includes(m.modelId)) || m.startTime < Date.now() - 30 * 60 * 1000));
+      setDownloadingModels(updatedDownloadingModels.filter(m => !localModels.some(local => local.name.includes(m.modelId)) || m.startTime < Date.now() - 30 * 60 * 1000));
 
       // if any models are still downloading, then set as pulling
-      setPulling(downloadingModels.map(m => m.modelId).join(','));
+      setPulling(updatedDownloadingModels.map(m => m.modelId).join(','));
     }
   };
 
   const pullModel = async (modelId: string) => {
     setPulling(modelId);
     try {
-      const ollamaProvider = providers.find(p => p.name === 'Ollama');
+      const updatedProviders = await getDefaultStore().get(availableProvidersAtom);
+      const ollamaProvider = updatedProviders.find(p => p.name === 'Ollama');
+      console.log("providers", updatedProviders);
       if (!ollamaProvider) {
         throw new Error('No Ollama provider found');
       }
-      await fetch(await getProxyUrl(`${ollamaProvider.endpoint}/api/pull`), {
+      fetch(await getProxyUrl(`${ollamaProvider.endpoint}/api/pull`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +230,10 @@ export const Settings: React.FC<SettingsProps> = ({
           stream: false
         })
       });
-      setDownloadingModels([...downloadingModels, { modelId, startTime: Date.now() }]);
+      let updatedDownloadingModels = await getDefaultStore().get(downloadingModelsAtom);
+      await setDownloadingModels([...updatedDownloadingModels, { modelId, startTime: Date.now() }]);
+      updatedDownloadingModels = await getDefaultStore().get(downloadingModelsAtom);
+      console.log("DDownloading models", updatedDownloadingModels);
       toastService.success({
         title: 'Model download started',
         description: `${modelId} is being downloaded in the background`
@@ -217,7 +246,6 @@ export const Settings: React.FC<SettingsProps> = ({
       });
     } finally {
       setPulling(null);
-      setDownloadingModels(downloadingModels.filter(m => m.modelId !== modelId));
     }
   };
 
