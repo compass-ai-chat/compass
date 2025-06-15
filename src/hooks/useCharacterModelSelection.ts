@@ -38,6 +38,13 @@ export const useCharacterModelSelection = () => {
     setModels(fetchedModels);
   };
 
+  useEffect(() => {
+    if (models.length > 0 && !selectedModel?.id && !selectedCharacter) {
+      // If we have models but no selected model or character, select the first model
+      handleModelSelection(models[0]);
+    }
+  }, [models, selectedModel, selectedCharacter]);
+
   const getCharacterModel = (character: Character) => {
     if (character.allowedModels?.length) {
       // fetch allowed model from character

@@ -146,10 +146,8 @@ export const Settings: React.FC<SettingsProps> = ({
           
           // Fetch models for the new provider
           const modelsFound = await fetchAvailableModelsV2([newProvider]);
-          setModels([...models, ...modelsFound]);
           
           if(modelsFound.length ==0 ){
-            console.log("downloading models", downloadingModels);
             const answer = await modalService.confirm({
               title: "Let's get you started",
               message: "Want to install a recommended model? This will pull the model to your local Ollama instance.",
@@ -233,7 +231,6 @@ export const Settings: React.FC<SettingsProps> = ({
       let updatedDownloadingModels = await getDefaultStore().get(downloadingModelsAtom);
       await setDownloadingModels([...updatedDownloadingModels, { modelId, startTime: Date.now() }]);
       updatedDownloadingModels = await getDefaultStore().get(downloadingModelsAtom);
-      console.log("DDownloading models", updatedDownloadingModels);
       toastService.success({
         title: 'Model download started',
         description: `${modelId} is being downloaded in the background`
