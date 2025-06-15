@@ -146,14 +146,14 @@ export const Settings: React.FC<SettingsProps> = ({
           
           // Fetch models for the new provider
           const modelsFound = await fetchAvailableModelsV2([newProvider]);
-          
+          setModels([...models, ...modelsFound]);
           if(modelsFound.length ==0 ){
             const answer = await modalService.confirm({
               title: "Let's get you started",
               message: "Want to install a recommended model? This will pull the model to your local Ollama instance.",
             });
             if(answer){
-              pullModel(recommendedModels[0].id);
+              pullModel("llama3.2:1b");
             }
           }
           
@@ -235,7 +235,6 @@ export const Settings: React.FC<SettingsProps> = ({
         title: 'Model download started',
         description: `${modelId} is being downloaded in the background`
       });
-      fetchLocalModels();
     } catch (error: any) {
       toastService.danger({
         title: 'Failed to pull model',

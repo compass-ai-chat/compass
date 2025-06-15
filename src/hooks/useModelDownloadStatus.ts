@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { downloadingModelsAtom, availableProvidersAtom } from '@/src/hooks/atoms';
+import { downloadingModelsAtom, availableProvidersAtom, availableModelsAtom,  } from '@/src/hooks/atoms';
 import { getProxyUrl } from '@/src/utils/proxy';
 import { toastService } from '@/src/services/toastService';
+import { fetchAvailableModelsV2 } from './useModels';
 
 interface OllamaModel {
   name: string;
@@ -14,7 +15,7 @@ interface OllamaModel {
 export const useModelDownloadStatus = () => {
   const [downloadingModels, setDownloadingModels] = useAtom(downloadingModelsAtom);
   const [providers] = useAtom(availableProvidersAtom);
-
+  const [models, setModels] = useAtom(availableModelsAtom);
   useEffect(() => {
     if (downloadingModels.length === 0) return;
 
@@ -23,15 +24,14 @@ export const useModelDownloadStatus = () => {
         const ollamaProvider = providers.find(p => p.name === 'Ollama');
         if (!ollamaProvider) return;
 
-        const response = await fetch(await getProxyUrl(`${ollamaProvider.endpoint}/api/tags`));
-        const data = await response.json();
+        const modelsFound = await fetchAvailableModelsV2([ollamaProvider]);
+        setModels([...models, ...modelsFound]);
         
-        if (data && Array.isArray(data.models)) {
-          const localModels = data.models as OllamaModel[];
+        if (modelsFound && Array.isArray(modelsFound)) {
           
           // Filter out models that are now downloaded or have been downloading for too long (30 minutes)
           const updatedDownloadingModels = downloadingModels.filter(model => {
-            const isDownloaded = localModels.some(local => local.name.includes(model.modelId));
+            const isDownloaded = models.some(local => local.id === model.modelId);
             const isTooOld = model.startTime < Date.now() - 30 * 60 * 1000;
             
             // If model is downloaded, show success toast
