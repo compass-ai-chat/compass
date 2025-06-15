@@ -186,6 +186,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
           onSelect={handleSelectCharacter}
           searchText={mentionSearch}
           selectedIndex={selectedIndex}
+          
         />
       )}
       <TextInput
