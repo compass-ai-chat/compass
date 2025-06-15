@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Settings } from './Settings';
 import { VoiceSelector } from './VoiceSelector';
 import { useAtom, useSetAtom } from 'jotai';
-import { currentThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom } from '@/src/hooks/atoms';
+import { currentThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom, downloadingModelsAtom } from '@/src/hooks/atoms';
 import { useCallback } from 'react';
 import { useColorScheme } from 'nativewind';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,11 +21,10 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
     const [ttsEnabled, setTtsEnabled] = useAtom(ttsEnabledAtom);
     const dispatchThread = useSetAtom(threadActionsAtom);
     const [selectedVoice, setSelectedVoice] = useAtom(defaultVoiceAtom);
+    const [downloadingModels] = useAtom(downloadingModelsAtom);
     const { colorScheme, toggleColorScheme } = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  const { t } = useLocalization();
-
-
+    const isDarkMode = colorScheme === 'dark';
+    const { t } = useLocalization();
 
     const toggleDark = useCallback(() => {
       toggleColorScheme();
@@ -55,6 +54,15 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
             <View className="flex-row items-center gap-2">
             <Text className="text-sm text-text">{polarisUser.firstName}</Text>
             </View>
+        )}
+        
+        {downloadingModels.length > 0 && (
+          <View className="flex-row items-center gap-2 bg-primary/10 px-3 py-1 rounded-full">
+            <ActivityIndicator size="small" className="text-primary" />
+            <Text className="text-sm text-primary">
+              {downloadingModels.length} model{downloadingModels.length > 1 ? 's' : ''} downloading
+            </Text>
+          </View>
         )}
         
           <TouchableOpacity 

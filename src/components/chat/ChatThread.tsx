@@ -7,6 +7,7 @@ import { DropdownElement } from '../ui/Dropdown';
 import { ChatLayout } from './ChatLayout';
 import { EmptyChatState } from './EmptyChatState';
 import { ChatContainer } from './ChatContainer';
+import { useModelDownloadStatus } from '@/src/hooks/useModelDownloadStatus';
 
 export const ChatThread: React.FC = () => {
   const {
@@ -26,6 +27,9 @@ export const ChatThread: React.FC = () => {
     handleModelSelection,
     handleCharacterSelection,
   } = useCharacterModelSelection();
+
+  // Add the model download status hook
+  useModelDownloadStatus();
 
   const chatInputRef = useRef<ChatInputRef>(null);
   const previousThreadId = useRef(currentThread.id);
