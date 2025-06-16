@@ -71,7 +71,13 @@
         }
       ],
       "expo-font",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Compass to use your location."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
