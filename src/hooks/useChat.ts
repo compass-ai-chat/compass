@@ -145,15 +145,16 @@ export function useChat() {
     const lastMessage = updatedMessages[updatedMessages.length - 1];
     if (lastMessage && !lastMessage.isUser) {
       lastMessage.content = assistantMessage;
-      dispatchThread({
+      const updatedThread = await dispatchThread({
         type: 'updateMessages',
         payload: {
           threadId: thread.id,
           messages: updatedMessages
         }
       });
-      // RN has a debounce for rendering, so it's better to wait a bit before updating the message
-      await new Promise(resolve => setTimeout(resolve, 100));
+      if (updatedThread?.messages[updatedThread.messages.length - 1]?.content !== assistantMessage) {
+        throw new Error('Message update failed to persist');
+      }
     }
   };
 

@@ -160,13 +160,17 @@ export const threadActionsAtom = atom(
             : t,
         );
         await set(threadsAtom, threadsWithUpdatedMessages);
-        if ((await get(currentThreadAtom)).id === action.payload.threadId) {
-          await set(currentThreadAtom, {
-            ...(await get(currentThreadAtom)),
+        const currentThread = await get(currentThreadAtom);
+
+        if (currentThread.id === action.payload.threadId) {
+          const updatedThread = {
+            ...currentThread,
             messages: action.payload.messages,
-          });
+          };
+          await set(currentThreadAtom, updatedThread);
+          return updatedThread;
         }
-        break;
+        return currentThread;
     }
   },
 );
