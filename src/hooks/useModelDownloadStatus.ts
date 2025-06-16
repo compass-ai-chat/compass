@@ -23,7 +23,7 @@ export const useModelDownloadStatus = () => {
         setLastChecked(Date.now());
 
         const modelsFound = await fetchAvailableModelsV2([ollamaProvider]);
-        setModels([...models, ...modelsFound]);
+        setModels([...modelsFound]);
         
         if (modelsFound && Array.isArray(modelsFound)) {
           
