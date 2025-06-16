@@ -1,21 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import { downloadingModelsAtom, availableProvidersAtom, availableModelsAtom,  } from '@/src/hooks/atoms';
 import { getProxyUrl } from '@/src/utils/proxy';
 import { toastService } from '@/src/services/toastService';
 import { fetchAvailableModelsV2 } from './useModels';
 
-interface OllamaModel {
-  name: string;
-  digest: string;
-  size: number;
-  modified_at?: string;
-}
 
 export const useModelDownloadStatus = () => {
   const [downloadingModels, setDownloadingModels] = useAtom(downloadingModelsAtom);
   const [providers] = useAtom(availableProvidersAtom);
   const [models, setModels] = useAtom(availableModelsAtom);
+  const [lastChecked, setLastChecked] = useState(Date.now());
   useEffect(() => {
     if (downloadingModels.length === 0) return;
 
@@ -23,6 +18,9 @@ export const useModelDownloadStatus = () => {
       try {
         const ollamaProvider = providers.find(p => p.name === 'Ollama');
         if (!ollamaProvider) return;
+
+        if (Date.now() - lastChecked < 10000) return;
+        setLastChecked(Date.now());
 
         const modelsFound = await fetchAvailableModelsV2([ollamaProvider]);
         setModels([...models, ...modelsFound]);
