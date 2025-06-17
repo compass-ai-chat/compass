@@ -39,7 +39,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const renderLineNumbers = () => {
     const lines = text.split('\n');
     return (
-      <View className="mt-1 pr-2 items-end opacity-50 h-full" style={[styles.lineNumbers, isDark ? styles.editorDark : styles.editorLight]}>
+      <View className="pr-2 items-end opacity-50" style={[styles.lineNumbers, isDark ? styles.editorDark : styles.editorLight]}>
         {lines.map((_, i) => (
           <Text 
             key={i} 
@@ -54,32 +54,31 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   return (
-    <View className='flex-row'>
+    <View className={`flex-row ${className}`} style={[styles.mainContainer, style]}>
       {renderLineNumbers()}
-      <View style={[styles.container, style]} className={`flex-1 ${className}`}>
-        <TextInput
-          value={text}
-          onChangeText={handleChangeText}
-          multiline
-          editable={!readOnly}
-          style={[
-            styles.editor,
-            isDark ? styles.editorDark : styles.editorLight,
-            textStyle,
-          ]}
-          autoCapitalize="none"
-          autoCorrect={false}
-          spellCheck={false}
-          textAlignVertical="top"
-          className={`outline-none h-full ${inputClassName}`}
-        />
-      </View>
+      <TextInput
+        value={text}
+        onChangeText={handleChangeText}
+        multiline
+        editable={!readOnly}
+        style={[
+          styles.editor,
+          isDark ? styles.editorDark : styles.editorLight,
+          textStyle,
+        ]}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        textAlignVertical="top"
+        className={`outline-none flex-1 ${inputClassName}`}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
+    minHeight: 100,
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -87,16 +86,16 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
     fontFamily: 'monospace',
-    minHeight: 100,
-    lineHeight: 21, // Add explicit line height
+    flex: 1,
+    lineHeight: 21,
   },
   lineNumbers: {
     padding: 12,
     paddingRight: 8,
   },
   lineNumber: {
-    lineHeight: 21, // Match the editor's line height
-    height: 21, // Ensure fixed height
+    lineHeight: 21,
+    height: 21,
   },
   editorLight: {
     backgroundColor: '#f5f5f5',

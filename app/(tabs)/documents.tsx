@@ -70,8 +70,6 @@ export default function DocumentsRoute() {
     const parsedDoc = await PDFService.parsePDF(newDoc);
     newDoc.pages = parsedDoc.pages;
     newDoc.chunks = parsedDoc.chunks;
-    console.log("newDoc", newDoc);
-    console.log("parsedDoc", parsedDoc);
     setUserDocuments([...userDocuments, newDoc]);
 
     toastService.success({
