@@ -12,9 +12,9 @@ import { SimpleSchema, simpleSchemaToZod, zodSchemaToJsonSchema } from '../utils
 import { useEffect, useRef } from 'react';
 import { CalculatorToolService } from '../tools/calculator.tool';
 import { WeatherToolService } from '../tools/weather.tool';
-import { UnitConverterToolService } from '../tools/unitconverter.tool';
 import { LengthConverterToolService } from '../tools/lengthconverter.tool';
 import { WeightConverterToolService } from '../tools/weightconverter.tool';
+import { DocumentSearchTool } from '../tools/documentSearch.tool';
 
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
@@ -48,7 +48,8 @@ export function useTools() {
       Calculator: new CalculatorToolService(),
       Weather: new WeatherToolService(),
       LengthConverter: new LengthConverterToolService(),
-      WeightConverter: new WeightConverterToolService()
+      WeightConverter: new WeightConverterToolService(),
+      DocumentSearch: new DocumentSearchTool()
     };
   
     // Register handlers in the registry

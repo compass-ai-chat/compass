@@ -111,6 +111,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
           <Text className="text-text font-medium">{doc.name}</Text>
           <View className="flex-row items-center">
             <Text className="text-secondary text-sm">{doc.pages} {t('documents.pages')}</Text>
+            <Text className="text-secondary text-sm">{doc.id}</Text>
             {dependentCharactersCount > 0 && (
               <View className="flex-row items-center ml-2">
                 <Text className="text-secondary text-sm">•</Text>
