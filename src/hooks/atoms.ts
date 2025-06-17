@@ -583,11 +583,6 @@ export const userToolsAtom = atomWithAsyncStorage<Tool[]>(
   [],
 );
 
-export const userNotesAtom = atomWithAsyncStorage<Note[]>(
-  "userNotes",
-  [],
-);
-
 export const toolBlueprintsAtom = atom<ToolBlueprint[]>([]);
 
 

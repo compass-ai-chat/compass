@@ -1,9 +1,9 @@
-//import * as nodemailer from 'nodemailer';
-import { z } from 'zod';
 import { ToolHandler } from './tool.interface';
-import { userNotesAtom } from '@/src/hooks/atoms';
+import { documentsAtom } from '@/src/hooks/atoms';
 import { getDefaultStore } from 'jotai';
 import { SimpleSchema } from '../utils/zodHelpers';
+import { Document } from '../types/core';
+import { v4 as uuidv4 } from 'uuid';
 
 export class NoteToolService implements ToolHandler {
   async execute(params: any, config: any): Promise<any> {
@@ -11,27 +11,29 @@ export class NoteToolService implements ToolHandler {
     const defaultStore = getDefaultStore();
 
     try {
-
-        const note = {
-            title: params.title,
+        const newNote: Document = {
+            id: uuidv4(),
+            name: params.title,
+            type: "note",
             content: params.content,
             createdAt: new Date()
-        }
+        };
 
-        defaultStore.set(userNotesAtom, [...(await defaultStore.get(userNotesAtom)), note]);
+        const currentDocs = await defaultStore.get(documentsAtom);
+        await defaultStore.set(documentsAtom, [...currentDocs, newNote]);
 
-        console.log('Note created successfully', note);
-      return {
-        success: true,
-        message: 'Note created successfully'
-      };
+        console.log('Note created successfully', newNote);
+        return {
+            success: true,
+            message: 'Note created successfully'
+        };
 
     } catch (error: any) {
-      console.error('Error sending email:', error);
-      return {
-        success: false,
-        error: error.message
-      };
+        console.error('Error creating note:', error);
+        return {
+            success: false,
+            error: error.message
+        };
     }
   }
 

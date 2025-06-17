@@ -79,19 +79,27 @@ export interface Provider {
 export interface Document {
   id: string;
   name: string;
-  path: string;
-  pages: number;
-  type: "pdf";
+  path?: string;
+  pages?: number;
+  type: "pdf" | "note" | "text";
+  content?: string;
   chunks?: string[];
   embeddings?: number[][];
+  createdAt: Date;
+  metadata?: {
+    mimeType?: string;
+    size?: number;
+    [key: string]: any;
+  };
 }
 
 export interface DocumentPreview {
   id: string;
   name: string;
-  path: string;
-  pages: number;
-  type: "pdf";
+  path?: string;
+  pages?: number;
+  type: "pdf" | "note" | "text";
+  createdAt: Date;
 }
 
 export interface ResourceMetadata {

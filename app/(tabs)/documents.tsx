@@ -3,7 +3,7 @@ import { Platform, View, Text, ScrollView } from 'react-native';
 import { DocumentManager } from '@/src/components/documents/DocumentManager';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAtom, useAtomValue } from 'jotai';
-import { documentsAtom, charactersAtom, currentIndexAtom, defaultThreadAtom, threadActionsAtom, userDocumentsAtom, userNotesAtom } from '@/src/hooks/atoms';
+import { documentsAtom, charactersAtom, currentIndexAtom, defaultThreadAtom, threadActionsAtom, userDocumentsAtom } from '@/src/hooks/atoms';
 import { Document } from '@/src/types/core';
 import { toastService } from '@/src/services/toastService';
 import { router } from 'expo-router';
@@ -19,7 +19,6 @@ export default function DocumentsRoute() {
   const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);
   const [, dispatchThread] = useAtom(threadActionsAtom);
   const [userDocuments, setUserDocuments] = useAtom(userDocumentsAtom);
-  const [userNotes, setUserNotes] = useAtom(userNotesAtom);
   const defaultThread = useAtomValue(defaultThreadAtom);
 
   const onDocumentDelete = async (document: Document) => {
@@ -58,6 +57,7 @@ export default function DocumentsRoute() {
 
     const newDoc: Document = {
       id: Date.now().toString(),
+      createdAt: new Date(),
       name: file.name,
       path: finalPath,
       type: 'pdf',
@@ -142,29 +142,6 @@ export default function DocumentsRoute() {
           onDocumentUpload={onDocumentUpload} 
           onStartDocumentChat={onStartDocumentChat}
         />
-        <View className="flex-1 mt-8 border-t border-border pt-4">
-          <Text className="text-xl font-semibold mb-4 text-primary">Notes</Text>
-          <ScrollView className="space-y-2">
-            {userNotes.map(note => (
-              <View
-                key={note.id}
-                className="bg-card p-4 rounded-lg space-y-2 border border-border shadow-sm"
-              >
-                <View className="flex-row justify-between">
-                  <Text className="text-lg font-semibold text-foreground tracking-tight">
-                    {note.title}
-                  </Text>
-                  <Text className="text-sm text-muted-foreground leading-relaxed">
-                    {format(note.createdAt, 'dd/MM/yyyy HH:mm')}
-                  </Text>
-                </View>
-                <Text className="text-sm text-muted-foreground leading-relaxed">
-                  {note.content}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
       </View>
     </SafeAreaView>
   );

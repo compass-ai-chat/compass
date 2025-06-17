@@ -1,8 +1,4 @@
-//import * as nodemailer from 'nodemailer';
-import { z } from 'zod';
 import { ToolHandler } from './tool.interface';
-import { userNotesAtom } from '@/src/hooks/atoms';
-import { getDefaultStore } from 'jotai';
 import { SearxngSearchService } from '@/src/services/search/SearxngSearchService';
 import { SimpleSchema } from '../utils/zodHelpers';
 
