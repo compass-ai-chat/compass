@@ -41,6 +41,9 @@ export default function DocumentsRoute() {
       setCharacters(updatedCharacters);
     }
 
+    // finally, delete the document from the userDocuments array
+    setUserDocuments(userDocuments.filter(doc => doc.id !== document.id));
+
   };
 
   const onDocumentUpload = async (file: DocumentPickerAsset) => {
