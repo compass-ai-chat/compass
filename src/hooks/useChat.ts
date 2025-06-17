@@ -77,7 +77,7 @@ export function useChat() {
   
   const pipeline = new MessageTransformPipeline()
     .addTransform(templateVariableTransform)
-    .addTransform(documentContextTransform)  
+    //.addTransform(documentContextTransform)  
     .addTransform(urlContentTransform)
     .addTransform(relevantPassagesTransform)
     .addTransform(webSearchTransform)

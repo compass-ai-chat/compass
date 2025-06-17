@@ -142,7 +142,7 @@ export default function CharactersScreen() {
       {editingCharacter && (
         <View className="flex-1 m-4 relative">
           <EditCharacter
-            availableTools={userTools}
+            availableTools={userTools.filter(tool=>tool.id !== "DocumentSearch")}
             availableDocuments={availableDocuments}
             availableModels={availableModels}
             existingCharacter={editingCharacter}
