@@ -7,24 +7,21 @@ import { useColorScheme } from 'nativewind';
 import { useAtomValue } from 'jotai';
 import { fontPreferencesAtom } from '@/src/hooks/atoms';
 import WebView from 'react-native-webview';
+import { Document } from '@/src/types/core';
 
 interface DocumentViewerProps {
-  content: string[];
-  pdfUri: string;
-  title: string;
+  document: Document;
   onClose: () => void;
 }
 
 export const DocumentViewer: React.FC<DocumentViewerProps> = ({
-  content,
-  pdfUri,
-  title,
+  document,
   onClose,
 }) => {
   const { colorScheme } = useColorScheme();
   const preferences = useAtomValue(fontPreferencesAtom);
   const isDark = colorScheme === 'dark';
-  const [showPdf, setShowPdf] = useState(true);
+  const [showRaw, setShowRaw] = useState(false);
 
   const markdownStyles = {
     body: {
@@ -49,7 +46,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     },
   };
 
-  const renderPDFViewer = () => {
+  const renderPDFViewer = (pdfUri: string) => {
     if (Platform.OS === 'web') {
       return (
         <iframe
@@ -59,7 +56,6 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         />
       );
     } else {
-      // For native platforms, use WebView to display PDF
       return (
         <WebView
           source={{ uri: pdfUri }}
@@ -70,43 +66,66 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }
   };
 
+  const renderContent = () => {
+    switch (document.type) {
+      case 'pdf':
+        if (!document.path) return <Text className="text-text">PDF path not found</Text>;
+        return renderPDFViewer(document.path);
+      
+      case 'text':
+      case 'note':
+        if (!document.content && !document.chunks?.length) {
+          return <Text className="text-text">No content available</Text>;
+        }
+        
+        return (
+          <ScrollView className="flex-1 bg-surface rounded-lg p-4">
+            {showRaw ? (
+              <Text className="text-text font-mono">{document.content || document.chunks?.join('\n')}</Text>
+            ) : (
+              <Markdown style={markdownStyles}>
+                {document.content || document.chunks?.join('\n') || ''}
+              </Markdown>
+            )}
+          </ScrollView>
+        );
+      
+      default:
+        return <Text className="text-text">Unsupported document type</Text>;
+    }
+  };
+
+  const canToggleView = document.type === 'text' || document.type === 'note';
+
   return (
     <View className="flex-1 bg-surface rounded-lg p-4 shadow-lg">
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-xl font-semibold text-text">{title}</Text>
+        <Text className="text-xl font-semibold text-text">{document.name}</Text>
         <View className="flex-row gap-2">
-        <View className="flex-row bg-background rounded-full">
-          <TouchableOpacity 
-            onPress={() => setShowPdf(true)}
-            className={`px-3 py-1 rounded-full hover:opacity-70 ${showPdf ? 'bg-primary' : 'bg-transparent'}`}
-          >
-            <Ionicons 
-              name={"document"} 
-              size={24} 
-              className={`${showPdf ? 'text-white' : 'text-text'}`} 
-            />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setShowPdf(false)}
-            className={`px-3 py-1 rounded-full hover:opacity-70 ${!showPdf ? 'bg-primary' : 'bg-transparent'}`}
-          >
-            <Ionicons 
-              name={"document-text"} 
-              size={24} 
-              className={`${!showPdf ? 'text-white' : 'text-text'}`} 
-            />
-          </TouchableOpacity>
-        </View>
-          {/* <TouchableOpacity 
-            onPress={() => setShowPdf(!showPdf)}
-            className="p-2 hover:bg-surface rounded-full"
-          >
-            <Ionicons 
-              name={showPdf ? "document-text" : "document"} 
-              size={24} 
-              className="text-text" 
-            />
-          </TouchableOpacity> */}
+          {canToggleView && (
+            <View className="flex-row bg-background rounded-full">
+              <TouchableOpacity 
+                onPress={() => setShowRaw(false)}
+                className={`px-3 py-1 rounded-full hover:opacity-70 ${!showRaw ? 'bg-primary' : 'bg-transparent'}`}
+              >
+                <Ionicons 
+                  name="document-text" 
+                  size={24} 
+                  className={`${!showRaw ? 'text-white' : 'text-text'}`} 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setShowRaw(true)}
+                className={`px-3 py-1 rounded-full hover:opacity-70 ${showRaw ? 'bg-primary' : 'bg-transparent'}`}
+              >
+                <Ionicons 
+                  name="code-slash" 
+                  size={24} 
+                  className={`${showRaw ? 'text-white' : 'text-text'}`} 
+                />
+              </TouchableOpacity>
+            </View>
+          )}
           <TouchableOpacity 
             onPress={onClose}
             className="p-2 hover:bg-surface rounded-full"
@@ -116,19 +135,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         </View>
       </View>
       
-      {showPdf ? (
-        renderPDFViewer()
-      ) : (
-        <ScrollView className="flex-1 bg-surface rounded-lg p-4">
-          {content.map((chunk, index) => (
-            <View key={index} className="mb-4">
-              <Markdown style={markdownStyles}>
-                {chunk}
-              </Markdown>
-            </View>
-          ))}
-        </ScrollView>
-      )}
+      {renderContent()}
     </View>
   );
 }; 

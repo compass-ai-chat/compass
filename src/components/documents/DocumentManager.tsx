@@ -194,9 +194,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
       {selectedDoc && (
         <View className="w-1/2 pl-4">
           <DocumentViewer
-            content={selectedDoc.chunks || []}
-            pdfUri={selectedDoc.path}
-            title={selectedDoc.name}
+            document={selectedDoc}
             onClose={() => setSelectedDoc(null)}
           />
         </View>
