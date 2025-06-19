@@ -6,7 +6,7 @@ import { Provider, Model } from "@/src/types/core";
 import { fetchAvailableModelsV2 } from "@/src/hooks/useModels";
 import { toastService } from "@/src/services/toastService";
 import { useLocalization } from "@/src/hooks/useLocalization";
-import { v4 as uuidv4 } from 'uuid';
+import * as Crypto from 'expo-crypto';
 
 export function useProviders() {
   const { t } = useLocalization();
@@ -20,7 +20,7 @@ export function useProviders() {
     // Add a unique ID if not provided
     const providerWithId = {
       ...provider,
-      id: provider.id || uuidv4(),
+      id: provider.id || Crypto.randomUUID(),
     };
 
     // If the provider already exists, update it

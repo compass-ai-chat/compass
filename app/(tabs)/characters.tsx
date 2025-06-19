@@ -17,7 +17,7 @@ import CharactersList from "@/src/components/character/CharactersList";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity } from "react-native";
 import { availableModelsAtom, userDocumentsAtom, userToolsAtom } from "@/src/hooks/atoms";
-import { v4 as uuidv4 } from 'uuid';
+import * as Crypto from 'expo-crypto';
 
 export default function CharactersScreen() {
   const router = useRouter();
@@ -64,7 +64,7 @@ export default function CharactersScreen() {
     if (character.id === "") {
       updatedCharacters = [...characters, {
         ...character, 
-        id: uuidv4()
+        id: Crypto.randomUUID()
       }];
     }
     // if character exists, update the characters array

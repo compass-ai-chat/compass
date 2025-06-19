@@ -3,7 +3,7 @@ import { documentsAtom } from '@/src/hooks/atoms';
 import { getDefaultStore } from 'jotai';
 import { SimpleSchema } from '../utils/zodHelpers';
 import { Document } from '../types/core';
-import { v4 as uuidv4 } from 'uuid';
+import * as Crypto from 'expo-crypto';
 
 export class NoteToolService implements ToolHandler {
   async execute(params: any, config: any): Promise<any> {
@@ -12,7 +12,7 @@ export class NoteToolService implements ToolHandler {
 
     try {
         const newNote: Document = {
-            id: uuidv4(),
+            id: Crypto.randomUUID(),
             name: params.title,
             type: "note",
             content: params.content,
