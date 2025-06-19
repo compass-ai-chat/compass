@@ -1,21 +1,22 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 import { useAtom } from 'jotai';
 import { useWindowDimensions } from 'react-native';
 import { previewCodeAtom } from '@/src/hooks/atoms';
 import { Modal } from '@/src/components/ui/Modal';
 import { CodePreview } from '@/src/components/chat/CodePreview';
 import { ThreadsSidebar } from '@/src/components/web/ThreadsSidebar';
+import { Platform } from '@/src/utils/platform';
 
 export const ChatLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [previewCode, setPreviewCode] = useAtom(previewCodeAtom);
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === 'web' && width >= 768;
+  const isDesktop = Platform.isDesktop && width >= 768;
 
   return (
     <View className="flex-row flex-1">
       <View className="flex-1">
-        <ThreadsSidebar />
+        {isDesktop && <ThreadsSidebar />}
         {children}
       </View>
       
