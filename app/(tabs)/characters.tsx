@@ -6,81 +6,60 @@ import {
   currentIndexAtom,
   threadActionsAtom,
   threadsAtom,
-  saveCustomPrompts,
-  userCharactersAtom,
+  availableModelsAtom,
+  userDocumentsAtom,
+  userToolsAtom,
 } from "@/src/hooks/atoms";
 import { Character } from "@/src/types/core";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import EditCharacter from "@/src/components/character/EditCharacter";
 import CharactersList from "@/src/components/character/CharactersList";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity } from "react-native";
-import { availableModelsAtom, userDocumentsAtom, userToolsAtom } from "@/src/hooks/atoms";
-import * as Crypto from 'expo-crypto';
+import { useCharacters } from "@/src/hooks/useCharacters";
 
 export default function CharactersScreen() {
   const router = useRouter();
-  const [characters, setCharacters] = useAtom(userCharactersAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const threads = useAtomValue(threadsAtom);
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(
-    null,
-  );
+  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
   const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);
   const [availableModels] = useAtom(availableModelsAtom);
-  const dispatchCharacters = useSetAtom(saveCustomPrompts);
   const [availableDocuments] = useAtom(userDocumentsAtom);
   const defaultThread = useAtomValue(defaultThreadAtom);
   const [userTools] = useAtom(userToolsAtom);
-  const handleEdit = (character: Character) => {
-    if (Platform.OS == "web") {
+  const { characters, setCharacters, handleEdit, handleAdd, handleSave, handleDelete } = useCharacters();
+
+  const onEdit = (character: Character) => {
+    if (Platform.OS === "web") {
       if (editingCharacter?.id === character.id) {
         setEditingCharacter(null);
       } else {
-        setEditingCharacter(character);
+        const editedCharacter = handleEdit(character);
+        setEditingCharacter(editedCharacter);
       }
     } else {
-      router.push(`/edit-character?id=${character.id}`);
+      handleEdit(character);
     }
   };
 
-  const handleAdd = () => {
-    if (Platform.OS == "web") {
-      setEditingCharacter({
-        id: "",
-        name: "",
-        content: "",
-        icon: "person",
-      });
+  const onAdd = () => {
+    if (Platform.OS === "web") {
+      const newCharacter = handleAdd();
+      setEditingCharacter(newCharacter);
     } else {
-      router.push("/edit-character");
+      handleAdd();
     }
   };
 
-  const handleSave = async (character: Character) => {
-    // if character is new, add it to the characters array
-    let updatedCharacters: Character[] = [];
-    if (character.id === "") {
-      updatedCharacters = [...characters, {
-        ...character, 
-        id: Crypto.randomUUID()
-      }];
-    }
-    // if character exists, update the characters array
-    else {
-      updatedCharacters = characters.map((p) =>
-        p.id === character.id ? character : p,
-      );
-    }
-    await dispatchCharacters(updatedCharacters);
-
+  const onSave = async (character: Character) => {
+    await handleSave(character);
     setEditingCharacter(null);
   };
 
-  const handleDelete = async (character: Character) => {
-    const updatedCharacters = characters.filter((p) => p.id !== character.id);
-    await dispatchCharacters(updatedCharacters);
+  const onDelete = async (character: Character) => {
+    await handleDelete(character);
     setEditingCharacter(null);
   };
 
@@ -99,7 +78,7 @@ export default function CharactersScreen() {
 
       await dispatchThread({ type: "update", payload: latestThread });
       await dispatchThread({ type: "setCurrent", payload: latestThread });
-      if (Platform.OS == "web") {
+      if (Platform.OS === "web") {
         setCurrentIndex(0);
         router.replace("/");
       } else {
@@ -121,7 +100,7 @@ export default function CharactersScreen() {
     await dispatchThread({ type: "add", payload: newThread });
 
     setTimeout(() => {
-      if (Platform.OS == "web") {
+      if (Platform.OS === "web") {
         setCurrentIndex(0);
         router.replace("/");
       } else {
@@ -134,9 +113,9 @@ export default function CharactersScreen() {
     <View className="flex-1 bg-background flex-row">
       <CharactersList
         characters={characters}
-        onCharacterPress={handleEdit}
+        onCharacterPress={onEdit}
         onCharacterLongPress={startChat}
-        onAddCharacter={handleAdd}
+        onAddCharacter={onAdd}
         className="flex-1 p-4"
         setCharacters={setCharacters}
       />
@@ -148,8 +127,8 @@ export default function CharactersScreen() {
             availableDocuments={availableDocuments}
             availableModels={availableModels}
             existingCharacter={editingCharacter}
-            onSave={handleSave}
-            onDelete={handleDelete}
+            onSave={onSave}
+            onDelete={onDelete}
             className="flex-1 bg-surface rounded-xl shadow-lg"
           />
           <TouchableOpacity
