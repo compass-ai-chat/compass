@@ -23,13 +23,6 @@ import { ToolBlueprint, ToolHandler } from "../tools/tool.interface";
 import { ToolDefinition } from "../tools/registry";
 
 export const createDefaultThread = (name: string = "New thread"): Thread => {
-  // Get the first custom prompt if available, otherwise use the first predefined prompt
-  const defaultCharacter =
-    typeof window !== "undefined" && localStorage.getItem("customPrompts")
-      ? JSON.parse(localStorage.getItem("customPrompts") || "[]")[0]
-      : PREDEFINED_PROMPTS[0];
-
-  
 
   return {
     id: Date.now().toString(),
@@ -421,7 +414,7 @@ export const selectedImageModelAtom = atomWithAsyncStorage<Model | undefined>(
 const getDefaultProxyUrl = () => {
   if (typeof window !== "undefined") {
     // Check if we're running on the GitHub Pages deployment
-    if (window.location.hostname === "nordwestt.com") {
+    if (window?.location?.hostname === "nordwestt.com") {
       return "";
       //return "https://workers-playground-delicate-bread-86d5.thomas-180.workers.dev/";
     }
