@@ -2,12 +2,12 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import { I18n } from 'i18n-js';
-import { storage } from '@/src/utils/storage';
-
+import { getDefaultStore } from "jotai";
 // Import your translation files
 import en from '@/assets/translations/en.json';
 import it from '@/assets/translations/it.json';
 import da from '@/assets/translations/da.json';
+import { localeAtom } from './src/hooks/atoms';
 
 // Initialize i18next
 i18n
@@ -45,7 +45,7 @@ const i18nJs = new I18n({
 const setInitialLanguage = async () => {
   try {
     // Try to get stored language from storage first
-    const storedLang = await storage.getItem('locale');
+    const storedLang = await getDefaultStore().get(localeAtom);
     if (storedLang && ['en', 'it', 'da'].includes(storedLang)) {
       await i18n.changeLanguage(storedLang);
       i18nJs.locale = storedLang;
@@ -53,7 +53,7 @@ const setInitialLanguage = async () => {
     }
     
     // Fall back to device locale if no stored preference
-    const deviceLocale = Localization.getLocales()[0].languageCode;
+    const deviceLocale = Localization.getLocales()[0]?.languageCode || 'en';
     // Ensure deviceLocale is a supported language
     const supportedDeviceLocale = deviceLocale && ['en', 'it', 'da'].includes(deviceLocale) ? deviceLocale : 'en';
     await i18n.changeLanguage(supportedDeviceLocale);
@@ -72,7 +72,7 @@ setInitialLanguage();
 // Sync the language between i18next and i18n-js
 i18n.on('languageChanged', (lng) => {
   i18nJs.locale = lng;
-  storage.setItem('locale', lng);
+  getDefaultStore().set(localeAtom, lng);
 });
 
 // Add this function to change language programmatically

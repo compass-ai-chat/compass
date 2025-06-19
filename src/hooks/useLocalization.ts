@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { I18nManager } from 'react-native';
 import { localeAtom } from './atoms';
 import { useTranslation } from 'react-i18next';
 import i18n, { changeLanguage, i18nJs } from '../../i18n';
 import * as Localization from 'expo-localization';
-import { storage } from '@/src/utils/storage';
+import { getDefaultStore } from "jotai";
 
 /**
  * Hook for handling localization in the app
@@ -24,7 +23,7 @@ export const useLocalization = () => {
         }
 
         // Try to get stored language from storage
-        const storedLang = await storage.getItem('locale');
+        const storedLang = await getDefaultStore().get(localeAtom);
         if (storedLang && ['en', 'it', 'da'].includes(storedLang)) {
           setLocale(storedLang);
           return;
@@ -48,7 +47,7 @@ export const useLocalization = () => {
     if (newLocale) {
       await changeLanguage(newLocale);
       setLocale(newLocale);
-      await storage.setItem('locale', newLocale);
+      await getDefaultStore().set(localeAtom, newLocale);
     }
   };
 
