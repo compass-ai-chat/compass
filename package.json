@@ -34,7 +34,6 @@
     "@ai-sdk/xai": "^1.1.11",
     "@expo/vector-icons": "^14.0.2",
     "@mozilla/readability": "^0.5.0",
-    "@os-team/i18next-react-native-language-detector": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-community/netinfo": "11.4.1",

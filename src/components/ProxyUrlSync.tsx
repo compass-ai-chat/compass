@@ -10,6 +10,8 @@ export function ProxyUrlSync() {
 
     // check that it works
     async function checkProxyUrl() {
+      if(!proxyUrlAtomValue) return;
+      
         let found = false;
         try {
             await fetch(proxyUrlAtomValue);

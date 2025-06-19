@@ -4,8 +4,8 @@ import { I18nManager } from 'react-native';
 import { localeAtom } from './atoms';
 import { useTranslation } from 'react-i18next';
 import i18n, { changeLanguage, i18nJs } from '../../i18n';
-import LanguageDetector from '@os-team/i18next-react-native-language-detector';
-
+import * as Localization from 'expo-localization';
+import { storage } from '@/src/utils/storage';
 
 /**
  * Hook for handling localization in the app
@@ -16,23 +16,31 @@ export const useLocalization = () => {
   const { t: reactI18nextT } = useTranslation();
 
   useEffect(() => {
-    // Set the locale from atom state
-    if (locale) {
-      changeLanguage(locale);
-    }
-    else{
-      try{
-        const language = LanguageDetector.detect();
-        console.log('Language detected:', language);
-        if(language && typeof language === 'string'){
-          setLocale(language);
-          console.log('Locale set to:', language);
+    const initializeLocale = async () => {
+      try {
+        if (locale) {
+          await changeLanguage(locale);
+          return;
         }
+
+        // Try to get stored language from storage
+        const storedLang = await storage.getItem('locale');
+        if (storedLang && ['en', 'it', 'da'].includes(storedLang)) {
+          setLocale(storedLang);
+          return;
+        }
+
+        // Fall back to device locale if no stored preference
+        const deviceLocale = Localization.getLocales()[0].languageCode;
+        const supportedDeviceLocale = deviceLocale && ['en', 'it', 'da'].includes(deviceLocale) ? deviceLocale : 'en';
+        setLocale(supportedDeviceLocale);
+      } catch (error) {
+        console.error('Error initializing locale:', error);
+        setLocale('en');
       }
-      catch(error){
-        console.error('Error detecting language:', error);
-      }
-    }
+    };
+
+    initializeLocale();
   }, [locale]);
 
   // Function to change the locale
@@ -40,6 +48,7 @@ export const useLocalization = () => {
     if (newLocale) {
       await changeLanguage(newLocale);
       setLocale(newLocale);
+      await storage.setItem('locale', newLocale);
     }
   };
 
