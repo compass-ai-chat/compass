@@ -268,7 +268,7 @@ export function useChat() {
                          m.provider.id === currentThread.selectedModel?.provider.id)
         );
         
-        setModels(updatedModels);
+        setModels(updatedModels || []);
         
         toastService.danger({
           title: 'Model Not Available',

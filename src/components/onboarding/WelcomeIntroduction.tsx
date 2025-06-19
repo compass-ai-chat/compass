@@ -7,6 +7,7 @@ import { hasSeenOnboardingAtom } from '@/src/hooks/atoms';
 import { useProviders } from "@/src/hooks/useProviders";
 import { PREDEFINED_PROVIDERS } from "@/src/constants/providers";
 import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
 
 export function WelcomeIntroduction() {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ export function WelcomeIntroduction() {
     // get the polaris provider
     addUpdateProvider({
       ...PREDEFINED_PROVIDERS.compass,
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       apiKey: "user_api_key_here"
     });
   };

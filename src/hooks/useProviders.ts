@@ -6,6 +6,7 @@ import { Provider, Model } from "@/src/types/core";
 import { fetchAvailableModelsV2 } from "@/src/hooks/useModels";
 import { toastService } from "@/src/services/toastService";
 import { useLocalization } from "@/src/hooks/useLocalization";
+import { v4 as uuidv4 } from 'uuid';
 
 export function useProviders() {
   const { t } = useLocalization();
@@ -19,7 +20,7 @@ export function useProviders() {
     // Add a unique ID if not provided
     const providerWithId = {
       ...provider,
-      id: provider.id || crypto.randomUUID(),
+      id: provider.id || uuidv4(),
     };
 
     // If the provider already exists, update it
@@ -113,7 +114,7 @@ export function useProviders() {
     try {
       const allProviders = await getDefaultStore().get(availableProvidersAtom);
       const modelsFound = await fetchAvailableModelsV2(allProviders);
-      setModels(modelsFound);
+      setModels(modelsFound || []);
     } catch (error) {
       console.error("Error fetching models:", error);
       toastService.danger({

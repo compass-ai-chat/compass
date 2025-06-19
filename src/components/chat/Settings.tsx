@@ -170,7 +170,7 @@ export const Settings: React.FC<SettingsProps> = ({
         }
       }
     } catch (error) {
-      console.error("Error scanning for local Ollama:", error);
+      //console.error("Error scanning for local Ollama:", error);
       toastService.danger({
         title: "Local Ollama Not Found",
         description: "Could not connect to local Ollama instance at http://localhost:11434",

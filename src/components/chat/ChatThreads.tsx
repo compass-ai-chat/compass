@@ -190,18 +190,6 @@ const ChatThreads: React.FC = () => {
       </Tooltip>
       
       <View className="flex-row justify-center space-x-4 mb-2">
-        <Tooltip text={t('common.shortcut') + ': ' + 'Alt + O'}>
-          <TouchableOpacity 
-            onPress={toggleDark}
-            className="p-2 rounded-full bg-surface hover:bg-background"
-          >
-            <Ionicons 
-              name={isDarkMode ? 'sunny' : 'moon'} 
-              size={24}
-              className="!text-text"
-            />
-          </TouchableOpacity>
-        </Tooltip>
         <Tooltip text={t('chats.clear_all_tooltip')} tooltipClassName="w-20">
           <TouchableOpacity 
             onPress={clearAllThreads}
