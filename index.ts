@@ -15,6 +15,9 @@ if(Platform.OS !== 'web') {
     
     globalThis.fetch = expoFetch;
     globalThis.ReadableStream = ReadableStreamPolyfill;
+    globalThis.structuredClone = function(obj: any) {
+        return JSON.parse(JSON.stringify(obj));
+    };
 }
 
 // Your existing app entry point
