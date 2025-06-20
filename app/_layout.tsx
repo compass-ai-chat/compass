@@ -123,6 +123,10 @@ export default function RootLayout() {
             }
           }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="edit-character" options={{ 
+              presentation: 'card',
+              animation: 'slide_from_right'
+            }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </View>
