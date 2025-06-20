@@ -12,6 +12,7 @@ interface ModelPreferenceSelectorProps {
   selectedPreferences: AllowedModel[];
   onAddPreference: (model: AllowedModel) => void;
   onRemovePreference: (model: AllowedModel) => void;
+  className?: string;
 }
 
 export function ModelPreferenceSelector({
@@ -19,6 +20,7 @@ export function ModelPreferenceSelector({
   selectedPreferences,
   onAddPreference,
   onRemovePreference,
+  className,
 }: ModelPreferenceSelectorProps) {
   const { t } = useLocalization();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -52,7 +54,7 @@ export function ModelPreferenceSelector({
   };
 
   return (
-    <View className="mb-4">
+    <View className={`mb-4 ${className}`}>
       <View className="flex-row items-center mb-2">
         <FontAwesome6 name="brain" size={22} className="!text-primary mr-2" />
         <Text className="text-base font-medium text-text">

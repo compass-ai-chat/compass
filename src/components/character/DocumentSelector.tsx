@@ -8,6 +8,7 @@ interface DocumentSelectorProps {
   selectedDocIds: string[];
   onSelectDoc: (docId: string) => void;
   onRemoveDoc?: (docId: string) => void;
+  className?: string;
 }
 
 export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
@@ -15,6 +16,7 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
   selectedDocIds,
   onSelectDoc,
   onRemoveDoc,
+  className,
 }) => {
   const { t } = useLocalization();
   // Find any selected document IDs that no longer exist in the documents list
@@ -23,7 +25,7 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
   );
 
   return (
-    <View className="mt-6">
+    <View className={`mt-6 ${className}`}>
       <View className="flex-row items-center mb-2">
         <Ionicons name="document-text" size={24} className="!text-primary mr-2" />
         <Text className="text-base font-medium text-text">

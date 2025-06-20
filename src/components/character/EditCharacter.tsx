@@ -271,7 +271,7 @@ export default function EditCharacter({
                 </Text>
               </TouchableOpacity>
             </View>
-            <View className="flex-row flex-1">
+            <View className="flex-row flex-1 mb-2">
             <TextInput
               ref={contentInputRef}
               value={character?.content || ""}
@@ -326,6 +326,7 @@ export default function EditCharacter({
             selectedDocIds={character?.documentIds || []}
             onSelectDoc={handleDocumentToggle}
             onRemoveDoc={handleDocumentToggle}
+            className="mb-2"
           />
 
           <ToolSelector
