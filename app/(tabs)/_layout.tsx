@@ -80,7 +80,7 @@ export default function TabLayout() {
         tabBarPosition='bottom'
         navigationState={{ index: _index, routes }}
         renderScene={renderScene}
-        onIndexChange={setIndex}
+        onIndexChange={_setIndex}
         initialLayout={{ width: layout.width }}
         renderTabBar={renderTabBar}
         commonOptions={{
