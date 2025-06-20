@@ -133,8 +133,9 @@ return result;`;
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 p-4">
+    <View className="flex-1 bg-background">
+      <View className="flex-1 p-2">
+        
         <ToolsHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -186,6 +187,6 @@ return result;`;
         isVisible={showBlueprintManager}
         onClose={() => setShowBlueprintManager(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 } 
