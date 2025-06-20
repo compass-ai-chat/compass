@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TabBarIcon } from '@/src/components/navigation/TabBarIcon';
 import { Platform, useWindowDimensions, View } from 'react-native';
 import { useColorScheme, vars } from 'nativewind';
@@ -38,6 +38,7 @@ export default function TabLayout() {
   const isDesktop = Platform.OS === 'web' && window.innerWidth >= 768;
   const layout = useWindowDimensions();
   const [index, setIndex] = useAtom(currentIndexAtom);
+  const [_index, _setIndex] = useState(0);
 
   const { colorScheme } = useColorScheme();
   const { themePreset } = useThemePreset();
@@ -77,7 +78,7 @@ export default function TabLayout() {
     <SafeAreaView className="flex-1">
       <TabView
         tabBarPosition='bottom'
-        navigationState={{ index, routes }}
+        navigationState={{ index: _index, routes }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={{ width: layout.width }}
