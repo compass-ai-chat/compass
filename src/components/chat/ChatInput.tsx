@@ -1,5 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { View, TextInput, Pressable, Text, Platform } from 'react-native';
+import { View, TextInput, Pressable, Text, Platform, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { charactersAtom, editingMessageIndexAtom, fontPreferencesAtom } from '@/src/hooks/atoms';
 import { useAtom, useAtomValue } from 'jotai';
@@ -96,8 +96,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
   const handleSend = async () => {
     if(!message.trim() || isGenerating) return;
 
-
-
     const result = scanForSensitiveInfo(message.trim());
 
     if(result.hasSensitiveInfo){
@@ -115,16 +113,22 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
     // Clear the message and reset input height
     handleChangeText('');
     
+    // Dismiss keyboard on mobile platforms
+    if (Platform.OS !== 'web') {
+      Keyboard.dismiss();
+    }
+    
     // Force blur and then focus to reset cursor position
     if (inputRef.current) {
       inputRef.current?.blur();
       
       // Small delay to ensure state updates have processed
       setTimeout(() => {
-        inputRef.current?.focus();
-        
-        // For web, we can try to directly manipulate the DOM element
-        if (Platform.OS === 'web' && inputRef.current) {
+        // Only refocus on web platform
+        if (Platform.OS === 'web') {
+          inputRef.current?.focus();
+          
+          // For web, we can try to directly manipulate the DOM element
           const inputElement = inputRef.current as any;
           if (inputElement._inputElement) {
             inputElement._inputElement.selectionStart = 0;
