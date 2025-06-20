@@ -1,15 +1,9 @@
-import { ChatProvider } from '@/src/types/chat';
 import { Character, Provider } from '@/src/types/core';
 import { ChatMessage, Model } from '@/src/types/core';
 import LogService from '@/utils/LogService';
-import { CoreMessage, CoreUserMessage, createDataStream, embedMany, StreamData, streamText, tool, ToolSet } from 'ai';
+import { CoreMessage, CoreUserMessage, createDataStream, embedMany, generateText, StreamData, streamText, tool, ToolSet } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import { fetch as expoFetch } from 'expo/fetch';
-import { Platform as PlatformCust } from '@/src/utils/platform';
-import { streamOpenAIResponse } from '@/src/services/chat/streamUtils';
-import { z } from 'zod';
-import { getProxyUrl } from '@/src/utils/proxy';
-import { Cache } from '@/src/utils/cache';
+import { Platform } from '@/src/utils/platform';
 import { createOllama } from 'ollama-ai-provider-v2';
 import { createGroq } from '@ai-sdk/groq';
 import { createXai } from '@ai-sdk/xai';
@@ -104,7 +98,8 @@ export function useVercelAIProvider() {
     try {
         const provider = createProvider(model.provider, model.id);
 
-        const {textStream} = streamText({
+        if(!Platform.isMobile){
+          const {textStream} = streamText({
             model: provider,
             messages: newMessages as CoreUserMessage[],
             tools: toolSchemas,
@@ -118,9 +113,27 @@ export function useVercelAIProvider() {
                 //console.log('chunk', chunk);
               }
             }
-        });
+          });
 
-        return textStream;
+          return textStream;
+        }
+
+
+        const {text, steps} = await generateText({
+          model: provider,
+          messages: newMessages as CoreMessage[],
+          tools: toolSchemas,
+            maxSteps: 3,
+            toolChoice: 'auto'
+        });
+  
+        return new ReadableStream({
+          async start(controller) {
+            controller.enqueue(text);
+            controller.close();
+          }
+        });
+        
     } catch (error: any) {
       LogService.log(error, { component: 'OpenAIProvider', function: 'sendMessage' }, 'error');
       throw error;
