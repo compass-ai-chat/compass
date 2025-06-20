@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, FlatList, Platform } from 'react-native';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
-import { MessageList } from './MessageList';
+import { MessageList, MessageListRef } from './MessageList';
 import { ChatMessage } from '@/src/types/core';
 import { useChat } from '@/src/hooks/useChat';
 
@@ -21,26 +21,22 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   onInterrupt,
   onMessagePress
 }) => {
-  const { currentThread} = useChat();
-  const flatListRef = useRef<FlatList<any>>(null);
+  const { currentThread } = useChat();
+  const messageListRef = useRef<MessageListRef>(null);
   const chatInputRef = useRef<ChatInputRef>(null);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const previousThreadId = useRef(currentThread.id);
 
-
-
-    useEffect(()=>{
-        chatInputRef.current?.focus();
-    }, [currentThread.id])
+  useEffect(() => {
+    chatInputRef.current?.focus();
+  }, [currentThread.id])
 
   // All scroll-related logic here...
   const scrollToEnd = useCallback(() => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ offset: 99999999, animated: true });
-      setUserHasScrolled(false);
-      setShowScrollButton(false);
-    }
+    messageListRef.current?.scrollToEnd();
+    setUserHasScrolled(false);
+    setShowScrollButton(false);
   }, []);
 
   const debouncedScrollToEnd = useCallback(
@@ -66,12 +62,13 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   return (
     <View className={`mx-auto flex-1 ${Platform.OS == 'web' ? 'w-[80%]' : 'w-full'}`}>
       <MessageList
+        ref={messageListRef}
         messages={messages}
         onMessagePress={onMessagePress}
         onScroll={handleScroll}
         onScrollBeginDrag={() => setUserHasScrolled(true)}
         onContentSizeChange={() => {
-          if (messages.length > 0) {
+          if (messages.length > 0 && !userHasScrolled) {
             debouncedScrollToEnd();
           }
         }}

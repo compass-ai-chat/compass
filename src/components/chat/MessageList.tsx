@@ -1,10 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { FlatList } from 'react-native';
 import { useAtom } from 'jotai';
 import { previewCodeAtom } from '@/src/hooks/atoms';
 import { parseCodeBlocks } from '@/src/utils/codeParser';
 import { Message } from './Message';
 import { ChatMessage } from '@/src/types/core';
+
+export interface MessageListRef {
+  scrollToEnd: () => void;
+}
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -14,15 +18,21 @@ interface MessageListProps {
   onContentSizeChange: () => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({
+export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
   messages,
   onMessagePress,
   onScroll,
   onScrollBeginDrag,
   onContentSizeChange
-}) => {
+}, ref) => {
   const flatListRef = useRef<FlatList<any>>(null);
   const [previewCode, setPreviewCode] = useAtom(previewCodeAtom);
+
+  useImperativeHandle(ref, () => ({
+    scrollToEnd: () => {
+      flatListRef.current?.scrollToOffset({ offset: 99999999, animated: true });
+    }
+  }));
 
   const renderItem = ({ item: message, index }: { item: any; index: number }) => {
     const parsedCode = !message.isUser ? parseCodeBlocks(message.content) : null;
@@ -57,4 +67,4 @@ export const MessageList: React.FC<MessageListProps> = ({
       onScrollBeginDrag={onScrollBeginDrag}
     />
   );
-}; 
+}); 
