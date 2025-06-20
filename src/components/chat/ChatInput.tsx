@@ -63,7 +63,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
     // get number of lines in text
     const lines = text.split('\n').length;
     if(lines == 1) setInputHeight(lineHeight*initialInputRows);
-    else setInputHeight(lineHeight * Math.min(Math.max(lines, initialInputRows), 5));
+    else setInputHeight(lineHeight * Math.min(Math.max(lines, initialInputRows), 6));
 
     const lastAtSymbol = text.lastIndexOf('@');
     

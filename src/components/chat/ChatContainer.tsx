@@ -85,7 +85,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         isGenerating={isGenerating}
         onInterrupt={onInterrupt}
         className={`${Platform.OS == 'web' ? 'mb-8 rounded-xl' : ''}`}
-        initialInputRows={3}
+        initialInputRows={Platform.OS == 'web' ? 3 : 1}
       />
     </View>
   );
