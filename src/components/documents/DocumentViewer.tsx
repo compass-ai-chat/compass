@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 import { Text } from 'react-native';
@@ -22,6 +22,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const preferences = useAtomValue(fontPreferencesAtom);
   const isDark = colorScheme === 'dark';
   const [showRaw, setShowRaw] = useState(false);
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   const markdownStyles = {
     body: {
@@ -98,10 +100,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const canToggleView = document.type === 'text' || document.type === 'note';
 
   return (
-    <View className="flex-1 bg-surface rounded-lg p-4 shadow-lg">
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-xl font-semibold text-text">{document.name}</Text>
-        <View className="flex-row gap-2">
+    <View className="flex-1 bg-surface rounded-lg shadow-lg">
+      <View className={`flex-row justify-between items-center ${isMobile ? 'p-4 border-b border-border' : 'p-4'}`}>
+        <View className="flex-1">
+          <Text className="text-xl font-semibold text-text" numberOfLines={1}>{document.name}</Text>
+        </View>
+        <View className="flex-row gap-2 items-center">
           {canToggleView && (
             <View className="flex-row bg-background rounded-full">
               <TouchableOpacity 
@@ -111,7 +115,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 <Ionicons 
                   name="document-text" 
                   size={24} 
-                  className={`${!showRaw ? 'text-white' : 'text-text'}`} 
+                  className={`${!showRaw ? '!text-white' : '!text-text'}`} 
                 />
               </TouchableOpacity>
               <TouchableOpacity 
@@ -121,21 +125,23 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 <Ionicons 
                   name="code-slash" 
                   size={24} 
-                  className={`${showRaw ? 'text-white' : 'text-text'}`} 
+                  className={`${showRaw ? '!text-white' : '!text-text'}`} 
                 />
               </TouchableOpacity>
             </View>
           )}
           <TouchableOpacity 
             onPress={onClose}
-            className="p-2 hover:bg-surface rounded-full"
+            className="p-2 hover:bg-surface/80 rounded-full"
           >
-            <Ionicons name="close" size={24} className="text-text" />
+            <Ionicons name="close" size={24} className="!text-text" />
           </TouchableOpacity>
         </View>
       </View>
       
-      {renderContent()}
+      <View className={`flex-1 ${isMobile ? 'p-4' : ''}`}>
+        {renderContent()}
+      </View>
     </View>
   );
 }; 

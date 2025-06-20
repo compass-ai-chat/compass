@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DocumentUploader } from "./DocumentUploader";
 import { Document } from "@/src/types/core";
@@ -11,6 +11,7 @@ import { DocumentPickerAsset } from "expo-document-picker";
 import { useLocalization } from "@/src/hooks/useLocalization";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
+import { Modal } from "@/src/components/ui/Modal";
 
 interface DocumentManagerProps {
   documents: Document[];
@@ -36,6 +37,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const { t } = useLocalization();
   const { getResponsiveSize } = useResponsiveStyles();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768; // Common breakpoint for mobile devices
 
   const handleDocumentUpload = async (doc: DocumentPickerAsset) => {
     try {
@@ -152,8 +155,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
   };
 
   return (
-    <View className="flex-1 flex-row">
-      <View className={`${selectedDoc ? "w-1/2" : "flex-1"}`}>
+    <View className="flex-1">
+      <View className="flex-1">
         <SectionHeader
           title={t('documents.documents')}
           icon="document-text"
@@ -193,7 +196,27 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
         />
       </View>
 
-      {selectedDoc && (
+      {/* Mobile Modal View */}
+      {isMobile && (
+        <Modal
+          isVisible={!!selectedDoc}
+          onClose={() => setSelectedDoc(null)}
+          maxHeight="100%"
+          className="m-0 flex-1"
+        >
+          {selectedDoc && (
+            <View className="flex-1 bg-background">
+              <DocumentViewer
+                document={selectedDoc}
+                onClose={() => setSelectedDoc(null)}
+              />
+            </View>
+          )}
+        </Modal>
+      )}
+
+      {/* Desktop Split View */}
+      {!isMobile && selectedDoc && (
         <View className="w-1/2 pl-4">
           <DocumentViewer
             document={selectedDoc}
