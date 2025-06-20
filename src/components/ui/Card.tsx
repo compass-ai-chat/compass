@@ -33,7 +33,7 @@ export function Card({
       onPress={onPress}
       className={`bg-surface rounded-lg shadow-sm border border-border overflow-hidden mb-4 ${className}`}
     >
-      <View>
+      <View className="flex-1">
         <View className="flex-row items-center mb-3 bg-primary p-2">
           {icon && (
             <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center mr-3">
@@ -54,17 +54,19 @@ export function Card({
           )}
         </View>
         
-        <View className="p-4">
+        <View className="p-4 flex-1">
           {children}
           
           {description && !children && (
-            <Text className="text-text text-sm mb-4" numberOfLines={2}>
-              {description}
-            </Text>
+            <View className="flex-1">
+              <Text className="text-text text-sm overflow-hidden text-ellipsis">
+                {description}
+              </Text>
+            </View>
           )}
 
           {actions && (
-            <View className="flex-row justify-end space-x-2">
+            <View className="flex-row justify-end space-x-2 mt-4">
               {actions}
             </View>
           )}
