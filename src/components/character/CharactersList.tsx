@@ -11,8 +11,7 @@ import { CharacterAvatar } from "@/src/components/character/CharacterAvatar";
 import { useLocalization } from "@/src/hooks/useLocalization";
 import { PREDEFINED_PROMPTS_BY_LOCALE } from "@/constants/characters";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
-import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
-import { TouchableOpacity as GestureTouchableOpacity } from "react-native-gesture-handler";
+import { Card } from "@/src/components/ui/Card";
 
 interface CharactersListProps {
   characters: Character[];
@@ -23,6 +22,7 @@ interface CharactersListProps {
   showAddButton?: boolean;
   className?: string;
   setCharacters: (characters: Character[]) => void;
+  onDeleteCharacter?: (character: Character) => void;
 }
 
 export default function CharactersList({
@@ -34,9 +34,9 @@ export default function CharactersList({
   showAddButton = true,
   className = "",
   setCharacters,
+  onDeleteCharacter,
 }: CharactersListProps) {
   const { t, locale } = useLocalization();
-  const { getResponsiveClass } = useResponsiveStyles();
 
   const rightContent = showAddButton && onAddCharacter && characters.length > 0 ? (
     <>
@@ -60,6 +60,31 @@ export default function CharactersList({
     </>
   ) : null;
 
+  const renderActions = (character: Character) => (
+    <>
+      <TouchableOpacity 
+        onPress={() => onCharacterLongPress?.(character)}
+        className="p-2 bg-blue-100 rounded-lg"
+      >
+        <Ionicons name="play" size={16} className="!text-blue-800" />
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        onPress={() => onCharacterPress?.(character)}
+        className="p-2 bg-primary/10 rounded-lg"
+      >
+        <Ionicons name="pencil" size={16} className="!text-primary" />
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        onPress={() => onDeleteCharacter?.(character)}
+        className="p-2 bg-red-100 rounded-lg"
+      >
+        <Ionicons name="trash" size={16} className="!text-red-800" />
+      </TouchableOpacity>
+    </>
+  );
+
   return (
     <View className={`flex-1 bg-background ${className}`}>
       <SectionHeader
@@ -72,38 +97,16 @@ export default function CharactersList({
         <ScrollView className="flex-1 p-4">
           <View className="md:gap-4 gap-2 mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {characters.map((character) => (
-              <GestureTouchableOpacity
-                onPress={() => onCharacterPress?.(character)}
-                onLongPress={() => onCharacterLongPress?.(character)}
+              <Card
                 key={character.id}
-                className="w-full mb-4"
+                icon="person"
+                title={character.name}
+                description={character.content}
+                className="h-40"
+                actions={renderActions(character)}
               >
-                <View
-                  className="h-40 flex-row bg-surface hover:bg-background rounded-xl p-4 border border-gray-200 shadow-lg"
-                  pointerEvents="auto"
-                >
-                  <View className="flex-col items-center my-2 mx-auto">
-                    <CharacterAvatar
-                      character={character}
-                      size={64}
-                      className="my-auto shadow-2xl"
-                    />
-                    <Text className="font-extrabold text-primary">
-                      {character.name}
-                    </Text>
-                  </View>
-                  {character.content?.length > 0 && (
-                    <View className="flex-1 ml-4">
-                      <Text
-                        numberOfLines={20}
-                        className="text-sm text-gray-500 dark:text-gray-400 mt-1 border border-gray-300 rounded-lg p-2 overflow-y-auto"
-                      >
-                        {character.content}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </GestureTouchableOpacity>
+                
+              </Card>
             ))}
           </View>
         </ScrollView>

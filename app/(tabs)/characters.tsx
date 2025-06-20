@@ -118,6 +118,7 @@ export default function CharactersScreen() {
         onAddCharacter={onAdd}
         className="flex-1 p-4"
         setCharacters={setCharacters}
+        onDeleteCharacter={onDelete}
       />
 
       {editingCharacter && (
