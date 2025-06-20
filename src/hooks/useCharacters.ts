@@ -14,7 +14,10 @@ export function useCharacters() {
     if (Platform.OS === "web") {
       return character;
     } else {
-      router.push(`/edit-character?id=${character.id}`);
+      router.push({
+        pathname: "/edit-character",
+        params: { id: character.id }
+      });
       return character;
     }
   };
