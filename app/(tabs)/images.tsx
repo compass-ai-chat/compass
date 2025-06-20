@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { useAtomValue } from 'jotai';
 import { generatedImagesAtom } from '@/src/hooks/atoms';
-import { format } from 'date-fns';
 import { ImageGenerator } from '@/src/components/image/ImageGenerator';
 import { Gallery } from '@/src/components/image/Gallery';
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalization } from '@/src/hooks/useLocalization';
+import { SectionHeader } from '@/src/components/ui/SectionHeader';
+import { useResponsiveStyles } from '@/src/hooks/useResponsiveStyles';
+
 type Tab = 'generator' | 'gallery';
 
 export default function ImageGenerationScreen() {
@@ -15,6 +16,7 @@ export default function ImageGenerationScreen() {
   const screenWidth = Dimensions.get('window').width;
   const imageSize = screenWidth < 768 ? screenWidth / 2 - 24 : screenWidth / 4 - 32;
   const { t } = useLocalization();
+  const { getResponsiveValue } = useResponsiveStyles();
 
   const TabButton: React.FC<{
     tab: Tab;
@@ -38,18 +40,23 @@ export default function ImageGenerationScreen() {
     </TouchableOpacity>
   );
 
+  const tabButtons = (
+    <View className="flex-row border-border">
+      <TabButton tab="generator" label={t('images.generate')} />
+      <TabButton tab="gallery" label={t('images.gallery')} />
+    </View>
+  );
+
   return (
     <View className="flex-1 bg-background p-4">
-      <View className="flex-row items-center p-4">
-        <Ionicons name="image" size={32} className="!text-primary mr-2 pb-2" />
-        <Text className="text-2xl font-bold text-primary">
-            {t('images.images')}
-        </Text>
-        { Platform.OS == 'web' && <View className="ms-4 flex-row border-border">
-          <TabButton tab="generator" label={t('images.generate')} />
-          <TabButton tab="gallery" label={t('images.gallery')} />
-        </View>}
-      </View>
+      <SectionHeader
+        title={t('images.images')}
+        icon="image"
+        rightContent={getResponsiveValue({
+          desktop: <View className="ms-4 flex-row">{tabButtons}</View>,
+          mobile: null
+        })}
+      />
       
       <View className="flex-1 relative">
         <View 
@@ -71,13 +78,14 @@ export default function ImageGenerationScreen() {
           <Gallery />
         </View>
       </View>
-      { Platform.OS !== 'web' && <View className="ms-4 flex-row border-border">
-        <View className="flex-row mx-auto">
-          <TabButton tab="generator" label="Generate" />
-          <TabButton tab="gallery" label="Gallery" />
+      {getResponsiveValue({
+        mobile: (
+          <View className="ms-4 flex-row border-border">
+            <View className="flex-row mx-auto">{tabButtons}</View>
           </View>
-        </View>
-      }
+        ),
+        desktop: null
+      })}
     </View>
   );
 }

@@ -9,6 +9,9 @@ import { modalService } from "@/src/services/modalService";
 import { toastService } from "@/src/services/toastService";
 import { DocumentPickerAsset } from "expo-document-picker";
 import { useLocalization } from "@/src/hooks/useLocalization";
+import { SectionHeader } from "@/src/components/ui/SectionHeader";
+import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
+
 interface DocumentManagerProps {
   documents: Document[];
   characters: Array<{
@@ -32,6 +35,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const { t } = useLocalization();
+  const { getResponsiveSize } = useResponsiveStyles();
+
   const handleDocumentUpload = async (doc: DocumentPickerAsset) => {
     try {
       // Call the parent handler
@@ -104,7 +109,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
       <View className="flex-row items-center p-4 bg-surface rounded-lg mb-2">
         <Ionicons
           name="document-text"
-          size={24}
+          size={getResponsiveSize(20, 24)}
           className="!text-primary mr-3"
         />
         <View className="flex-1">
@@ -127,19 +132,19 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
             className="p-2 bg-surface border border-primary rounded-lg"
             onPress={() => setSelectedDoc(doc)}
           >
-            <Ionicons name="eye" size={20} className="!text-primary" />
+            <Ionicons name="eye" size={getResponsiveSize(16, 20)} className="!text-primary" />
           </TouchableOpacity>
           <TouchableOpacity
             className="p-2 bg-primary rounded-lg"
             onPress={() => startDocumentChat(doc)}
           >
-            <Ionicons name="chatbubble" size={20} className="!text-white" />
+            <Ionicons name="chatbubble" size={getResponsiveSize(16, 20)} className="!text-white" />
           </TouchableOpacity>
           <TouchableOpacity
             className="p-2 bg-red-500 rounded-lg"
             onPress={() => handleDeleteDocument(doc)}
           >
-            <Ionicons name="trash" size={20} className="!text-white" />
+            <Ionicons name="trash" size={getResponsiveSize(16, 20)} className="!text-white" />
           </TouchableOpacity>
         </View>
       </View>
@@ -149,23 +154,19 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
   return (
     <View className="flex-1 flex-row">
       <View className={`${selectedDoc ? "w-1/2" : "flex-1"}`}>
-        <View className="flex-row justify-between items-center mb-4">
-          <View className="flex-row items-center p-4">
-            <Ionicons
-              name="document-text"
-              size={32}
-              className="!text-primary mr-2 pb-2"
-            />
-            <Text className="text-2xl font-bold text-primary">{t('documents.documents')}</Text>
-          </View>
-          {documents.length > 0 && (
-            <DocumentUploader
-              onUpload={handleDocumentUpload}
-              isUploading={isUploading}
-              setIsUploading={setIsUploading}
-            />
-          )}
-        </View>
+        <SectionHeader
+          title={t('documents.documents')}
+          icon="document-text"
+          rightContent={
+            documents.length > 0 && (
+              <DocumentUploader
+                onUpload={handleDocumentUpload}
+                isUploading={isUploading}
+                setIsUploading={setIsUploading}
+              />
+            )
+          }
+        />
 
         <FlatList
           data={documents}

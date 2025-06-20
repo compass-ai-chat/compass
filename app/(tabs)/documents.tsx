@@ -138,16 +138,14 @@ export default function DocumentsRoute() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 p-4">
-        <DocumentManager 
-          documents={documents} 
-          characters={characters} 
-          onDocumentDelete={onDocumentDelete} 
-          onDocumentUpload={onDocumentUpload} 
-          onStartDocumentChat={onStartDocumentChat}
-        />
-      </View>
-    </SafeAreaView>
+    <View className="flex-1 p-4">
+      <DocumentManager 
+        documents={documents} 
+        characters={characters} 
+        onDocumentDelete={onDocumentDelete} 
+        onDocumentUpload={onDocumentUpload} 
+        onStartDocumentChat={onStartDocumentChat}
+      />
+    </View>
   );
 } 
