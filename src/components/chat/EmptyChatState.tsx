@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { useLocalization } from '../../hooks/useLocalization';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
 import { useChat } from '@/src/hooks/useChat';
@@ -27,7 +27,7 @@ export const EmptyChatState: React.FC<EmptyChatStateProps> = ({
 
   return (
     <View className="flex-1 items-center justify-center">
-      <View className="w-2/3 px-4">
+      <View className={`w-2/3 px-4 ${Platform.OS == 'web' ? 'w-[80%]' : 'w-full'}`}>
         <View className="mb-8">
           <Text className="text-2xl font-bold text-center text-text mb-2">
             ✨ {t('chats.start_a_conversation_with_character', { character: characterName })}

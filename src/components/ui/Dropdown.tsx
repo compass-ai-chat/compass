@@ -161,7 +161,7 @@ export const Dropdown = ({
           {selected?.title}
         </Text>
         <View className="ml-auto">
-          <Ionicons name={isOpen ? iconOpen : iconClosed as any} size={iconSize} className="text-text" />
+          <Ionicons name={isOpen ? iconOpen : iconClosed as any} size={iconSize} className="!text-text" />
         </View>
       </TouchableOpacity>
       {isOpen && <View 

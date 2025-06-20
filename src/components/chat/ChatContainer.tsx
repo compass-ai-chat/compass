@@ -64,7 +64,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, []);
 
   return (
-    <View className={`mx-auto flex-1 ${Platform.OS == 'web' ? 'w-[80%]' : ''}`}>
+    <View className={`mx-auto flex-1 ${Platform.OS == 'web' ? 'w-[80%]' : 'w-full'}`}>
       <MessageList
         messages={messages}
         onMessagePress={onMessagePress}
