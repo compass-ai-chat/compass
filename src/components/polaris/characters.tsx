@@ -21,8 +21,8 @@ import PolarisServer from "@/src/services/polaris/PolarisServer";
 interface AdminCharactersPanelProps {}
 
 export default function AdminCharactersPanel({}: AdminCharactersPanelProps) {
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(
-    null,
+  const [editingCharacter, setEditingCharacter] = useState<Character | undefined>(
+    undefined,
   );
   const [availableModels] = useAtom(polarisModelsAtom);
   const [characters, setCharacters] = useAtom(polarisCharactersAtom);
@@ -55,7 +55,7 @@ export default function AdminCharactersPanel({}: AdminCharactersPanelProps) {
     const updatedCharacters = await PolarisServer.getCharacters();
     setCharacters(updatedCharacters);
 
-    setEditingCharacter(null);
+    setEditingCharacter(undefined);
   };
 
   const handleDelete = async (character: Character) => {
@@ -75,7 +75,7 @@ export default function AdminCharactersPanel({}: AdminCharactersPanelProps) {
         description: `Failed to delete character: ${character.name}`,
       });
     }
-    setEditingCharacter(null);
+    setEditingCharacter(undefined);
   };
 
   return (
@@ -86,29 +86,27 @@ export default function AdminCharactersPanel({}: AdminCharactersPanelProps) {
         onCharacterPress={handleEdit}
         onAddCharacter={handleAdd}
         title="Characters"
-        className="flex-1 p-4"
+        className="p-2 w-1/4 border-border border-r-2"
       />
 
-      {editingCharacter && (
-        <View className="flex-1 m-4 relative">
-          <EditCharacter
-            availableTools={availableTools}
-            availableDocuments={documents}
-            existingCharacter={editingCharacter}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            className="flex-1 bg-surface rounded-xl shadow-lg"
-            availableModels={availableModels}
-            showCharacterExposeAsModel={true}
-          />
-          <TouchableOpacity
-            onPress={() => setEditingCharacter(null)}
-            className="absolute top-2 right-2 bg-surface/80 dark:bg-surface/60 p-2 rounded-full z-10"
-          >
-            <Ionicons name="close" size={24} className="text-text" />
-          </TouchableOpacity>
-        </View>
-      )}
+    {editingCharacter && <EditCharacter
+              availableTools={availableTools}
+              availableDocuments={documents}
+              availableModels={availableModels}
+              existingCharacter={editingCharacter}
+              onSave={handleSave}
+              onDelete={handleDelete}
+              className="flex-1 w-3/4 mx-auto p-8"
+            />}
+            {!editingCharacter && (
+              <View className="flex-1 items-center justify-center">
+                <Ionicons name="person-outline" size={64} className="text-secondary mb-4" />
+                <Text className="text-xl font-medium text-secondary">No Character Selected</Text>
+                <Text className="text-secondary mt-2">Select a character from the list to edit their details</Text>
+              </View>
+            )}
+
+      
     </View>
   );
 }

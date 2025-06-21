@@ -1,4 +1,4 @@
-import { View, Platform } from "react-native";
+import { View, Platform, Text } from "react-native";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/src/hooks/atoms";
 import { Character } from "@/src/types/core";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import EditCharacter from "@/src/components/character/EditCharacter";
 import CharactersList from "@/src/components/character/CharactersList";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -23,7 +23,7 @@ export default function CharactersScreen() {
   const router = useRouter();
   const dispatchThread = useSetAtom(threadActionsAtom);
   const threads = useAtomValue(threadsAtom);
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
+  const [editingCharacter, setEditingCharacter] = useState<Character | undefined>(undefined);
   const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);
   const [availableModels] = useAtom(availableModelsAtom);
   const [availableDocuments] = useAtom(userDocumentsAtom);
@@ -34,7 +34,7 @@ export default function CharactersScreen() {
   const onEdit = (character: Character) => {
     if (Platform.OS === "web") {
       if (editingCharacter?.id === character.id) {
-        setEditingCharacter(null);
+        setEditingCharacter(undefined);
       } else {
         const editedCharacter = handleEdit(character);
         setEditingCharacter(editedCharacter);
@@ -55,12 +55,12 @@ export default function CharactersScreen() {
 
   const onSave = async (character: Character) => {
     await handleSave(character);
-    setEditingCharacter(null);
+    setEditingCharacter(undefined);
   };
 
   const onDelete = async (character: Character) => {
     await handleDelete(character);
-    setEditingCharacter(null);
+    setEditingCharacter(undefined);
   };
 
   const startChat = async (character: Character) => {
@@ -110,18 +110,37 @@ export default function CharactersScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background flex-row">
+    <View className="flex-1 bg-background flex-row mt-2">
+
       <CharactersList
         characters={characters}
         onCharacterPress={onEdit}
         onCharacterLongPress={startChat}
         onAddCharacter={onAdd}
-        className="flex-1 p-4"
+        className="p-2 w-1/4 border-border border-r-2"
         setCharacters={setCharacters}
         onDeleteCharacter={onDelete}
+        selectedCharacter={editingCharacter}
       />
 
-      {editingCharacter && (
+      {editingCharacter && <EditCharacter
+          availableTools={userTools.filter(tool=>tool.id !== "DocumentSearch")}
+          availableDocuments={availableDocuments}
+          availableModels={availableModels}
+          existingCharacter={editingCharacter}
+          onSave={onSave}
+          onDelete={onDelete}
+          className="flex-1 w-3/4 mx-auto p-8"
+        />}
+        {!editingCharacter && (
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="person-outline" size={64} className="text-secondary mb-4" />
+            <Text className="text-xl font-medium text-secondary">No Character Selected</Text>
+            <Text className="text-secondary mt-2">Select a character from the list to edit their details</Text>
+          </View>
+        )}
+
+      {/* {editingCharacter && (
         <View className="flex-1 m-4 relative">
           <EditCharacter
             availableTools={userTools.filter(tool=>tool.id !== "DocumentSearch")}
@@ -139,7 +158,7 @@ export default function CharactersScreen() {
             <Ionicons name="close" size={24} className="text-text" />
           </TouchableOpacity>
         </View>
-      )}
+      )} */}
     </View>
   );
 }
