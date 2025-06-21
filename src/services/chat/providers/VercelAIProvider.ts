@@ -1,7 +1,7 @@
 import { Character, Provider } from '@/src/types/core';
 import { ChatMessage, Model } from '@/src/types/core';
 import LogService from '@/utils/LogService';
-import { CoreMessage, CoreUserMessage, createDataStream, embedMany, generateText, StreamData, streamText, tool, ToolSet } from 'ai';
+import { CoreMessage, CoreUserMessage, createDataStream, embedMany, generateObject, generateText, StreamData, streamText, tool, ToolSet } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { Platform } from '@/src/utils/platform';
 import { createOllama } from 'ollama-ai-provider-v2';
@@ -9,10 +9,12 @@ import { createGroq } from '@ai-sdk/groq';
 import { createXai } from '@ai-sdk/xai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { useTools } from '@/src/hooks/useTools';
+import { z } from 'zod';
+import { SimpleSchema, simpleSchemaToZod } from '@/src/utils/zodHelpers';
 
 export function useVercelAIProvider() {
 
-    const { getVercelCompatibleToolSet } = useTools();
+  const { getVercelCompatibleToolSet } = useTools();
 
   const createProvider = (provider: any, modelId: string) => {
     let aiModel;
@@ -65,7 +67,18 @@ export function useVercelAIProvider() {
     return aiModel;
   }
 
-  const sendMessage = async (messages: ChatMessage[], model: Model, character: Character|undefined, signal?: AbortSignal): Promise<AsyncIterable<string>> => {
+  const generateJSON = async (prompt: string, schema: SimpleSchema, model: Model): Promise<any> => {
+    const provider = createProvider(model.provider, model.id);
+    const {object} = await generateObject({
+      model: provider,
+      prompt: prompt,
+      schema: simpleSchemaToZod(schema)
+    });
+
+    return object;
+  }
+
+  const sendMessage = async (messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> => {
     const newMessages = [
       ...messages.map(message => ({
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
@@ -93,7 +106,6 @@ export function useVercelAIProvider() {
     }
 
     console.log("Tool schemas", toolSchemas);
-
 
     try {
         const provider = createProvider(model.provider, model.id);
@@ -141,6 +153,7 @@ export function useVercelAIProvider() {
   }
 
   return {
-    sendMessage
+    sendMessage,
+    generateJSON
   }
 } 

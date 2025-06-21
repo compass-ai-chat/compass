@@ -49,6 +49,7 @@ import {
 
 // Exceptions
 import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
+import { SimpleSchema } from '../utils/zodHelpers';
 
 export function useChat() {
   // ========== State Management ==========
@@ -70,7 +71,7 @@ export function useChat() {
   const { search } = useSearch();
   const tts = useTTS();
   const { selectedModel, selectedCharacter } = useCharacterModelSelection();
-  const { sendMessage } = useVercelAIProvider();
+  const { sendMessage, generateJSON } = useVercelAIProvider();
 
   // ========== Services ==========
   const contextManager = new CharacterContextManager();
@@ -287,6 +288,22 @@ export function useChat() {
     }
   };
 
+  const streamMessage = async (messages: ChatMessage[]) => {
+    const model = models.find(x=>true);
+    if(!model){
+      throw new Error('No model found');
+    }
+    return await sendMessage(messages, model);
+  }
+
+  const generateJSONObject = async (prompt: string, schema: SimpleSchema) => {
+    const model = models.find(x=>true);
+    if(!model){
+      throw new Error('No model found');
+    }
+    return await generateJSON(prompt, schema, model);
+  }
+
   const handleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
     if (!providers.length) return;
 
@@ -350,7 +367,10 @@ export function useChat() {
     currentThread,
     
     // Legacy support (deprecated)
-    wrappedHandleSend: handleSend
+    wrappedHandleSend: handleSend,
+
+    // JSON generation
+    generateJSONObject,
   };
 }
 
