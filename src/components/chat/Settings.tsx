@@ -163,18 +163,18 @@ export const Settings: React.FC<SettingsProps> = ({
             description: "Successfully connected to local Ollama instance",
           });
         } else {
-          toastService.info({
-            title: "Local Ollama Already Added",
-            description: "Local Ollama instance is already in your providers list",
-          });
+          // toastService.info({
+          //   title: "Local Ollama Already Added",
+          //   description: "Local Ollama instance is already in your providers list",
+          // });
         }
       }
     } catch (error) {
       //console.error("Error scanning for local Ollama:", error);
-      toastService.danger({
-        title: "Local Ollama Not Found",
-        description: "Could not connect to local Ollama instance at http://localhost:11434",
-      });
+      // toastService.danger({
+      //   title: "Local Ollama Not Found",
+      //   description: "Could not connect to local Ollama instance at http://localhost:11434",
+      // });
     } finally {
       setScanning(false);
     }
