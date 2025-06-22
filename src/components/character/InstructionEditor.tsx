@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { useChat } from '@/src/hooks/useChat';
+import { Character } from '@/src/types/core';
 
 interface PersonalityTrait {
   name: string;
@@ -9,13 +11,15 @@ interface PersonalityTrait {
 }
 
 interface InstructionEditorProps {
+  character: Character;
   content: string;
   onChangeText: (text: string) => void;
   onInsertVariable?: () => void;
 }
 
-export function InstructionEditor({ content, onChangeText, onInsertVariable }: InstructionEditorProps) {
+export function InstructionEditor({ character, content, onChangeText, onInsertVariable }: InstructionEditorProps) {
   const contentInputRef = useRef<TextInput>(null);
+  const {generateJSONObject, isModelAvailable} = useChat();
   
   const [traits, setTraits] = useState<PersonalityTrait[]>([
     {
@@ -67,17 +71,21 @@ export function InstructionEditor({ content, onChangeText, onInsertVariable }: I
   };
 
   const generatePrompt = () => {
-    // This is a placeholder - you'll implement the actual generation logic
-    const generatedPrompt = "Generated prompt based on selected traits...";
-    onChangeText(generatedPrompt);
+    const prompt = `
+    Generate an instruction for a character, suitable for a chat application, based on the following traits:
+    ${traits.map(trait => `${trait.name}: ${trait.options[trait.current]}`).join('\n')}
+    `;
+
+    generateJSONObject(prompt, {prompt: {type: "string"}}).then(result => {
+      onChangeText(result.prompt);
+    });
   };
 
   return (
     <View className="flex-1 flex-row space-x-4">
       {/* Left side - Personality Traits */}
-      <View className="w-[300px] bg-surface rounded-lg border-2 border-border p-4">
+      { !character?.id && isModelAvailable() && (<View className="w-[300px] bg-surface rounded-lg border-2 border-border p-4">
         <Text className="text-text font-medium text-lg mb-4">Personality Traits</Text>
-        
         <View className="space-y-6">
           {traits.map((trait, index) => (
             <View key={trait.name} className="space-y-2">
@@ -121,7 +129,7 @@ export function InstructionEditor({ content, onChangeText, onInsertVariable }: I
             <Text className="text-white font-medium">Generate Instructions</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View>)}
 
       {/* Right side - Text Input */}
       <View className="flex-1">

@@ -267,6 +267,7 @@ export default function EditCharacter({
             </View> */}
             <View className="flex-row flex-1 mb-2">
             <InstructionEditor 
+              character={character as Character}
               content={character?.content || ""}
               onChangeText={(text) => setCharacter({ ...character!, content: text })}
               onInsertVariable={() => setShowTemplateSelector(true)}

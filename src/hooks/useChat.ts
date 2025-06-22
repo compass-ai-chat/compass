@@ -342,6 +342,10 @@ export function useChat() {
     }
   };
 
+  const isModelAvailable = () => {
+    return models.length > 0;
+  }
+
   // ========== Effects ==========
   useEffect(() => {
     if (previousThreadId.current !== currentThread.id) {
@@ -371,6 +375,7 @@ export function useChat() {
 
     // JSON generation
     generateJSONObject,
+    isModelAvailable
   };
 }
 
