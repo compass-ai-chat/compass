@@ -30,6 +30,8 @@ import { modalService } from "@/src/services/modalService";
 import { Tool } from "@/src/types/tools";
 import { ToolSelector } from "./ToolSelector";
 import { FontAwesome6 } from "@expo/vector-icons";
+import { InstructionEditor } from "./InstructionEditor";
+
 interface EditCharacterProps {
   availableModels: Model[];
   availableDocuments: Document[];
@@ -255,47 +257,27 @@ export default function EditCharacter({
           
 
           <View className="flex-1">
-            <View className="flex-row items-center justify-between mb-2">
+            {/* <View className="flex-row items-center justify-between mb-2">
               <View className="flex-row items-center">
                 <FontAwesome6 name="pen-fancy" size={22} className="!text-primary mr-2" />
                 <Text className="text-base font-medium text-text">
                   {t('characters.edit_character.instructions')}
                 </Text>
               </View>
-              <TouchableOpacity 
-                onPress={() => setShowTemplateSelector(true)}
-                className="bg-primary/10 px-3 py-1 rounded-lg flex-row items-center"
-              >
-                <Ionicons name="code-outline" size={16} color="#6366F1" className="mr-1" />
-                <Text className="text-primary text-sm font-medium">
-                  Insert Variable
-                </Text>
-              </TouchableOpacity>
-            </View>
+            </View> */}
             <View className="flex-row flex-1 mb-2">
-            <TextInput
-              ref={contentInputRef}
-              value={character?.content || ""}
-              onChangeText={(text) =>
-                setCharacter({ ...character!, content: text })
-              }
-              onSelectionChange={(e) => {
-                setCursorPosition(e.nativeEvent.selection.start);
-              }}
-              placeholder={t('characters.edit_character.enter_character_prompt')}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              className="bg-surface p-4 rounded-lg text-text border-2 border-border flex-1 outline-none"
-              placeholderTextColor="#9CA3AF"
+            <InstructionEditor 
+              content={character?.content || ""}
+              onChangeText={(text) => setCharacter({ ...character!, content: text })}
+              onInsertVariable={() => setShowTemplateSelector(true)}
             />
-            {showTemplateSelector && (
+            {/* {showTemplateSelector && (
               <TemplateVariableSelector
                 isVisible={showTemplateSelector}
                 onClose={() => setShowTemplateSelector(false)}
                 onSelectVariable={insertTemplateVariable}
               />
-            )}
+            )} */}
             </View>
           </View>
 
