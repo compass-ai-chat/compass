@@ -8,6 +8,7 @@ import { Character } from '@/src/types/core';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import { scanForSensitiveInfo } from '@/src/utils/privacyScanner';
 import { modalService } from "@/src/services/modalService";
+import { ToolsMenu } from './ToolsMenu';
 
 interface Tool {
   id: string;
@@ -50,7 +51,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
   const lineHeight = fontPreferences.lineHeight || 20; // Default line height if not specified
   const [inputHeight, setInputHeight] = useState<number>(initialInputRows * lineHeight); // Initial height
   const { t } = useLocalization();
-  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
   const closeTimeoutRef = useRef<NodeJS.Timeout>();
   const menuRef = useRef<View>(null);
@@ -213,18 +213,17 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
     setEditingMessageIndex(-1);
   };
 
-  const handleShowMenu = useCallback(() => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
-    setShowToolsMenu(true);
-  }, []);
-
-  const handleHideMenu = useCallback(() => {
-    closeTimeoutRef.current = setTimeout(() => {
-      setShowToolsMenu(false);
-    }, 300); // 300ms delay before closing
-  }, []);
+  const handleToggleTool = (toolId: string) => {
+    setActiveTools(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(toolId)) {
+        newSet.delete(toolId);
+      } else {
+        newSet.add(toolId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <View className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}>
@@ -237,84 +236,10 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
         />
       )}
       
-      {Platform.OS === 'web' ? (
-        <div 
-          onMouseEnter={handleShowMenu}
-          onMouseLeave={handleHideMenu}
-        >
-          <Pressable
-            onPress={() => setShowToolsMenu(!showToolsMenu)}
-            className="w-10 h-10 items-center justify-center"
-          >
-            <Ionicons 
-              name="apps" 
-              size={24} 
-              color={showToolsMenu ? "#6366f1" : "#9CA3AF"} 
-            />
-          </Pressable>
-
-          {showToolsMenu && (
-            <div
-              onMouseEnter={handleShowMenu}
-              onMouseLeave={handleHideMenu}
-              className="absolute bottom-full left-0 mb-2"
-            >
-              <View className="bg-surface border border-primary rounded-lg p-2 shadow-lg">
-                {availableTools.map((tool) => (
-                  <Pressable
-                    key={tool.id}
-                    onPress={() => toggleTool(tool.id)}
-                    className={`flex-row items-center p-2 rounded-md ${
-                      activeTools.has(tool.id) ? 'bg-primary/20' : ''
-                    }`}
-                  >
-                    <Ionicons
-                      name={tool.icon}
-                      size={20}
-                      color={activeTools.has(tool.id) ? "#6366f1" : "#9CA3AF"}
-                    />
-                    <Text className="ml-2 text-text">{tool.name}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </div>
-          )}
-        </div>
-      ) : (
-        <>
-          <Pressable
-            onPress={() => setShowToolsMenu(!showToolsMenu)}
-            className="w-10 h-10 items-center justify-center"
-          >
-            <Ionicons 
-              name="apps" 
-              size={24} 
-              color={showToolsMenu ? "#6366f1" : "#9CA3AF"} 
-            />
-          </Pressable>
-
-          {showToolsMenu && (
-            <View className="absolute bottom-full left-0 mb-2 bg-surface border border-primary rounded-lg p-2 shadow-lg">
-              {availableTools.map((tool) => (
-                <Pressable
-                  key={tool.id}
-                  onPress={() => toggleTool(tool.id)}
-                  className={`flex-row items-center p-2 rounded-md ${
-                    activeTools.has(tool.id) ? 'bg-primary/20' : ''
-                  }`}
-                >
-                  <Ionicons
-                    name={tool.icon}
-                    size={20}
-                    color={activeTools.has(tool.id) ? "#6366f1" : "#9CA3AF"}
-                  />
-                  <Text className="ml-2 text-text">{tool.name}</Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
-        </>
-      )}
+      <ToolsMenu
+        activeTools={activeTools}
+        onToggleTool={handleToggleTool}
+      />
 
       <TextInput
         onBlur={handleBlur}
