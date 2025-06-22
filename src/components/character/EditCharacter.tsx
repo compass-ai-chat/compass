@@ -196,22 +196,7 @@ export default function EditCharacter({
   return (
     <View className={`flex-1 bg-background ${className}`}>    
         <View className="items-center mb-8 pt-4 border-b border-border mx-4 flex-row py-4">
-          <View className="flex-1">
-            <Text className="text-base font-medium mb-2 text-text">
-              {t('characters.edit_character.name')}
-            </Text>
-            <TextInput
-              value={character?.name || ""}
-              onChangeText={(text) =>
-                setCharacter({ ...character!, name: text })
-              }
-              placeholder={t('characters.edit_character.enter_character_name')}
-              className="p-4 rounded-lg text-text border-2 border-border bg-surface outline-none"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-          
-          <View className="items-center justify-between mx-8 mr-16">
+        <View className="items-center justify-between border-r border-border px-4 mr-4">
             <View className="relative">
               {useIcon ? (
                 <TouchableOpacity
@@ -232,6 +217,22 @@ export default function EditCharacter({
               )}
             </View>
           </View>
+          
+          <View className="flex-1">
+            <Text className="text-base font-medium mb-2 text-text">
+              {t('characters.edit_character.name')}
+            </Text>
+            <TextInput
+              value={character?.name || ""}
+              onChangeText={(text) =>
+                setCharacter({ ...character!, name: text })
+              }
+              placeholder={t('characters.edit_character.enter_character_name')}
+              className="p-4 rounded-lg text-text border-2 border-border bg-surface outline-none"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+          
           
           
         </View>
