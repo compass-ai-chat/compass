@@ -19,28 +19,28 @@ export function InstructionEditor({ content, onChangeText, onInsertVariable }: I
   
   const [traits, setTraits] = useState<PersonalityTrait[]>([
     {
-      name: "Emotional Style",
-      options: ["Very Calm", "Balanced", "Passionate", "Intense"],
+      name: "Openness",
+      options: ["Traditional", "Pragmatic", "Curious", "Experimental"],
       current: 1
     },
     {
-      name: "Social Energy",
-      options: ["Reserved", "Adaptable", "Outgoing", "Highly Social"],
+      name: "Conscientiousness",
+      options: ["Spontaneous", "Flexible", "Methodical", "Meticulous"],
       current: 1
     },
     {
-      name: "Creativity",
-      options: ["Practical", "Balanced", "Imaginative", "Highly Creative"],
+      name: "Extraversion",
+      options: ["Solitary", "Selective", "Sociable", "Gregarious"],
       current: 1
     },
     {
-      name: "Friendliness",
-      options: ["Professional", "Friendly", "Warm", "Very Caring"],
+      name: "Agreeableness",
+      options: ["Direct", "Independent", "Cooperative", "Accommodating"],
       current: 1
     },
     {
-      name: "Work Style",
-      options: ["Flexible", "Organized", "Detailed", "Perfectionist"],
+      name: "Neuroticism",
+      options: ["Resilient", "Composed", "Sensitive", "Reactive"],
       current: 1
     }
   ]);
