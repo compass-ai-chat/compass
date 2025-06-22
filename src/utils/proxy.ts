@@ -16,14 +16,10 @@ export async function getProxyUrl(url: string): Promise<string> {
     return url;
   }
 
-  console.log("proxyUrl", proxyUrl);
-
   // If no proxy URL is set, return original URL
   if (!proxyUrl || typeof proxyUrl !== 'string' || proxyUrl?.length == 0) {
     return url;
   }
-
-  console.log("proxyUrl", proxyUrl);
 
   // Ensure proxy URL ends with slash
   const baseProxyUrl = proxyUrl.endsWith('/') ? proxyUrl : `${proxyUrl}/`;
