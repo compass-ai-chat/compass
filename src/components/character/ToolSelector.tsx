@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tool } from "@/src/types/tools";
 import { useLocalization } from "@/src/hooks/useLocalization";
+import { Modal } from "../ui/Modal";
+import ToolsScreen from "@/app/settings/tools";
 
 interface ToolSelectorProps {
   tools: Tool[];
@@ -18,6 +20,7 @@ export function ToolSelector({
   onRemoveTool,
 }: ToolSelectorProps) {
   const { t } = useLocalization();
+  const [showModal, setShowModal] = useState(false);
 
   if (!tools || tools.length === 0) {
     return null;
@@ -30,6 +33,9 @@ export function ToolSelector({
         <Text className="text-base font-medium text-text">
           {t('characters.edit_character.tools') || "Tools"}
         </Text>
+        <TouchableOpacity>
+          <Ionicons name="exit-outline" onPress={()=>setShowModal(true)} size={24} className="ml-2 !text-primary" />
+        </TouchableOpacity>
       </View>
 
       <View>
@@ -75,6 +81,9 @@ export function ToolSelector({
           })
         )}
       </View>
+      <Modal showCloseButton={true} isVisible={showModal} onClose={()=>setShowModal(false)} className="w-3/4">
+        <ToolsScreen></ToolsScreen>
+      </Modal>
     </View>
   );
 } 

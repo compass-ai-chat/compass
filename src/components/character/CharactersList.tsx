@@ -129,7 +129,7 @@ export default function CharactersList({
           )}
         </View>
       
-      {filteredCharacters.length > 0 && (
+      {true && (
         <ScrollView className="flex-1 p-2">
             {filteredCharacters.map((character) => (
               <TouchableOpacity onPress={() => onCharacterPress?.(character)} key={character.id} className={`mb-2 h-20 overflow-hidden flex-row items-center border border-border rounded-lg p-2 ${selectedCharacter?.id === character.id ? "border-2 border-primary" : ""}`}>
@@ -168,7 +168,7 @@ export default function CharactersList({
               <Text className="text-gray-500 ml-2 font-medium">{t('characters.new_character')}</Text>
             </TouchableOpacity>
           )}
-          {filteredCharacters.length === 0 && (
+          {characters.length === 0 && (
             <Text className="text-gray-500 mt-4">{t('characters.no_characters')}</Text>
           )}
         </View>

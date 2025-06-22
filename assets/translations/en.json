@@ -114,6 +114,15 @@
     "settings":{
         "settings": "Settings",
         "customize_experience": "Customize your chat experience",
+        "tools":{
+            "description": "Create and manage tools for your characters",
+            "title": "Tools",
+            "tools": "Tools",
+            "no_tools": "You have no tools. Create a tool to get started.",
+            "new_tool": "New tool",
+            "tool_added": "Tool added",
+            "tool_added_success": "Tool added successfully"
+        },
         "font_settings": {
             "title": "Font Settings",
             "description": "Customize text appearance and size",

@@ -64,6 +64,13 @@ export default function SettingsScreen() {
           onPress={() => router.push("/settings/providers")}
         />
 
+        <SettingItem
+          title={t('settings.tools.title')}
+          description={t('settings.tools.description')}
+          icon="construct"
+          onPress={() => router.push("/settings/tools")}
+        />
+
         {!syncToPolaris && (
           <SettingItem
             title={t('settings.theme.title')}
