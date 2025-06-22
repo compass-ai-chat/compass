@@ -39,7 +39,7 @@ export const useCharacterModelSelection = () => {
   };
 
   useEffect(() => {
-    if (models.length > 0 && !selectedModel?.id && !selectedCharacter) {
+    if (models.length > 0 && !selectedModel?.id && !selectedCharacter && !currentThread.selectedModel) {
       // If we have models but no selected model or character, select the first model
       handleModelSelection(models[0]);
     }
