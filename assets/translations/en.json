@@ -3,6 +3,7 @@
     "language": "Language",
     "common":{
         "save": "Save",
+        "create": "Create",
         "delete": "Delete",
         "cancel": "Cancel",
         "add": "Add",

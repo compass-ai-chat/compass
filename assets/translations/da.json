@@ -3,6 +3,7 @@
     "language": "Sprog",
     "common":{
         "save": "Gem",
+        "create": "Opret",
         "delete": "Slet",
         "cancel": "Annuller",
         "add": "Tilføj",

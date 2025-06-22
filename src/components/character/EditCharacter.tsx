@@ -194,10 +194,9 @@ export default function EditCharacter({
   };
 
   return (
-    <View className={`flex-1 bg-background ${className}`}>
-      
+    <View className={`flex-1 bg-background ${className}`}>    
         <View className="items-center mb-8 pt-4 border-b border-border mx-4 flex-row py-4">
-        <View className="flex-1">
+          <View className="flex-1">
             <Text className="text-base font-medium mb-2 text-text">
               {t('characters.edit_character.name')}
             </Text>
@@ -213,25 +212,25 @@ export default function EditCharacter({
           </View>
           
           <View className="items-center justify-between mx-8 mr-16">
-          <View className="relative">
-            {useIcon ? (
-              <TouchableOpacity
-                onPress={() => setShowIconSelector(true)}
-                className="w-[80px] h-[80px] rounded-full bg-primary items-center justify-center hover:opacity-80"
-              >
-                <Ionicons
-                  name={character?.icon || ("person" as any)}
-                  size={48}
-                  color="white"
+            <View className="relative">
+              {useIcon ? (
+                <TouchableOpacity
+                  onPress={() => setShowIconSelector(true)}
+                  className="w-[80px] h-[80px] rounded-full bg-primary items-center justify-center hover:opacity-80"
+                >
+                  <Ionicons
+                    name={character?.icon || ("person" as any)}
+                    size={48}
+                    color="white"
+                  />
+                </TouchableOpacity>
+              ) : (
+                <ImagePickerButton
+                  currentImage={character?.image}
+                  onImageSelected={handleImageSelected}
                 />
-              </TouchableOpacity>
-            ) : (
-              <ImagePickerButton
-                currentImage={character?.image}
-                onImageSelected={handleImageSelected}
-              />
-            )}
-          </View>
+              )}
+            </View>
           </View>
           
           
@@ -341,7 +340,7 @@ export default function EditCharacter({
       
 
       <View className="p-4 border-t border-border flex-row justify-between">
-        <TouchableOpacity
+        {character?.id && (<TouchableOpacity
           onPress={() => deleteCharacter()}
           className="border-2 border-red-100 dark:border-red-900 p-4 rounded-lg flex-row items-center justify-center flex-1 mr-2 hover:opacity-80"
         >
@@ -353,7 +352,7 @@ export default function EditCharacter({
           <Text className="!text-red-500 dark:!text-red-300 font-medium">
             {t('common.delete')}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>)}
         <TouchableOpacity
           onPress={saveCharacter}
           className="bg-primary p-4 rounded-lg flex-row items-center justify-center flex-1 hover:opacity-80"
@@ -365,7 +364,7 @@ export default function EditCharacter({
             className="mr-2"
           />
           <Text className="text-white font-medium text-base">
-            {t('common.save')}
+            {character?.id ? t('common.save') : t('common.create')}
           </Text>
         </TouchableOpacity>
       </View>
