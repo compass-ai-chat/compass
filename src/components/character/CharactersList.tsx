@@ -162,7 +162,7 @@ export default function CharactersList({
           {showAddButton && onAddCharacter && (
             <TouchableOpacity
               onPress={onAddCharacter}
-              className="border-2 border-dashed border-border px-4 py-4 rounded-lg flex-row items-center hover:opacity-80 h-20 w-full"
+              className={`border-2 border-border px-4 py-4 rounded-lg flex-row items-center hover:opacity-80 h-20 w-full ${getResponsiveClass("h-10", "h-20")} ${!selectedCharacter?.id ? "border-2 border-primary" : "border-dashed"}`}
             >
               <Ionicons name="add" size={20} className="!text-gray-500" />
               <Text className="text-gray-500 ml-2 font-medium">{t('characters.new_character')}</Text>
