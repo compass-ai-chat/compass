@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput, Switch } from "react-native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
 import { CreateToolDto } from "@/src/types/tools";
 import { useColorScheme } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
 import { ToolBlueprint } from "@/src/tools/tool.interface";
-import { zodSchemaToJsonSchema } from "@/src/utils/zodHelpers";
-
+import { Switch } from "../ui/Switch";
 interface AddToolModalProps {
   isVisible: boolean;
   onClose: () => void;
@@ -162,7 +161,7 @@ export function AddToolModal({
         <View className="flex-row items-center justify-between">
           <Text className="text-secondary">Enabled</Text>
           <Switch
-            value={formData.enabled}
+            value={formData.enabled??false}
             onValueChange={(value) => setFormData({...formData, enabled: value})}
           />
         </View>

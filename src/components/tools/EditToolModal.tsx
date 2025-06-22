@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput, Switch } from "react-native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { Switch } from "../ui/Switch";
 import { Modal } from "@/src/components/ui/Modal";
 import CodeEditor from "@/src/components/ui/CodeEditor";
 import { Tool, UpdateToolDto } from "@/src/types/tools";
@@ -157,7 +158,7 @@ export function EditToolModal({
         <View className="flex-row items-center justify-between">
           <Text className="text-secondary">Enabled</Text>
           <Switch
-            value={formData.enabled}
+            value={formData.enabled??false}
             onValueChange={(value) => setFormData({...formData, enabled: value})}
           />
         </View>
