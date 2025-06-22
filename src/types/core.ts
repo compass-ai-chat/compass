@@ -19,6 +19,7 @@ export interface ChatMessage {
   isUser: boolean;
   isSystem?: boolean;
   character?: Character;
+  activeTools?: string[];
 }
 
 export interface Model {

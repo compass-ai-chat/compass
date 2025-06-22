@@ -92,8 +92,25 @@ export function useVercelAIProvider() {
     }
 
     let toolSchemas: ToolSet | undefined;
+    
+    // Get the active tools from the last user message
+    const lastMessage = messages[messages.length - 1];
+    const activeTools = lastMessage.activeTools || [];
+
+    // If web search is active, add it to the tools
+    if (activeTools.includes('web_search')) {
+      toolSchemas = {
+        ...toolSchemas,
+        ...(await getVercelCompatibleToolSet(["WebSearch"]))
+      };
+    }
+
+    // Add character tools if they exist
     if(character?.toolIds){
-      toolSchemas = await getVercelCompatibleToolSet(character.toolIds);
+      toolSchemas = {
+        ...toolSchemas,
+        ...(await getVercelCompatibleToolSet(character.toolIds))
+      };
     }
 
     // if character has documents, add document search tool

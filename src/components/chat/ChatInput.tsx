@@ -1,4 +1,4 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { View, TextInput, Pressable, Text, Platform, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { charactersAtom, editingMessageIndexAtom, fontPreferencesAtom } from '@/src/hooks/atoms';
@@ -9,9 +9,15 @@ import { useLocalization } from '@/src/hooks/useLocalization';
 import { scanForSensitiveInfo } from '@/src/utils/privacyScanner';
 import { modalService } from "@/src/services/modalService";
 
+interface Tool {
+  id: string;
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  description: string;
+}
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[]) => void;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], activeTools: string[]) => void;
   isGenerating?: boolean;
   onInterrupt?: () => void;
   className?: string;
@@ -44,7 +50,32 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
   const lineHeight = fontPreferences.lineHeight || 20; // Default line height if not specified
   const [inputHeight, setInputHeight] = useState<number>(initialInputRows * lineHeight); // Initial height
   const { t } = useLocalization();
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
+  const closeTimeoutRef = useRef<NodeJS.Timeout>();
+  const menuRef = useRef<View>(null);
 
+  const availableTools: Tool[] = [
+    {
+      id: 'web_search',
+      name: 'Web Search',
+      icon: 'search',
+      description: 'Enable real-time web search capabilities'
+    }
+    // Add more tools here in the future
+  ];
+
+  const toggleTool = (toolId: string) => {
+    setActiveTools(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(toolId)) {
+        newSet.delete(toolId);
+      } else {
+        newSet.add(toolId);
+      }
+      return newSet;
+    });
+  };
 
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -106,7 +137,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
 
       if(!confirmed) return;
     }
-    onSend(message.trim(), mentionedCharacters);
+    onSend(message.trim(), mentionedCharacters, Array.from(activeTools));
     setMentionedCharacters([]);
     setIsEditing(false);
     
@@ -182,6 +213,19 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
     setEditingMessageIndex(-1);
   };
 
+  const handleShowMenu = useCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    setShowToolsMenu(true);
+  }, []);
+
+  const handleHideMenu = useCallback(() => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setShowToolsMenu(false);
+    }, 300); // 300ms delay before closing
+  }, []);
+
   return (
     <View className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}>
       {showMentionPopup && (
@@ -190,9 +234,88 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
           onSelect={handleSelectCharacter}
           searchText={mentionSearch}
           selectedIndex={selectedIndex}
-          
         />
       )}
+      
+      {Platform.OS === 'web' ? (
+        <div 
+          onMouseEnter={handleShowMenu}
+          onMouseLeave={handleHideMenu}
+        >
+          <Pressable
+            onPress={() => setShowToolsMenu(!showToolsMenu)}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons 
+              name="apps" 
+              size={24} 
+              color={showToolsMenu ? "#6366f1" : "#9CA3AF"} 
+            />
+          </Pressable>
+
+          {showToolsMenu && (
+            <div
+              onMouseEnter={handleShowMenu}
+              onMouseLeave={handleHideMenu}
+              className="absolute bottom-full left-0 mb-2"
+            >
+              <View className="bg-surface border border-primary rounded-lg p-2 shadow-lg">
+                {availableTools.map((tool) => (
+                  <Pressable
+                    key={tool.id}
+                    onPress={() => toggleTool(tool.id)}
+                    className={`flex-row items-center p-2 rounded-md ${
+                      activeTools.has(tool.id) ? 'bg-primary/20' : ''
+                    }`}
+                  >
+                    <Ionicons
+                      name={tool.icon}
+                      size={20}
+                      color={activeTools.has(tool.id) ? "#6366f1" : "#9CA3AF"}
+                    />
+                    <Text className="ml-2 text-text">{tool.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <Pressable
+            onPress={() => setShowToolsMenu(!showToolsMenu)}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons 
+              name="apps" 
+              size={24} 
+              color={showToolsMenu ? "#6366f1" : "#9CA3AF"} 
+            />
+          </Pressable>
+
+          {showToolsMenu && (
+            <View className="absolute bottom-full left-0 mb-2 bg-surface border border-primary rounded-lg p-2 shadow-lg">
+              {availableTools.map((tool) => (
+                <Pressable
+                  key={tool.id}
+                  onPress={() => toggleTool(tool.id)}
+                  className={`flex-row items-center p-2 rounded-md ${
+                    activeTools.has(tool.id) ? 'bg-primary/20' : ''
+                  }`}
+                >
+                  <Ionicons
+                    name={tool.icon}
+                    size={20}
+                    color={activeTools.has(tool.id) ? "#6366f1" : "#9CA3AF"}
+                  />
+                  <Text className="ml-2 text-text">{tool.name}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </>
+      )}
+
       <TextInput
         onBlur={handleBlur}
         ref={inputRef}
@@ -215,6 +338,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
           height: inputHeight,
         }}
       />
+      
       {isGenerating ? (
         <Pressable
           onPress={onInterrupt}
