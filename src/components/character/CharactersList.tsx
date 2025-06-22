@@ -149,7 +149,7 @@ export default function CharactersList({
                       </Text>
                       {character.content && (
                         <Text
-                          className={`text-sm text-gray-500`}
+                          className={`text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap`}
                         >
                           {character.content}
                         </Text>

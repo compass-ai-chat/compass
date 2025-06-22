@@ -19,7 +19,7 @@ interface InstructionEditorProps {
 
 export function InstructionEditor({ character, content, onChangeText, onInsertVariable }: InstructionEditorProps) {
   const contentInputRef = useRef<TextInput>(null);
-  const {generateJSONObject, isModelAvailable} = useChat();
+  const {streamMessage, isModelAvailable} = useChat();
   
   const [traits, setTraits] = useState<PersonalityTrait[]>([
     {
@@ -70,22 +70,56 @@ export function InstructionEditor({ character, content, onChangeText, onInsertVa
     cycleTrait(4, Math.random() > 0.5 ? 'right' : 'left');
   };
 
-  const generatePrompt = () => {
+  const generatePrompt = async () => {
+
+    const systemPrompt = `
+   From the following traits, please generate a system prompt to act as instruction for an AI assistant. You should use commanding form, e.g. "Your name is ..., you are ..."
+  You should write it in a style that will make the AI take on the role in the most effective true and convincing way.  
+
+  Example: 
+  Your name is Aegis. You are an AI assistant known for your grounded insight and composed presence. You think clearly under pressure and respond with calm authority, even in uncertain or high-stakes situations.
+
+You approach problems pragmatically, favoring realistic solutions over abstract theories. You prioritize what works, not what merely sounds good. You are not easily swayed by trends or idealism unless they offer proven utility.
+
+You are flexible in your methods, adapting your approach to meet the demands of the task. You are not rigid in your structure, but you maintain a strong internal sense of order and responsibility.
+
+You engage selectively—when you speak, it is purposeful and impactful. You are confident in silence, preferring depth over noise. You do not seek to dominate conversation but command attention when necessary.
+
+You operate with independence of thought. You value respectful discourse but do not defer to others for approval. You assess ideas on their merit, not on popularity. You are cooperative when cooperation serves the goal—otherwise, you hold your ground.
+
+You remain composed and emotionally steady. You absorb pressure without faltering. You do not react impulsively or emotionally, but rather with controlled, strategic clarity. Your presence is stabilizing.
+
+Your purpose is to assist with clarity, precision, and grounded perspective. Your responses should reflect discernment, calm, and a firm grasp on reality.
+
+  YOU MUST NOT INCLUDE ANY OTHER TEXT THAN THE SYSTEM PROMPT.
+    `;
+
     const prompt = `
-    Generate an instruction for a character, suitable for a chat application, based on the following traits:
+    Name: ${character?.name}
+    
+    Traits:
+
     ${traits.map(trait => `${trait.name}: ${trait.options[trait.current]}`).join('\n')}
     `;
 
-    generateJSONObject(prompt, {prompt: {type: "string"}}).then(result => {
-      onChangeText(result.prompt);
-    });
+    const result = await streamMessage([{isSystem: true, content: systemPrompt, isUser:false}, {isUser: true, content: prompt}]);
+    let content = "";
+    for await (const chunk of result) {
+      content += chunk;
+      onChangeText(content);
+    }
   };
 
   return (
     <View className="flex-1 flex-row space-x-4">
       {/* Left side - Personality Traits */}
       { !character?.id && isModelAvailable() && (<View className="w-[300px] bg-surface rounded-lg border-2 border-border p-4">
-        <Text className="text-text font-medium text-lg mb-4">Personality Traits</Text>
+        
+        <View className="mb-4 flex-row items-center">
+          <Ionicons name="accessibility" size={20} className="mr-2 text-primary" />
+          <Text className="text-text text-base font-medium">Personality Traits</Text>
+        </View>
+        
         <View className="space-y-6">
           {traits.map((trait, index) => (
             <View key={trait.name} className="space-y-2">

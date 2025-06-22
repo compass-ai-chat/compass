@@ -81,7 +81,7 @@ export function ToolSelector({
           })
         )}
       </View>
-      <Modal showCloseButton={true} isVisible={showModal} onClose={()=>setShowModal(false)} className="w-3/4">
+      <Modal showCloseButton={true} isVisible={showModal} onClose={()=>setShowModal(false)} className="w-3/4 min-h-3/4">
         <ToolsScreen></ToolsScreen>
       </Modal>
     </View>

@@ -359,6 +359,7 @@ export function useChat() {
     handleSend,
     handleInterrupt,
     handleMessagePress,
+    streamMessage,
     
     // Thread management  
     addNewThread,
