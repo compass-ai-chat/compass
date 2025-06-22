@@ -94,6 +94,7 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
       isVisible={isVisible}
       onClose={onClose}
       className="min-w-[30%]"
+      showCloseButton
     >
       <View className="p-6 bg-background rounded-lg">
         <View className="flex-row items-center justify-between mb-6">
@@ -110,12 +111,6 @@ export function TestToolModal({ isVisible, onClose, tool }: TestToolModalProps) 
               <Text className="text-secondary">{tool?.description}</Text>
             </View>
           </View>
-          <TouchableOpacity 
-            onPress={onClose}
-            className="p-2 rounded-full bg-surface"
-          >
-            <Ionicons name="close" size={24} className="!text-secondary" />
-          </TouchableOpacity>
         </View>
 
         <ScrollView className="max-h-[70vh]">

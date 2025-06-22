@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Document } from "@/src/types/core";
 import { useLocalization } from "@/src/hooks/useLocalization";
+import { Modal } from "../ui/Modal";
+import DocumentsRoute from "@/app/(tabs)/documents";
 interface DocumentSelectorProps {
   documents: Document[];
   selectedDocIds: string[];
@@ -23,6 +25,8 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
   const missingDocIds = selectedDocIds.filter(
     (id) => !documents.some((doc) => doc.id === id),
   );
+  const [showModal, setShowModal] = useState(false);
+
 
   return (
     <View className={`mt-6 ${className}`}>
@@ -31,6 +35,9 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
         <Text className="text-base font-medium text-text">
           {t('characters.edit_character.available_documents')}
         </Text>
+        <TouchableOpacity>
+          <Ionicons name="exit-outline" onPress={()=>setShowModal(true)} size={24} className="ml-2 !text-primary" />
+        </TouchableOpacity>
       </View>
       <ScrollView className="max-h-40 bg-surface rounded-lg border-2 border-border">
         {documents.map((doc) => (
@@ -77,6 +84,9 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
           </Text>
         )}
       </ScrollView>
+      <Modal showCloseButton={true} isVisible={showModal} onClose={()=>setShowModal(false)} className="w-3/4">
+        <DocumentsRoute></DocumentsRoute>
+      </Modal>
     </View>
   );
 };

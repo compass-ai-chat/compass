@@ -40,6 +40,7 @@ export function EditToolModal({
       isVisible={isVisible}
       onClose={onClose}
       className="w-2/3"
+      showCloseButton
     >
       <View className="space-y-4 p-4">
         <Text className="text-xl font-bold text-primary">Edit Tool</Text>

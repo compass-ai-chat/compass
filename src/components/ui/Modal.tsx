@@ -1,14 +1,9 @@
-import { View, Text, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import RNModal from 'react-native-modal';
 
 import { ThemeProvider } from '@/src/components/ui/ThemeProvider';
-import Animated, { 
-  FadeIn,
-  FadeOut,
-  SlideInDown,
-  SlideOutDown
-} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { Platform } from '@/src/utils/platform';
 
 interface ModalProps {
   isVisible: boolean;
@@ -34,7 +29,7 @@ export function Modal({
   children,
   maxHeight = '70%',
   className,
-  position = Platform.OS === 'web' ? 'center' : 'bottom',
+  position = Platform.isMobile ? 'bottom' : 'center',
   showCloseButton = false
 }: ModalProps) {
   return (
@@ -61,7 +56,7 @@ export function Modal({
               ${className}
             `}
           >
-            {showCloseButton && (<TouchableOpacity 
+            {showCloseButton && !Platform.isMobile && (<TouchableOpacity 
             onPress={onClose}
             className="p-2 hover:opacity-50 rounded-full ml-auto"
           >
