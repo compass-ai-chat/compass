@@ -196,7 +196,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
       <TextInput
         onBlur={handleBlur}
         ref={inputRef}
-        className={`flex-1 pt-1 outline-none w-full px-4 bg-surface rounded-lg mr-2 text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
+        className={`flex-1 py-1 outline-none w-full px-4 bg-surface rounded-lg mr-2 text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
         placeholder={t('chats.type_a_message')}
         placeholderTextColor="#9CA3AF"
         value={message}
@@ -210,7 +210,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
         style={{
           fontFamily: fontPreferences.fontFamily,
           fontSize: fontPreferences.fontSize,
-          lineHeight: fontPreferences.lineHeight,
+          lineHeight: fontPreferences.lineHeight-4,
           letterSpacing: fontPreferences.letterSpacing,
           height: inputHeight,
         }}
