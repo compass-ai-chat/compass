@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, SectionList } from 'react-native';
+import { View, Text, TouchableOpacity, SectionList } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { threadsAtom, currentThreadAtom, threadActionsAtom, previewCodeAtom, defaultThreadAtom } from '@/src/hooks/atoms';
@@ -11,6 +11,7 @@ import Tooltip from '@/src/components/ui/Tooltip';
 import { useChat } from '@/src/hooks/useChat';
 import { SearchBar } from '../ui/SearchBar';
 import { SectionHeader } from '../ui/SectionHeader';
+import { Platform } from '@/src/utils/platform';
 
 
 interface Section {
@@ -118,7 +119,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
 
   const handleThreadSelect = (thread: Thread) => {
     setPreviewCode(null);
-    if (Platform.OS === 'web' && window.innerWidth >= 768) {
+    if (!Platform.isMobile && window.innerWidth >= 768) {
       dispatchThread({ type: 'setCurrent', payload: thread });
     } else {
       dispatchThread({ type: 'setCurrent', payload: thread });
@@ -147,14 +148,14 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
 
 
   return (
-    <View className={`flex-col ${className} ${isSidebarVisible ? 'w-1/5' : 'w-0'}`}>
+    <View className={`flex-col ${className} ${Platform.isMobile?'w-full flex-1':''} ${!Platform.isMobile && isSidebarVisible ? '' : 'w-0'}`}>
       <View className='flex-row justify-between items-center'>
         {isSidebarVisible && (<SectionHeader
           title={t('chats.chats')}
           icon="chatbubbles"
           className='p-2 mt-2'
         />)}
-        {sidebarToggle()}
+        {!Platform.isMobile && sidebarToggle()}
       </View>
       <SectionList
         ref={scrollViewRef}
@@ -226,7 +227,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
         className="mb-2 mx-2"
       />
       
-      <View className="flex-row justify-around space-x-4 mb-2">
+      <View className="flex-row justify-around mb-2 mx-2">
         <Tooltip text={t('chats.clear_all_tooltip')} tooltipClassName="-mt-8 w-20">
           <TouchableOpacity 
             onPress={clearAllThreads}
