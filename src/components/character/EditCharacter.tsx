@@ -25,11 +25,9 @@ import { ModelPreferenceSelector } from "./ModelPreferenceSelector";
 import { Switch } from "@/src/components/ui/Switch";
 import { Document } from "@/src/types/core";
 import { useLocalization } from "@/src/hooks/useLocalization";
-import { TemplateVariableSelector } from './TemplateVariableSelector';
 import { modalService } from "@/src/services/modalService";
 import { Tool } from "@/src/types/tools";
 import { ToolSelector } from "./ToolSelector";
-import { FontAwesome6 } from "@expo/vector-icons";
 import { InstructionEditor } from "./InstructionEditor";
 
 interface EditCharacterProps {

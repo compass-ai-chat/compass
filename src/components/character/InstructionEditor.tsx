@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-nativ
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { useChat } from '@/src/hooks/useChat';
 import { Character } from '@/src/types/core';
+import { Platform } from '@/src/utils/platform';
 
 interface PersonalityTrait {
   name: string;
@@ -111,12 +112,12 @@ Your purpose is to assist with clarity, precision, and grounded perspective. You
   };
 
   return (
-    <View className="flex-1 flex-row space-x-4">
+    <View className={`flex-1 flex-wrap flex-row`}>
       {/* Left side - Personality Traits */}
-      { !character?.id && isModelAvailable() && (<View className="w-[300px] bg-surface rounded-lg border-2 border-border p-4">
+      { !character?.id && isModelAvailable() && (<View className={`${Platform.isMobile ? 'w-full' : 'w-1/4'} bg-surface rounded-lg border-2 border-border p-4 mb-2`}>
         
         <View className="mb-4 flex-row items-center">
-          <Ionicons name="accessibility" size={20} className="mr-2 text-primary" />
+          <Ionicons name="accessibility" size={20} className="mr-2 !text-primary" />
           <Text className="text-text text-base font-medium">Personality Traits</Text>
         </View>
         
@@ -129,7 +130,7 @@ Your purpose is to assist with clarity, precision, and grounded perspective. You
                   onPress={() => cycleTrait(index, 'left')}
                   className="w-8 h-8 items-center justify-center hover:bg-primary/10 rounded-full"
                 >
-                  <Ionicons name="chevron-back" size={20} className="text-primary" />
+                  <Ionicons name="chevron-back" size={20} className="!text-primary" />
                 </TouchableOpacity>
                 
                 <Text className="text-text flex-1 text-center font-medium">
@@ -140,7 +141,7 @@ Your purpose is to assist with clarity, precision, and grounded perspective. You
                   onPress={() => cycleTrait(index, 'right')}
                   className="w-8 h-8 items-center justify-center hover:bg-primary/10 rounded-full"
                 >
-                  <Ionicons name="chevron-forward" size={20} className="text-primary" />
+                  <Ionicons name="chevron-forward" size={20} className="!text-primary" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -166,7 +167,7 @@ Your purpose is to assist with clarity, precision, and grounded perspective. You
       </View>)}
 
       {/* Right side - Text Input */}
-      <View className="flex-1">
+      <View className={`${Platform.isMobile ? 'w-full' : 'flex-grow ml-2 mb-2'}`}>
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-row items-center">
             <FontAwesome6 name="pen-fancy" size={22} className="!text-primary mr-2" />
