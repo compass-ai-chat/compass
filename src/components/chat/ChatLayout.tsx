@@ -41,7 +41,7 @@ export const ChatLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             {sidebarToggle()}
             <ChatThreads className="transition-all duration-200 bg-surface rounded-xl group-hover:w-64 group-hover:h-[70%] h-0 border-r-2 border-border overflow-hidden" isSidebarVisible={isSidebarVisible} setIsSidebarVisible={handleSidebarToggle} />
             </View>}
-        <View className="flex-grow">
+        <View className="flex-1">
           {children}
         </View>
       </View>

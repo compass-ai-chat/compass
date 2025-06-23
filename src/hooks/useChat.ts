@@ -307,9 +307,9 @@ export function useChat() {
   const handleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
     if (!providers.length) return;
 
-    if (Platform.OS == 'web') {
-      setSidebarVisible(false);
-    }
+    // if (Platform.OS == 'web') {
+    //   setSidebarVisible(false);
+    // }
     
     let messages = [...currentThread.messages];
     const isEditing = editingMessageIndex !== -1;
