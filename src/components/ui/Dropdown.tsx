@@ -174,7 +174,7 @@ export const Dropdown = ({
       className={`z-200 ${position === "left" ? "" : "right-0"} absolute ${openUpwards ? "bottom-12" : "mt-12"} rounded-lg overflow-hidden max-h-64 bg-background border border-border shadow-lg`}>
       {showSearch && (
             <View className="p-2 border-b border-border flex-row items-center bg-surface m-2 rounded-md">
-              <Ionicons name="search-outline" size={20} className="text-text mr-1" />
+              <Ionicons name="search-outline" size={20} className="!text-text mr-1" />
               <TextInput
                 ref={searchInputRef}
                 className="px-3 py-2 bg-surface rounded-md text-black dark:text-white flex-1 outline-none"

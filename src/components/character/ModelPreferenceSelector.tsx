@@ -138,7 +138,7 @@ export function ModelPreferenceSelector({
                   {model.provider?.logo && (
                     <LogoRenderer logo={model?.provider?.logo} size={24} className="mr-3 !text-primary " />
                   )}
-                  <Text className="text-text">{model.name}</Text>
+                  <Text className="text-text">{model.name} </Text>
                 </TouchableOpacity>
               ))}
             </View>
