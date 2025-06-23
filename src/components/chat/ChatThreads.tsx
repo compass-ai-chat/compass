@@ -147,7 +147,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
 
 
   return (
-    <View className={`flex-col ${className} ${isSidebarVisible ? 'w-1/4' : 'w-0'}`}>
+    <View className={`flex-col ${className} ${isSidebarVisible ? 'w-1/5' : 'w-0'}`}>
       <View className='flex-row justify-between items-center'>
         {isSidebarVisible && (<SectionHeader
           title={t('chats.chats')}

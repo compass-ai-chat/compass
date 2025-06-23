@@ -118,7 +118,7 @@ export default function CharactersScreen() {
         onCharacterPress={onEdit}
         onCharacterLongPress={startChat}
         onAddCharacter={onAdd}
-        className={`p-2 border-border border-r-2 ${Platform.isMobile ? 'w-full' : 'w-1/4'}`}
+        className={`p-2 border-border border-r-2 ${Platform.isMobile ? 'w-full' : 'w-1/5'}`}
         setCharacters={setCharacters}
         onDeleteCharacter={onDelete}
         selectedCharacter={editingCharacter}
