@@ -136,10 +136,7 @@ export function ModelPreferenceSelector({
                   }`}
                 >
                   {model.provider?.logo && (
-                    <Image
-                      source={{ uri: model.provider.logo }}
-                      className="!w-[24px] !h-[24px] rounded-full mr-2"
-                    />
+                    <LogoRenderer logo={model?.provider?.logo} size={24} className="mr-3 !text-primary " />
                   )}
                   <Text className="text-text">{model.name}</Text>
                 </TouchableOpacity>

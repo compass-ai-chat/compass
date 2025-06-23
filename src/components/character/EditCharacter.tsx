@@ -29,6 +29,7 @@ import { modalService } from "@/src/services/modalService";
 import { Tool } from "@/src/types/tools";
 import { ToolSelector } from "./ToolSelector";
 import { InstructionEditor } from "./InstructionEditor";
+import { Platform } from "@/src/utils/platform";
 
 interface EditCharacterProps {
   availableModels: Model[];
@@ -195,7 +196,7 @@ export default function EditCharacter({
 
   return (
     <View className={`flex-1 bg-background ${className}`}>   
-      <Text className="text-text text-sm mb-4 pl-2 border-l-4 border-border">A Character shapes your AI assistant's communication style and available resources. By defining specific traits, tools and documents, you can transform generic responses into meaningful interactions tailored to your needs - whether you're seeking a creative writing partner, technical expert, or thoughtful mentor.</Text>
+      { !Platform.isMobile && (<Text className="text-text text-sm mb-4 pl-2 border-l-4 border-border">A Character shapes your AI assistant's communication style and available resources. By defining specific traits, tools and documents, you can transform generic responses into meaningful interactions tailored to your needs - whether you're seeking a creative writing partner, technical expert, or thoughtful mentor.</Text>)}
         <View className="items-center mb-8 pt-4 border-b border-border mx-4 flex-row py-4">
         <View className="items-center justify-between border-r border-border px-4 mr-4">
             <View className="relative">

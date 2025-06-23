@@ -175,33 +175,36 @@ const ChatThreads: React.FC = () => {
         }}
       />
       
-      <Tooltip text={t('common.shortcut') + ': ' + 'Alt + N'}>
-        <TouchableOpacity 
-          onPress={addNewThread} 
-          className="mb-2 p-2 rounded-full flex flex-row justify-center bg-background hover:bg-surface hover:border-primary hover:border-2 items-center"
-        >
-          <Ionicons 
-            className="!text-text" 
-            name="add" 
-            size={24}
-          />
-          <Text className="text-text mt-1 ml-2 font-bold">{t('chats.new_chat')}</Text>
-        </TouchableOpacity>
-      </Tooltip>
+
       
-      <View className="flex-row justify-center space-x-4 mb-2">
+      
+      <View className="flex-row justify-around space-x-4 mb-2">
         <Tooltip text={t('chats.clear_all_tooltip')} tooltipClassName="w-20">
           <TouchableOpacity 
             onPress={clearAllThreads}
-            className="p-2 rounded-full bg-surface hover:bg-background"
+            className="p-2 rounded-full hover:bg-background flex-row py-4"
           >
             <Ionicons 
               name="trash-outline" 
               size={24}
-              className="!text-text"
+              className="!text-red-500"
             />
+            <Text className='text-text mt-1 ml-1'>Clear All </Text>
           </TouchableOpacity>
         </Tooltip>
+        <Tooltip text={t('common.shortcut') + ': ' + 'Alt + N'}>
+        <TouchableOpacity 
+          onPress={addNewThread} 
+          className="mb-2 p-4 rounded-full flex flex-row justify-center bg-surface web:bg-background hover:border-primary hover:border-2 items-center"
+        >
+          <Ionicons 
+            className="!text-primary" 
+            name="add" 
+            size={24}
+          />
+          <Text className="text-text mt-1 ml-2 font-bold">{t('chats.new_chat')} </Text>
+        </TouchableOpacity>
+      </Tooltip>
       </View>
     </View>
   );

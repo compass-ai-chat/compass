@@ -7,7 +7,7 @@ import { useState } from 'react';
 // Common Ionicon names that would make sense for character avatars
 const ICON_NAMES = [
   'person', 'bulb', 'happy', 'sad', 'heart', 'star', 'planet',
-  'rocket', 'flower', 'paw', 'game-controller', 'musical-notes',
+  'rocket', 'paw', 'game-controller', 'musical-notes',
   'book', 'library', 'school', 'glasses', 'baseball', 'football',
   'basketball', 'bicycle', 'airplane', 'boat', 'pulse', 'magnet',
   'cafe', 'restaurant', 'pizza', 'ice-cream', 'build', 'wine',
