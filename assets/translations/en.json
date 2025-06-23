@@ -108,6 +108,7 @@
         "missing_documents": "Missing Documents",
         "missing_documents_warning": "Some referenced documents are no longer available.",
         "no_documents_available": "No documents available. Upload documents in the Documents section.",
+        "page": "page",
         "pages": "pages",
         "dependants": "Dependants",
         "no_documents_upload": "You have no documents. Upload a document to get started."

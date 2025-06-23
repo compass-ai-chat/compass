@@ -73,7 +73,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         size={24} 
         className="!text-white" 
       />
-      <Text className="text-white">{t('documents.upload')}</Text>
+      <Text className="text-white">{t('documents.upload')} </Text>
     </TouchableOpacity>
   );
 }; 

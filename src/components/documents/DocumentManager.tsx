@@ -1,9 +1,8 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, FlatList, useWindowDimensions } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, TouchableOpacity, FlatList, useWindowDimensions, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DocumentUploader } from "./DocumentUploader";
 import { Document } from "@/src/types/core";
-import { Platform } from "react-native";
 import { DocumentViewer } from "./DocumentViewer";
 import { modalService } from "@/src/services/modalService";
 import { toastService } from "@/src/services/toastService";
@@ -12,6 +11,7 @@ import { useLocalization } from "@/src/hooks/useLocalization";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
 import { Modal } from "@/src/components/ui/Modal";
+import { Platform } from "@/src/utils/platform";
 
 interface DocumentManagerProps {
   documents: Document[];
@@ -36,9 +36,12 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const { t } = useLocalization();
-  const { getResponsiveSize } = useResponsiveStyles();
+  const { getResponsiveSize, getResponsiveClass, getResponsiveValue } = useResponsiveStyles();
+  
   const { width } = useWindowDimensions();
   const isMobile = width < 768; // Common breakpoint for mobile devices
+  const [search, setSearch] = useState("");
+  
 
   const handleDocumentUpload = async (doc: DocumentPickerAsset) => {
     try {
@@ -52,6 +55,10 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
       });
     }
   };
+
+  const filteredDocuments = useMemo(() => {
+      return documents.filter(x => x.name.toLowerCase().includes(search.toLowerCase()));
+    }, [documents, search]);
 
   const handleDeleteDocument = async (document: Document) => {
     const dependentCharacters = characters.filter((character) =>
@@ -109,7 +116,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
     ).length;
 
     return (
-      <View className="flex-row items-center p-4 bg-surface rounded-lg mb-2">
+      <TouchableOpacity onPress={()=>setSelectedDoc(doc)} className="flex-row items-center p-4 bg-surface rounded-lg mb-2">
         <Ionicons
           name="document-text"
           size={getResponsiveSize(20, 24)}
@@ -118,19 +125,17 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
         <View className="flex-1">
           <Text className="text-text font-medium">{doc.name}</Text>
           <View className="flex-row items-center">
-            <Text className="text-secondary text-sm">{doc.pages} {t('documents.pages')}</Text>
-            <Text className="text-secondary text-sm">{doc.id}</Text>
-            {dependentCharactersCount > 0 && (
+            <Text className="text-secondary text-sm">{doc.pages??1} {t('documents.pages')} </Text>
+            {!Platform.isMobile && (<Text className="text-secondary text-sm">{doc.id}</Text>)}
+            {dependentCharactersCount && dependentCharactersCount > 0 && (
               <View className="flex-row items-center ml-2">
                 <Text className="text-secondary text-sm">•</Text>
-                <Text className="text-secondary text-sm ml-2">
-                  {t('documents.dependants')}: {dependentCharactersCount}
-                </Text>
+                <Text className="text-secondary text-sm ml-2">{t('documents.dependants')}: {dependentCharactersCount} </Text>
               </View>
             )}
           </View>
         </View>
-        <View className="flex-row gap-2">
+        {!Platform.isMobile && (<View className="flex-row gap-2">
           <TouchableOpacity
             className="p-2 bg-surface border border-primary rounded-lg"
             onPress={() => setSelectedDoc(doc)}
@@ -149,8 +154,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
           >
             <Ionicons name="trash" size={getResponsiveSize(16, 20)} className="!text-white" />
           </TouchableOpacity>
-        </View>
-      </View>
+        </View>)}
+      </TouchableOpacity>
     );
   };
 
@@ -171,12 +176,37 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
           }
         />
 
+        {/* Search */}
+        <View className="bg-surface rounded-lg flex-row items-center mb-2 p-2">
+            <Ionicons
+              name="search"
+              size={getResponsiveSize(16, 20)}
+              className="!text-secondary mr-2"
+            />
+            <TextInput
+              className={`flex-1 text-text outline-none ${getResponsiveClass("text-sm", "")}`}
+              placeholder="Search documents..."
+              placeholderTextColor="#9CA3AF"
+              value={search}
+              onChangeText={setSearch}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")}>
+                <Ionicons
+                  name="close-circle"
+                  size={getResponsiveSize(16, 20)}
+                  className="!text-secondary"
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
         <FlatList
-          data={documents}
+          data={filteredDocuments}
           renderItem={renderDocument}
           keyExtractor={(doc) => doc.id}
           className={
-            documents.length > 0
+            filteredDocuments.length > 0
               ? "flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-4 gap-2"
               : "flex-1"
           }
