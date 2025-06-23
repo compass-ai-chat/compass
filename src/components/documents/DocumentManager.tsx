@@ -12,6 +12,7 @@ import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
 import { Modal } from "@/src/components/ui/Modal";
 import { Platform } from "@/src/utils/platform";
+import { SearchBar } from "../ui/SearchBar";
 
 interface DocumentManagerProps {
   documents: Document[];
@@ -177,29 +178,12 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
         />
 
         {/* Search */}
-        <View className="bg-surface rounded-lg flex-row items-center mb-2 p-2">
-            <Ionicons
-              name="search"
-              size={getResponsiveSize(16, 20)}
-              className="!text-secondary mr-2"
-            />
-            <TextInput
-              className={`flex-1 text-text outline-none ${getResponsiveClass("text-sm", "")}`}
-              placeholder="Search documents..."
-              placeholderTextColor="#9CA3AF"
-              value={search}
-              onChangeText={setSearch}
-            />
-            {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch("")}>
-                <Ionicons
-                  name="close-circle"
-                  size={getResponsiveSize(16, 20)}
-                  className="!text-secondary"
-                />
-              </TouchableOpacity>
-            )}
-          </View>
+        <SearchBar
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Search documents..."
+        className="mb-2"
+      />
 
         <FlatList
           data={filteredDocuments}
