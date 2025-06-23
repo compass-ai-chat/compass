@@ -116,7 +116,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
     ).length;
 
     return (
-      <TouchableOpacity onPress={()=>setSelectedDoc(doc)} className="flex-row items-center p-4 bg-surface rounded-lg mb-2">
+      <TouchableOpacity onPress={()=>setSelectedDoc(doc)} className="mx-2 flex-row items-center p-4 border border-border rounded-lg mb-2">
         <Ionicons
           name="document-text"
           size={getResponsiveSize(20, 24)}
