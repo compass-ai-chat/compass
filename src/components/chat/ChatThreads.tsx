@@ -29,6 +29,33 @@ const ChatThreads: React.FC = () => {
   const { addNewThread } = useChat();
   const defaultThread = useAtomValue(defaultThreadAtom);
 
+  const NewChatButton = () => (
+    <TouchableOpacity 
+        onPress={addNewThread} 
+        className="mb-2 p-4 rounded-full flex flex-row justify-center bg-surface web:bg-background hover:border-primary hover:border-2 items-center"
+      >
+        <Ionicons 
+          className="!text-primary" 
+          name="add" 
+          size={24}
+        />
+        <Text className="text-text mt-1 ml-2 font-bold">{t('chats.new_chat')} </Text>
+      </TouchableOpacity>
+      )
+
+  const ListEmptyComponent = () => (
+    <View className="flex-1 items-center justify-center">
+      <Ionicons 
+        name="chatbubbles-outline" 
+        size={64} 
+        className="!text-primary"
+      />
+      <Text className="text-text text-lg mb-2 text-center">{t('chats.no_threads')} </Text>
+      <Text className="text-gray-500 text-sm mb-12 text-center px-4">
+        {t('chats.start_new_chat')}  </Text>
+        <NewChatButton />
+    </View>
+  );
 
   const groupThreadsByDate = useCallback((threads: Thread[]): Section[] => {
     const today = new Date();
@@ -62,6 +89,9 @@ const ChatThreads: React.FC = () => {
   const toggleDark = useCallback(() => {
     toggleColorScheme();
   }, [toggleColorScheme]);
+
+
+  
 
   const editThreadTitle = async (thread: Thread) => {
     const newTitle = await modalService.prompt({
@@ -161,6 +191,7 @@ const ChatThreads: React.FC = () => {
         }}
         stickySectionHeadersEnabled={true}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
+        ListEmptyComponent={ListEmptyComponent}
         onContentSizeChange={() => {
           const lastSectionIndex = groupThreadsByDate(threads).length - 1;
           const lastSection = groupThreadsByDate(threads)[lastSectionIndex];
@@ -193,17 +224,8 @@ const ChatThreads: React.FC = () => {
           </TouchableOpacity>
         </Tooltip>
         <Tooltip text={t('common.shortcut') + ': ' + 'Alt + N'}>
-        <TouchableOpacity 
-          onPress={addNewThread} 
-          className="mb-2 p-4 rounded-full flex flex-row justify-center bg-surface web:bg-background hover:border-primary hover:border-2 items-center"
-        >
-          <Ionicons 
-            className="!text-primary" 
-            name="add" 
-            size={24}
-          />
-          <Text className="text-text mt-1 ml-2 font-bold">{t('chats.new_chat')} </Text>
-        </TouchableOpacity>
+        {threads.length>0 && (<NewChatButton />)}
+      
       </Tooltip>
       </View>
     </View>
