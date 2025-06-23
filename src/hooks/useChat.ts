@@ -163,8 +163,12 @@ export function useChat() {
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
 
-    // if latest thread has zero messages, do not add new thread
+    // if latest thread has zero messages, do not add new thread but instead set the current thread to the latest thread
     if(threads.length > 0 && threads[threads.length - 1].messages.length === 0){
+      dispatchThread({ type: 'setCurrent', payload: threads[threads.length - 1] });
+      if(Platform.OS != 'web' || window.innerWidth < 768){
+        router.push(`/thread/${threads[threads.length - 1].id}`);
+      }
       return;
     }
 
