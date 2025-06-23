@@ -23,6 +23,9 @@
         "confirm": "Bekræft"
     },
     "chats":{
+        "no_threads": "Der er helt stille...",
+        "search_chats": "Søg efter samtaler...",
+        "start_new_chat":"Start en samtale ved at trykke nedenfor",
         "clear_all": "Ryd alle",
         "clear_all_confirm": "Er du sikker på, at du vil rydde alle samtaler?",
         "clear_all_tooltip": "Ryd alle samtaler",

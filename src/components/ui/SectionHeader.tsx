@@ -23,7 +23,7 @@ export function SectionHeader({
       className={`${getResponsiveClass(
         "flex-col",
         "flex-row justify-between"
-      )} items-center mb-4 ${className}`}
+      )} items-center ${className}`}
     >
       <View className="flex-row items-center">
         <Ionicons

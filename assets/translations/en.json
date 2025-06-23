@@ -24,7 +24,8 @@
     },
     "chats": {
         "no_threads": "It's all quiet...",
-        "start_new_chat":"Start your first conversation by tapping below",
+        "search_chats": "Search chats...",
+        "start_new_chat":"Start a conversation by tapping below",
         "clear_all": "Clear all",
         "clear_all_confirm": "Are you sure you want to clear all chats?",
         "clear_all_tooltip": "Clear all chats",

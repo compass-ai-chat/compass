@@ -23,6 +23,9 @@
         "confirm": "Conferma"
     },
     "chats": {
+        "no_threads": "È tutto tranquillo...",
+        "search_chats": "Cerca conversazioni...",
+        "start_new_chat": "Inizia una conversazione premendo qui sotto",
         "clear_all": "Elimina tutto",
         "clear_all_confirm": "Sei sicuro di voler eliminare tutte le conversazioni?",
         "clear_all_tooltip": "Elimina tutte le conversazioni",

@@ -33,7 +33,7 @@ export function SearchBar({
         onChangeText={onChangeText}
       />
       {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText("")}>
+        <TouchableOpacity className='mr-2' onPress={() => onChangeText("")}>
           <Ionicons
             name="close-circle"
             size={getResponsiveSize(16, 20)}

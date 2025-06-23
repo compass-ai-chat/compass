@@ -182,7 +182,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
         value={search}
         onChangeText={setSearch}
         placeholder="Search documents..."
-        className="mb-2"
+        className="mb-2 mt-2"
       />
 
         <FlatList

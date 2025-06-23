@@ -1,15 +1,16 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, SectionList } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { threadsAtom, currentThreadAtom, threadActionsAtom, previewCodeAtom, defaultThreadAtom } from '@/src/hooks/atoms';
 import { modalService } from '@/src/services/modalService';
 import { Thread } from '@/src/types/core';
 import { router } from 'expo-router';
-import { useColorScheme } from 'nativewind';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import Tooltip from '@/src/components/ui/Tooltip';
 import { useChat } from '@/src/hooks/useChat';
+import { SearchBar } from '../ui/SearchBar';
+import { SectionHeader } from '../ui/SectionHeader';
 
 
 interface Section {
@@ -17,22 +18,25 @@ interface Section {
   data: Thread[];
 }
 
-const ChatThreads: React.FC = () => {
+interface ChatThreadsProps {
+  className?: string;
+  isSidebarVisible?: boolean;
+  setIsSidebarVisible?: (isSidebarVisible: boolean) => void;
+}
+
+const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, setIsSidebarVisible  }) => {
   const [threads] = useAtom(threadsAtom);
   const [currentThread] = useAtom(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const setPreviewCode = useSetAtom(previewCodeAtom);
   const scrollViewRef = useRef<SectionList>(null);
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
   const { t } = useLocalization();
   const { addNewThread } = useChat();
-  const defaultThread = useAtomValue(defaultThreadAtom);
-
+  const [search, setSearch] = useState('');
   const NewChatButton = () => (
     <TouchableOpacity 
         onPress={addNewThread} 
-        className="mb-2 p-4 rounded-full flex flex-row justify-center bg-surface web:bg-background hover:border-primary hover:border-2 items-center"
+        className="mb-2 p-4 rounded-full flex flex-row justify-center bg-surface hover:border-primary hover:border-2 items-center"
       >
         <Ionicons 
           className="!text-primary" 
@@ -86,13 +90,6 @@ const ChatThreads: React.FC = () => {
     return sections.filter(section => section.data.length > 0);
   }, []);
 
-  const toggleDark = useCallback(() => {
-    toggleColorScheme();
-  }, [toggleColorScheme]);
-
-
-  
-
   const editThreadTitle = async (thread: Thread) => {
     const newTitle = await modalService.prompt({
       title: "Edit Thread Title",
@@ -140,11 +137,28 @@ const ChatThreads: React.FC = () => {
     }
   };
 
+  const filteredThreads = threads.filter(thread => thread.title.toLowerCase().includes(search.toLowerCase()));
+
+  const sidebarToggle = () => (
+    <TouchableOpacity onPress={()=>setIsSidebarVisible?.(isSidebarVisible??true)} className='mb-2 p-2'>
+          <FontAwesome name="columns" size={20} className='!text-gray-500' />
+        </TouchableOpacity>
+  )
+
+
   return (
-    <View className="flex-1 flex-col">
+    <View className={`flex-col ${className} ${isSidebarVisible ? 'w-1/4' : 'w-0'}`}>
+      <View className='flex-row justify-between items-center'>
+        {isSidebarVisible && (<SectionHeader
+          title={t('chats.chats')}
+          icon="chatbubbles"
+          className='p-2 mt-2'
+        />)}
+        {sidebarToggle()}
+      </View>
       <SectionList
         ref={scrollViewRef}
-        sections={groupThreadsByDate(threads)}
+        sections={groupThreadsByDate(filteredThreads)}
         keyExtractor={(thread) => thread.id}
         renderSectionHeader={({ section: { title } }) => (
           <View className="z-10 flex-row items-center px-4">
@@ -155,7 +169,7 @@ const ChatThreads: React.FC = () => {
           </View>
         )}
         renderItem={({ item: thread }) => (
-          <View className={`flex-row items-center mb-2 h-16 mx-4 rounded-lg shadow-md ${
+          <View className={`flex-row items-center mb-2 h-16 web:h-10 mx-4 rounded-lg shadow-md ${
             currentThread.id === thread.id 
               ? 'web:border-primary web:border-2' 
               : ''
@@ -195,7 +209,7 @@ const ChatThreads: React.FC = () => {
         onContentSizeChange={() => {
           const lastSectionIndex = groupThreadsByDate(threads).length - 1;
           const lastSection = groupThreadsByDate(threads)[lastSectionIndex];
-          if (lastSection?.data.length > 0) {
+          if (filteredThreads.length > 0 && lastSection?.data.length > 0) {
             scrollViewRef.current?.scrollToLocation({ 
               sectionIndex: lastSectionIndex,
               itemIndex: 0,
@@ -205,12 +219,15 @@ const ChatThreads: React.FC = () => {
           }
         }}
       />
-      
-
-      
+      <SearchBar
+        value={search}
+        onChangeText={setSearch}
+        placeholder={t('chats.search_chats')}
+        className="mb-2 mx-2"
+      />
       
       <View className="flex-row justify-around space-x-4 mb-2">
-        <Tooltip text={t('chats.clear_all_tooltip')} tooltipClassName="w-20">
+        <Tooltip text={t('chats.clear_all_tooltip')} tooltipClassName="-mt-8 w-20">
           <TouchableOpacity 
             onPress={clearAllThreads}
             className="p-2 rounded-full hover:bg-background flex-row py-4"
@@ -220,14 +237,15 @@ const ChatThreads: React.FC = () => {
               size={24}
               className="!text-red-500"
             />
-            <Text className='text-text mt-1 ml-1'>Clear All </Text>
+            <Text className='text-text mt-1 ml-1'>{t('chats.clear_all')} </Text>
           </TouchableOpacity>
         </Tooltip>
         <Tooltip text={t('common.shortcut') + ': ' + 'Alt + N'}>
-        {threads.length>0 && (<NewChatButton />)}
+        {filteredThreads.length>0 && (<NewChatButton />)}
       
       </Tooltip>
       </View>
+      
     </View>
   );
 };

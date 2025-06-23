@@ -109,7 +109,7 @@ export default function CharactersList({
         value={search}
         onChangeText={setSearch}
         placeholder="Search characters..."
-        className="mb-2"
+        className="mb-2 mt-2"
       />
       
       {true && (
