@@ -127,12 +127,12 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
           <View className="flex-row items-center">
             <Text className="text-secondary text-sm">{doc.pages??1} {t('documents.pages')} </Text>
             {!Platform.isMobile && (<Text className="text-secondary text-sm">{doc.id}</Text>)}
-            {dependentCharactersCount && dependentCharactersCount > 0 && (
+            {/* {dependentCharactersCount && dependentCharactersCount > 0 && (
               <View className="flex-row items-center ml-2">
                 <Text className="text-secondary text-sm">•</Text>
                 <Text className="text-secondary text-sm ml-2">{t('documents.dependants')}: {dependentCharactersCount} </Text>
               </View>
-            )}
+            )} */}
           </View>
         </View>
         {!Platform.isMobile && (<View className="flex-row gap-2">
