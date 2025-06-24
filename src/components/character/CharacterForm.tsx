@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, ScrollView, Text, TouchableOpacity } from "react-native";
 import { Character, Document, Model, AllowedModel, ModelRouting } from "@/src/types/core";
 import { InstructionEditor } from "./InstructionEditor";
@@ -20,6 +20,10 @@ interface ModelRoutingSelectorProps {
 function ModelRoutingSelector({ availableModels, selectedRouting, onRoutingChange }: ModelRoutingSelectorProps) {
   const { t } = useLocalization();
   const [showSecondModel, setShowSecondModel] = useState(selectedRouting.length === 2);
+
+  useEffect(()=>{
+    setShowSecondModel(selectedRouting.length === 2);
+  },[selectedRouting]);
 
   const handleSliderChange = (value: number) => {
     if (selectedRouting.length !== 2) return;
@@ -182,6 +186,10 @@ export function CharacterForm({
 }: CharacterFormProps) {
   const { t } = useLocalization();
 
+  useEffect(()=>{
+    console.log("character", character);
+  },[character]);
+
   const handleDocumentToggle = (docId: string) => {
     if (character?.documentIds?.includes(docId)) {
       onCharacterChange({
@@ -196,30 +204,18 @@ export function CharacterForm({
     }
   };
 
-  const handleAllowedModelAdd = (model: AllowedModel) => {
-    const currentAllowedModels = character?.allowedModels || [];
-    const existingIndex = currentAllowedModels.findIndex(
-      (p) => p.id === model.id,
-    );
-
-    if (existingIndex >= 0) {
-      const updatedAllowedModelIds = [...currentAllowedModels];
-      updatedAllowedModelIds[existingIndex] = model;
-      onCharacterChange({ ...character!, allowedModels: updatedAllowedModelIds });
-    } else {
-      onCharacterChange({
-        ...character!,
-        allowedModels: [...currentAllowedModels, model],
-      });
-    }
-  };
-
-  const handleAllowedModelRemove = (model: AllowedModel) => {
-    if (!character?.allowedModels) return;
+  const handleRoutingChange = (routing: ModelRouting[]) => {
+    // Convert routing to allowedModels format
+    const allowedModels = routing.map((r, index) => ({
+      id: r.modelId,
+      providerId: r.providerId,
+      priority: index
+    }));
 
     onCharacterChange({
-      ...character,
-      allowedModels: character.allowedModels.filter((p) => p.id !== model.id),
+      ...character!,
+      allowedModels,
+      modelRouting: routing
     });
   };
 
@@ -237,12 +233,14 @@ export function CharacterForm({
     }
   };
 
-  const handleRoutingChange = (routing: ModelRouting[]) => {
-    onCharacterChange({
-      ...character!,
-      modelRouting: routing
-    });
-  };
+  // Convert allowedModels to routing format if no routing exists yet
+  const initialRouting = character?.modelRouting || (character?.allowedModels?.length ? [
+    {
+      modelId: character.allowedModels[0].id,
+      providerId: character.allowedModels[0].providerId,
+      percentage: 100
+    }
+  ] : []);
 
   return (
     <ScrollView
@@ -260,35 +258,26 @@ export function CharacterForm({
           </View>
         </View>
 
-        <View>
-          <ModelPreferenceSelector
-            availableModels={availableModels}
-            selectedPreferences={character?.allowedModels || []}
-            onAddPreference={handleAllowedModelAdd}
-            onRemovePreference={handleAllowedModelRemove}
-          />
-          
-          <ModelRoutingSelector
-            availableModels={availableModels}
-            selectedRouting={character?.modelRouting || []}
-            onRoutingChange={handleRoutingChange}
-          />
-          
-          {showCharacterExposeAsModel && (
-            <View className="flex-row items-center justify-between mt-4">
-              <Text className="text-base font-medium mb-2 text-text">
-                {t('characters.edit_character.expose_as_model')}
-              </Text>
-              <Switch
-                className="mx-auto"
-                value={character?.exposeAsModel ?? false}
-                onValueChange={(value) =>
-                  onCharacterChange({ ...character!, exposeAsModel: value })
-                }
-              />
-            </View>
-          )}
-        </View>
+        <ModelRoutingSelector
+          availableModels={availableModels}
+          selectedRouting={initialRouting}
+          onRoutingChange={handleRoutingChange}
+        />
+
+        {showCharacterExposeAsModel && (
+          <View className="flex-row items-center justify-between mt-4">
+            <Text className="text-base font-medium mb-2 text-text">
+              {t('characters.edit_character.expose_as_model')}
+            </Text>
+            <Switch
+              className="mx-auto"
+              value={character?.exposeAsModel ?? false}
+              onValueChange={(value) =>
+                onCharacterChange({ ...character!, exposeAsModel: value })
+              }
+            />
+          </View>
+        )}
 
         <DocumentSelector
           documents={availableDocuments}
