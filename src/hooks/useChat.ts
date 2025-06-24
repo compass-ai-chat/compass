@@ -52,8 +52,12 @@ import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
 import { SimpleSchema } from '../utils/zodHelpers';
 
 function selectModelBasedOnRouting(character: Character | undefined, availableModels: Model[]): Model | undefined {
-  if (!character?.modelRouting || character.modelRouting.length !== 2) {
+  if (!character?.modelRouting || character.modelRouting.length < 1) {
     return availableModels.find(x => true);
+  }
+
+  if(character.modelRouting.length === 1) {
+    return availableModels.find(x => x.id === character.modelRouting![0].modelId && x.provider.id === character.modelRouting![0].providerId);
   }
 
   // Generate a random number between 0 and 100
@@ -63,6 +67,8 @@ function selectModelBasedOnRouting(character: Character | undefined, availableMo
   const selectedRouting = randomValue <= character.modelRouting[0].percentage 
     ? character.modelRouting[0] 
     : character.modelRouting[1];
+
+  console.log(`selected model ${selectedRouting.modelId} based on value ${randomValue}`);
 
   return availableModels.find(
     m => m.id === selectedRouting.modelId && m.provider.id === selectedRouting.providerId

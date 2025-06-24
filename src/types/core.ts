@@ -48,7 +48,6 @@ export interface Character {
   icon?: string;
   documentIds?: string[];
   voice?: Voice;
-  allowedModels?: AllowedModel[];
   modelRouting?: ModelRouting[];
   exposeAsModel?: boolean;
   toolIds?: string[];

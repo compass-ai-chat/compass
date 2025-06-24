@@ -205,16 +205,9 @@ export function CharacterForm({
   };
 
   const handleRoutingChange = (routing: ModelRouting[]) => {
-    // Convert routing to allowedModels format
-    const allowedModels = routing.map((r, index) => ({
-      id: r.modelId,
-      providerId: r.providerId,
-      priority: index
-    }));
 
     onCharacterChange({
       ...character!,
-      allowedModels,
       modelRouting: routing
     });
   };
@@ -233,14 +226,7 @@ export function CharacterForm({
     }
   };
 
-  // Convert allowedModels to routing format if no routing exists yet
-  const initialRouting = character?.modelRouting || (character?.allowedModels?.length ? [
-    {
-      modelId: character.allowedModels[0].id,
-      providerId: character.allowedModels[0].providerId,
-      percentage: 100
-    }
-  ] : []);
+  const initialRouting = character?.modelRouting || [];
 
   return (
     <ScrollView
