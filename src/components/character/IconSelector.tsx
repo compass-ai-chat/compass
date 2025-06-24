@@ -23,12 +23,14 @@ interface IconSelectorProps {
   onClose: () => void;
   onSelect: (iconName: string) => void;
   currentIcon?: string;
+  className?: string;
+  modalClassName?: string;
 }
 
-export function IconSelector({ isVisible, onClose, onSelect, currentIcon }: IconSelectorProps) {
+export function IconSelector({ isVisible, onClose, onSelect, currentIcon, className, modalClassName }: IconSelectorProps) {
   return (
-    <Modal isVisible={isVisible} onClose={onClose}>
-      <View className="bg-background p-4 rounded-lg">
+    <Modal isVisible={isVisible} onClose={onClose} className={modalClassName}>
+      <View className={`bg-background p-4 rounded-lg ${className}`}>
         <Text className="text-xl font-bold mb-4 text-text">Select Icon</Text>
         <ScrollView className="max-h-[400px]">
           <View className="flex-row flex-wrap justify-between">
