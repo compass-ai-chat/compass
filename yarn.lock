@@ -5709,10 +5709,10 @@ object-hash@^3.0.0:
   resolved "https://registry.npmjs.org/object-hash/-/object-hash-3.0.0.tgz"
   integrity sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==
 
-ollama-ai-provider-v2@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/ollama-ai-provider-v2/-/ollama-ai-provider-v2-0.0.3.tgz#05e01a3239a1cf2fb793917a8765a6c35ff039a4"
-  integrity sha512-DttNn4+svioVA/OzvksJq2mbUKGAHKgKsNnqJnGnx4GZrEvRDdXddisQqlgIrqbgW2aFzuFtaOb+dRJQJYQ7oQ==
+ollama-ai-provider-v2@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/ollama-ai-provider-v2/-/ollama-ai-provider-v2-0.0.5.tgz#7356418a46861c825704e16796843590ecfe1d3e"
+  integrity sha512-a25jgvF+KVbWEW7MI7c47Id4vIUDST2S7Q9IUf4enEm7aYAwz8efG//8ecqzTCwx/MO8oPygXZ80ZNZST7JoxQ==
   dependencies:
     "@ai-sdk/provider" "1.0.7"
     "@ai-sdk/provider-utils" "2.1.6"

@@ -29,7 +29,6 @@ function ModelRoutingSelector({ availableModels, selectedRouting, onRoutingChang
     if (selectedRouting.length !== 2) return;
     
     const newRouting = [...selectedRouting];
-    console.log("value", value);
     newRouting[1].percentage = value;
     newRouting[0].percentage = 100 - value;
     onRoutingChange(newRouting);
@@ -186,10 +185,6 @@ export function CharacterForm({
   onCharacterChange,
 }: CharacterFormProps) {
   const { t } = useLocalization();
-
-  useEffect(()=>{
-    console.log("character", character);
-  },[character]);
 
   const handleDocumentToggle = (docId: string) => {
     if (character?.documentIds?.includes(docId)) {
