@@ -4,29 +4,17 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  PermissionsAndroid,
-  Platform,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { getDefaultStore, useAtom } from "jotai";
 import { useLocalization } from "@/src/hooks/useLocalization";
-import {
-  availableProvidersAtom,
-  logsAtom,   
-  availableModelsAtom,
-} from "@/src/hooks/atoms";
 import { ProviderCard } from "@/src/components/providers/ProviderCard";
 import { EndpointModal } from "@/src/components/providers/EndpointModal";
-import { useState } from "react";
-import { Provider } from "@/src/types/core";
-import NetInfo from "@react-native-community/netinfo";
-import LogService from "@/utils/LogService";
-import { fetchAvailableModelsV2 } from "@/src/hooks/useModels";
-import { toastService } from "@/src/services/toastService";
-import { EditOllama } from "./EditOllama";
-import { router } from "expo-router";
-import { getProxyUrl } from "@/src/utils/proxy";
-import { MicrosoftAuthModal } from "./MicrosoftAuthModal";
+// Provider type is used by ProviderCard and EndpointModal, but not directly here after refactor
+// import { Provider } from "@/src/types/core";
+import { useOllamaScan } from "@/src/hooks/useOllamaScan";
+import { useProviderManagement } from "@/src/hooks/useProviderManagement";
+import { availableProvidersAtom } from "@/src/hooks/atoms"; // Import the atom
+import { useAtom } from "jotai"; // Import useAtom to get setProviders
 
 interface ProvidersProps {
   className?: string;
@@ -34,144 +22,31 @@ interface ProvidersProps {
 
 export default function Providers({ className }: ProvidersProps) {
   const { t } = useLocalization();
-  const [providers, setProviders] = useAtom(availableProvidersAtom);
-  const [logs, setLogs] = useAtom(logsAtom);
-  const [showModal, setShowModal] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<Provider | undefined>(
-    undefined,
-  );
-  const [scanning, setScanning] = useState(false);
-  const [models, setModels] = useAtom(availableModelsAtom);
 
-  const handleAuthSuccess = async () => {
-    // Refresh providers and models after successful authentication
-    alert("Auth success");
-  };
+  const {
+    providers,
+    editingProvider,
+    isModalVisible,
+    openModalToEdit,
+    openModalToCreate,
+    closeModal,
+    saveProvider,
+    deleteProvider,
+    refreshProviderModels,
+  } = useProviderManagement();
 
-  const handleSave = async (provider: Provider) => {
-    if (editingProvider) {
-      const updated = providers.map((e) =>
-        e.id === editingProvider.id ? provider : e,
-      );
-      await setProviders(updated);
-    } else {
-      await setProviders([
-        ...providers,
-        { ...provider, id: Date.now().toString() },
-      ]);
-    }
-    setEditingProvider(undefined);
-    setShowModal(false);
+  // Get setProviders directly from the atom for useOllamaScan
+  // This decouples useOllamaScan from needing setProviders from useProviderManagement explicitly
+  const [, setProvidersAtomDirectly] = useAtom(availableProvidersAtom);
 
-    fetchAvailableModelsV2(
-      await getDefaultStore().get(availableProvidersAtom),
-    ).then((modelsFound) => {
-      setModels(modelsFound);
-    });
-
-    toastService.success({
-      title: t("settings.providers.provider_saved"),
-      description: t("settings.providers.provider_saved_description"),
-    });
-  };
-
-  const handleDelete = async (provider: Provider) => {
-    const updated = providers.filter((e) => e.id !== provider.id);
-    setProviders(updated);
-  };
-
-  const handleEdit = (provider: Provider) => {
-    setEditingProvider(provider);
-    console.log("editing provider", provider);
-    setShowModal(true);
-  };
-
-  const handleRefresh = (provider: Provider) => {
-    fetchAvailableModelsV2([provider])
-      .then((fetchedModels) => {
-        setModels(fetchedModels);
-      })
-      .catch((error) => {
-        console.error("Error fetching models:", error);
-        toastService.danger({
-          title: t("settings.providers.failed_to_load_models"),
-          description: t("settings.providers.models_fetch_error"),
-        });
-      })
-      .finally(() => {});
-  };
-
-  const autoScanForOllama = async () => {
-    if (Platform.OS === "android") {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: "Fine Location Permission",
-          message:
-            "Compass needs access to your location " +
-            "so it can scan for Ollama instances on your network.",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK",
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("Location permission granted");
-      } else {
-        console.log("Location permission denied");
-      }
-    }
-
-    setScanning(true);
-    try {
-      scanNetworkOllama()
-        .then((ollamaEndpoints) => {
-          const newProviders: Provider[] = ollamaEndpoints
-            .map(
-              (endpoint) =>
-                ({
-                  endpoint,
-                  id: Date.now().toString() + endpoint,
-                  name: "Ollama",
-                  capabilities: {
-                    llm: true,
-                    tts: false,
-                    stt: false,
-                    search: false,
-                  },
-                }) as Provider,
-            )
-            .filter(
-              (p) =>
-                providers.find((e) => e.endpoint === p.endpoint) === undefined,
-            );
-
-          if (newProviders.length > 0) {
-            setProviders([...providers, ...newProviders]);
-            console.log("Provider added");
-            toastService.success({
-              title: "Provider added",
-              description: `${newProviders.length} new Ollama instances were found`,
-            });
-          } else {
-            toastService.info({
-              title: "No new Ollama instances found",
-              description:
-                "Couldn't find any new Ollama instances on your network",
-            });
-          }
-        })
-        .finally(() => {
-          setScanning(false);
-        });
-    } catch (error) {
-      console.error(error);
-      setScanning(false);
-    }
-  };
+  const { scanning, autoScanForOllama } = useOllamaScan({
+    providers,
+    setProviders: setProvidersAtomDirectly // Pass the atom's setter directly
+  });
 
   return (
     <View className={`flex-1 ${className}`}>
+      {/* Header Section - Could be a separate component e.g., ProvidersHeader */}
       <ScrollView className="p-4" contentContainerStyle={{ flexGrow: 0 }}>
         <View className="flex-row justify-between items-center mb-4">
           <View className="flex-row items-center p-4">
