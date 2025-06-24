@@ -51,6 +51,24 @@ import {
 import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
 import { SimpleSchema } from '../utils/zodHelpers';
 
+function selectModelBasedOnRouting(character: Character | undefined, availableModels: Model[]): Model | undefined {
+  if (!character?.modelRouting || character.modelRouting.length !== 2) {
+    return availableModels.find(x => true);
+  }
+
+  // Generate a random number between 0 and 100
+  const randomValue = Math.random() * 100;
+
+  // If random value is less than first model's percentage, use first model
+  const selectedRouting = randomValue <= character.modelRouting[0].percentage 
+    ? character.modelRouting[0] 
+    : character.modelRouting[1];
+
+  return availableModels.find(
+    m => m.id === selectedRouting.modelId && m.provider.id === selectedRouting.providerId
+  );
+}
+
 export function useChat() {
   // ========== State Management ==========
   const currentThread = useAtomValue(currentThreadAtom);
@@ -207,11 +225,13 @@ export function useChat() {
     currentThread.messages = messages;
     let context = contextManager.prepareContext(message, currentThread, mentionedCharacters);
     
-    if(!currentThread.selectedModel?.provider){
+    // Select model based on routing configuration
+    const selectedModel = selectModelBasedOnRouting(currentThread.character, models);
+    if (!selectedModel?.provider) {
       throw new Error('No provider found');
     }
 
-    const chatProvider = ChatProviderFactory.getProvider(currentThread.selectedModel?.provider);
+    const chatProvider = ChatProviderFactory.getProvider(selectedModel.provider);
 
     let relevantDocuments = documents.filter((doc: Document) => 
       currentThread.character?.documentIds?.includes(doc.id) ?? false
@@ -223,7 +243,10 @@ export function useChat() {
     const initialContext: MessageContext = {
       message,
       provider: chatProvider,
-      thread: currentThread,
+      thread: {
+        ...currentThread,
+        selectedModel // Update the thread's selected model
+      },
       mentionedCharacters,
       systemPrompt: currentThread.character?.content ?? '',
       context,
@@ -240,7 +263,13 @@ export function useChat() {
 
     try {
       const transformedContext = await pipeline.process(initialContext);
-      transformedContext.context.messagesToSend.push(transformedContext.context.assistantPlaceholder);
+      transformedContext.context.messagesToSend.push({
+        ...transformedContext.context.assistantPlaceholder,
+        modelUsed: {
+          id: selectedModel.id,
+          providerId: selectedModel.provider.id
+        }
+      });
 
       let messagesToSend = [
         ...transformedContext.context.historyToSend, 
@@ -257,7 +286,7 @@ export function useChat() {
 
       const response = await sendMessage(
         messagesToSend, 
-        currentThread.selectedModel, 
+        selectedModel,
         context.characterToUse, 
         abortController.current.signal
       );
@@ -267,17 +296,17 @@ export function useChat() {
     } catch (error: any) {
       console.log('Error sending message:', error);
       
-      if (error instanceof ModelNotFoundException && currentThread.selectedModel) {
+      if (error instanceof ModelNotFoundException && selectedModel) {
         const updatedModels = models.filter(
-          (m: Model) => !(m.id === currentThread.selectedModel?.id && 
-                         m.provider.id === currentThread.selectedModel?.provider.id)
+          (m: Model) => !(m.id === selectedModel?.id && 
+                         m.provider.id === selectedModel?.provider.id)
         );
         
         setModels(updatedModels || []);
         
         toastService.danger({
           title: 'Model Not Available',
-          description: `The model "${currentThread.selectedModel.id}" is no longer available. It has been removed from your models list.`
+          description: `The model "${selectedModel.id}" is no longer available. It has been removed from your models list.`
         });
       } else {
         toastService.danger({

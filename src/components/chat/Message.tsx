@@ -21,6 +21,10 @@ interface MessageProps {
   onEdit?: (index: number) => void;
   onPreviewCode?: () => void;
   hasPreviewableCode?: boolean;
+  modelUsed?: {
+    id: string;
+    providerId: string;
+  };
 }
 
 interface CodeBlockProps {
@@ -70,7 +74,16 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ content, sourceInfo, isDark, styl
   );
 };
 
-export const Message: React.FC<MessageProps> = ({ content, isUser, character, index, onEdit, onPreviewCode, hasPreviewableCode }) => {
+export const Message: React.FC<MessageProps> = ({ 
+  content, 
+  isUser, 
+  character, 
+  index, 
+  onEdit, 
+  onPreviewCode, 
+  hasPreviewableCode,
+  modelUsed 
+}) => {
   const { colorScheme } = useColorScheme();
   const currentThread = useAtomValue(currentThreadAtom);
   const preferences = useAtomValue(fontPreferencesAtom);
@@ -259,6 +272,11 @@ export const Message: React.FC<MessageProps> = ({ content, isUser, character, in
         >
           {editingMessageIndex === index && (
             <Text className="text-yellow-400 text-xs mb-1">Editing...</Text>
+          )}
+          {!isUser && modelUsed && (
+            <Text className="text-xs opacity-50 mb-1 text-text">
+              via {modelUsed.id}
+            </Text>
           )}
           {editingMessageIndex !== index && (
             <View>
