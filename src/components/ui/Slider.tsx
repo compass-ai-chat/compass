@@ -2,6 +2,8 @@ import React from 'react';
 import { View } from 'react-native';
 import Slider  from '@react-native-community/slider';
 import { useColorScheme } from 'nativewind';
+import { rawThemes } from '@/constants/themes';
+import { useThemePreset } from './ThemeProvider';
 
 interface MySliderProps {
   value: number;
@@ -21,7 +23,8 @@ export function MySlider({
   className = ''
 }: MySliderProps) {
   const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { themePreset } = useThemePreset();
+  const theme = rawThemes[themePreset][colorScheme ?? 'light'];
 
   return (
     <View className={className}>
@@ -31,9 +34,9 @@ export function MySlider({
         minimumValue={min}
         maximumValue={max}
         step={step}
-        minimumTrackTintColor={isDark ? '#60a5fa' : '#3b82f6'} // blue-400 : blue-500
-        maximumTrackTintColor={isDark ? '#374151' : '#e5e7eb'} // gray-700 : gray-200
-        thumbTintColor={isDark ? '#93c5fd' : '#60a5fa'} // blue-300 : blue-400
+        minimumTrackTintColor={'#a0a0a0'} // blue-400 : blue-500
+        maximumTrackTintColor={'#a0a0a0'} // gray-700 : gray-200
+        thumbTintColor={theme.primary} // blue-300 : blue-400
       />
     </View>
   );

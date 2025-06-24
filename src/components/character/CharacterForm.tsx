@@ -29,8 +29,9 @@ function ModelRoutingSelector({ availableModels, selectedRouting, onRoutingChang
     if (selectedRouting.length !== 2) return;
     
     const newRouting = [...selectedRouting];
-    newRouting[0].percentage = value;
-    newRouting[1].percentage = 100 - value;
+    console.log("value", value);
+    newRouting[1].percentage = value;
+    newRouting[0].percentage = 100 - value;
     onRoutingChange(newRouting);
   };
 
@@ -120,7 +121,7 @@ function ModelRoutingSelector({ availableModels, selectedRouting, onRoutingChang
             />
             {showSecondModel && (
               <Text className="text-sm text-center mt-2 text-text font-medium">
-                {selectedRouting[0]?.percentage || 50}%
+                {selectedRouting[0]?.percentage || 0}%
               </Text>
             )}
           </View>
@@ -141,7 +142,7 @@ function ModelRoutingSelector({ availableModels, selectedRouting, onRoutingChang
                   compact
                 />
                 <Text className="text-sm text-center mt-2 text-text font-medium">
-                  {selectedRouting[1]?.percentage || 50}%
+                  {selectedRouting[1]?.percentage || 0}%
                 </Text>
               </View>
             </>
@@ -153,7 +154,7 @@ function ModelRoutingSelector({ availableModels, selectedRouting, onRoutingChang
          selectedRouting.every(r => r.modelId && r.providerId) && (
           <View className="bg-surface p-4 rounded-lg border border-border">
             <MySlider
-              value={selectedRouting[0].percentage}
+              value={selectedRouting[1].percentage}
               onValueChange={handleSliderChange}
               min={0}
               max={100}
