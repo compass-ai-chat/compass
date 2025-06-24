@@ -9,12 +9,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalization } from "@/src/hooks/useLocalization";
 import { ProviderCard } from "@/src/components/providers/ProviderCard";
 import { EndpointModal } from "@/src/components/providers/EndpointModal";
-// Provider type is used by ProviderCard and EndpointModal, but not directly here after refactor
+// Provider type is used by ProviderCard and EndpointModal if they expect it,
+// but the main Providers component doesn't need to import Provider directly anymore.
 // import { Provider } from "@/src/types/core";
 import { useOllamaScan } from "@/src/hooks/useOllamaScan";
 import { useProviderManagement } from "@/src/hooks/useProviderManagement";
-import { availableProvidersAtom } from "@/src/hooks/atoms"; // Import the atom
-import { useAtom } from "jotai"; // Import useAtom to get setProviders
 
 interface ProvidersProps {
   className?: string;
@@ -22,31 +21,144 @@ interface ProvidersProps {
 
 export default function Providers({ className }: ProvidersProps) {
   const { t } = useLocalization();
+  const [providers, setProviders] = useAtom(availableProvidersAtom);
+  const [logs, setLogs] = useAtom(logsAtom);
+  const [showModal, setShowModal] = useState(false);
+  const [editingProvider, setEditingProvider] = useState<Provider | undefined>(
+    undefined,
+  );
+  const [scanning, setScanning] = useState(false);
+  const [models, setModels] = useAtom(availableModelsAtom);
 
-  const {
-    providers,
-    editingProvider,
-    isModalVisible,
-    openModalToEdit,
-    openModalToCreate,
-    closeModal,
-    saveProvider,
-    deleteProvider,
-    refreshProviderModels,
-  } = useProviderManagement();
+  const handleAuthSuccess = async () => {
+    // Refresh providers and models after successful authentication
+    alert("Auth success");
+  };
 
-  // Get setProviders directly from the atom for useOllamaScan
-  // This decouples useOllamaScan from needing setProviders from useProviderManagement explicitly
-  const [, setProvidersAtomDirectly] = useAtom(availableProvidersAtom);
+  const handleSave = async (provider: Provider) => {
+    if (editingProvider) {
+      const updated = providers.map((e) =>
+        e.id === editingProvider.id ? provider : e,
+      );
+      await setProviders(updated);
+    } else {
+      await setProviders([
+        ...providers,
+        { ...provider, id: Date.now().toString() },
+      ]);
+    }
+    setEditingProvider(undefined);
+    setShowModal(false);
 
-  const { scanning, autoScanForOllama } = useOllamaScan({
-    providers,
-    setProviders: setProvidersAtomDirectly // Pass the atom's setter directly
-  });
+    fetchAvailableModelsV2(
+      await getDefaultStore().get(availableProvidersAtom),
+    ).then((modelsFound) => {
+      setModels(modelsFound);
+    });
+
+    toastService.success({
+      title: t("settings.providers.provider_saved"),
+      description: t("settings.providers.provider_saved_description"),
+    });
+  };
+
+  const handleDelete = async (provider: Provider) => {
+    const updated = providers.filter((e) => e.id !== provider.id);
+    setProviders(updated);
+  };
+
+  const handleEdit = (provider: Provider) => {
+    setEditingProvider(provider);
+    console.log("editing provider", provider);
+    setShowModal(true);
+  };
+
+  const handleRefresh = (provider: Provider) => {
+    fetchAvailableModelsV2([provider])
+      .then((fetchedModels) => {
+        setModels(fetchedModels);
+      })
+      .catch((error) => {
+        console.error("Error fetching models:", error);
+        toastService.danger({
+          title: t("settings.providers.failed_to_load_models"),
+          description: t("settings.providers.models_fetch_error"),
+        });
+      })
+      .finally(() => {});
+  };
+
+  const autoScanForOllama = async () => {
+    if (Platform.OS === "android") {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: "Fine Location Permission",
+          message:
+            "Compass needs access to your location " +
+            "so it can scan for Ollama instances on your network.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("Location permission granted");
+      } else {
+        console.log("Location permission denied");
+      }
+    }
+
+    setScanning(true);
+    try {
+      scanNetworkOllama()
+        .then((ollamaEndpoints) => {
+          const newProviders: Provider[] = ollamaEndpoints
+            .map(
+              (endpoint) =>
+                ({
+                  endpoint,
+                  id: Date.now().toString() + endpoint,
+                  name: "Ollama",
+                  capabilities: {
+                    llm: true,
+                    tts: false,
+                    stt: false,
+                    search: false,
+                  },
+                }) as Provider,
+            )
+            .filter(
+              (p) =>
+                providers.find((e) => e.endpoint === p.endpoint) === undefined,
+            );
+
+          if (newProviders.length > 0) {
+            setProviders([...providers, ...newProviders]);
+            console.log("Provider added");
+            toastService.success({
+              title: "Provider added",
+              description: `${newProviders.length} new Ollama instances were found`,
+            });
+          } else {
+            toastService.info({
+              title: "No new Ollama instances found",
+              description:
+                "Couldn't find any new Ollama instances on your network",
+            });
+          }
+        })
+        .finally(() => {
+          setScanning(false);
+        });
+    } catch (error) {
+      console.error(error);
+      setScanning(false);
+    }
+  };
 
   return (
     <View className={`flex-1 ${className}`}>
-      {/* Header Section - Could be a separate component e.g., ProvidersHeader */}
       <ScrollView className="p-4" contentContainerStyle={{ flexGrow: 0 }}>
         <View className="flex-row justify-between items-center mb-4">
           <View className="flex-row items-center p-4">
@@ -133,121 +245,4 @@ export default function Providers({ className }: ProvidersProps) {
   );
 }
 
-export async function scanLocalOllama(): Promise<string[]> {
-  const localEndpoints = ["http://localhost:11434"];
-
-  const testEndpoint = async (endpoint: string): Promise<string | null> => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 500);
-
-      const response = await fetch(await getProxyUrl(endpoint), {
-        headers: {
-          Accept: "application/text",
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      return response.status === 200 ? endpoint : null;
-    } catch (error) {
-      return null;
-    }
-  };
-
-  const results = await Promise.all(localEndpoints.map(testEndpoint));
-  return results.filter((result) => result !== null) as string[];
-}
-
-export async function scanNetworkOllama(): Promise<string[]> {
-  // Get network info
-  const networkState = await NetInfo.fetch();
-  const networkPatterns: string[] = [];
-
-  if (
-    networkState.type === "wifi" &&
-    networkState.details?.ipAddress &&
-    networkState.details?.subnet
-  ) {
-    // Extract subnet from IP and subnet mask
-    const subnet = networkState.details.ipAddress
-      .split(".")
-      .slice(0, 3)
-      .join(".");
-    // Generate IPs only for the detected subnet
-    for (let i = 1; i <= 254; i++) {
-      networkPatterns.push(`http://${subnet}.${i}:11434`);
-    }
-  } else {
-    // Fallback to checking common subnets if we can't determine the current network
-    for (let i = 1; i <= 254; i++) {
-      networkPatterns.push(`http://192.168.0.${i}:11434`);
-    }
-    for (let i = 1; i <= 254; i++) {
-      networkPatterns.push(`http://192.168.1.${i}:11434`);
-    }
-  }
-
-  // Batch size of concurrent requests
-  const BATCH_SIZE = 25;
-  const TIMEOUT_MS = 500;
-
-  // Modified test endpoint function that resolves as soon as a valid endpoint is found
-  const testEndpoint = async (endpoint: string): Promise<string | null> => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-      const response = await fetch(await getProxyUrl(endpoint), {
-        headers: {
-          Accept: "application/text",
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      return response.status === 200 ? endpoint : null;
-    } catch (error: any) {
-      return null;
-    }
-  };
-
-  let results: string[] = [];
-  // Process endpoints in batches
-  for (let i = 0; i < networkPatterns.length; i += BATCH_SIZE) {
-    const batch = networkPatterns.slice(i, i + BATCH_SIZE);
-    const batchResults = await Promise.all(batch.map(testEndpoint));
-    results = [...results, ...batchResults.filter((result) => result !== null)];
-  }
-
-  // if we have both localhost and 127.0.0.1, remove 127.0.0.1
-  if (
-    results.includes("localhost:11434") &&
-    results.includes("127.0.0.1:11434")
-  ) {
-    results = results.filter((result) => !result.includes("127.0.0.1:11434"));
-  }
-
-  if (results.length > 1 && results.includes("localhost:11434")) {
-    // make request to /api/tags
-    const localResponse = await fetch(
-      await getProxyUrl(`http://localhost:11434/api/tags`),
-    );
-    const localData = await localResponse.json();
-
-    const otherEndpoints = results.filter(
-      (result) => !result.includes("localhost:11434"),
-    );
-    for (let i = 0; i < otherEndpoints.length; i++) {
-      const response = await fetch(
-        await getProxyUrl(`${otherEndpoints[i]}/api/tags`),
-      );
-      const responseData = await response.json();
-      if (localData.toString() == responseData.toString()) {
-        results = results.filter((result) => result != otherEndpoints[i]);
-      }
-    }
-  }
-
-  return results;
-}
+// scanLocalOllama and scanNetworkOllama functions are now in ollamaDiscoveryService.ts
