@@ -1,11 +1,4 @@
 import { View } from "react-native";
-import { useAtom, useSetAtom } from "jotai";
-import {
-  charactersAtom,
-  saveCustomPrompts,
-  availableModelsAtom,
-  syncToPolarisAtom,
-} from "@/src/hooks/atoms";
 import { Character, Model, Document } from "@/src/types/core";
 import { useState, useEffect } from "react";
 import { toastService } from "@/src/services/toastService";
@@ -122,7 +115,6 @@ export default function EditCharacter({
         availableTools={availableTools}
         showCharacterExposeAsModel={showCharacterExposeAsModel}
         onCharacterChange={setCharacter}
-        onShowTemplateSelector={() => setShowTemplateSelector(true)}
       />
 
       <CharacterFooter

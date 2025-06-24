@@ -15,7 +15,6 @@ interface CharacterFormProps {
   availableTools: Tool[];
   showCharacterExposeAsModel?: boolean;
   onCharacterChange: (character: Character) => void;
-  onShowTemplateSelector: () => void;
 }
 
 export function CharacterForm({
@@ -25,7 +24,6 @@ export function CharacterForm({
   availableTools,
   showCharacterExposeAsModel = false,
   onCharacterChange,
-  onShowTemplateSelector,
 }: CharacterFormProps) {
   const { t } = useLocalization();
 
@@ -96,7 +94,6 @@ export function CharacterForm({
               character={character as Character}
               content={character?.content || ""}
               onChangeText={(text) => onCharacterChange({ ...character!, content: text })}
-              onInsertVariable={onShowTemplateSelector}
             />
           </View>
         </View>
