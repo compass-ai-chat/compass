@@ -43,13 +43,7 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
           dropdownOptionClassName="w-64"
           position="left"
         />
-        {/* <ModelSelector 
-            onModelSelect={handleSelectModel}
-            onCharacterSelect={handleSelectCharacter}
-            thread={currentThread}
-            character={currentThread.character}
-            className=''
-            /> */}
+        
         <View className="flex-row items-center gap-2">
         {polarisUser && (
             <View className="flex-row items-center gap-2">
