@@ -1,7 +1,7 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { View, TextInput, Pressable, Text, Platform, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { charactersAtom, editingMessageIndexAtom, fontPreferencesAtom, hotToolsAtom } from '@/src/hooks/atoms';
+import { charactersAtom, editingMessageIndexAtom, fontPreferencesAtom } from '@/src/hooks/atoms';
 import { useAtom, useAtomValue } from 'jotai';
 import { CharacterMentionPopup } from '@/src/components/character/CharacterMentionPopup';
 import { Character } from '@/src/types/core';
@@ -52,7 +52,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
   const [inputHeight, setInputHeight] = useState<number>(initialInputRows * lineHeight); // Initial height
   const { t } = useLocalization();
   //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
-  const [hotTools, setHotTools] = useAtom(hotToolsAtom);
 
 
   useImperativeHandle(ref, () => ({
@@ -115,7 +114,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
 
       if(!confirmed) return;
     }
-    console.log("Sending with tools", hotTools);
     onSend(message.trim(), mentionedCharacters);
     setMentionedCharacters([]);
     setIsEditing(false);
@@ -192,31 +190,6 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
     setEditingMessageIndex(-1);
   };
 
-  const handleToggleTool = (toolId: string) => {
-    console.log("enabled tool", toolId)    
-
-    setHotTools(prev=>{
-      const newSet = new Set(prev);
-      if (newSet.has(toolId)) {
-        newSet.delete(toolId);
-      } else {
-        newSet.add(toolId);
-      }
-      return newSet;
-    })
-    
-    // setActiveTools(prev => {
-    //   const newSet = new Set(prev);
-    //   if (newSet.has(toolId)) {
-    //     newSet.delete(toolId);
-    //   } else {
-    //     newSet.add(toolId);
-    //   }
-    //   return newSet;
-    // });
-
-  };
-
   return (
     <View className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}>
       {showMentionPopup && (
@@ -228,10 +201,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
         />
       )}
       
-      <ToolsMenu
-        activeTools={hotTools}
-        onToggleTool={handleToggleTool}
-      />
+      <ToolsMenu />
 
       <TextInput
         onBlur={handleBlur}

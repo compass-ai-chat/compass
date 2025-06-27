@@ -2,6 +2,8 @@ import React, { useCallback, useRef } from 'react';
 import { View, Pressable, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Switch } from '@/src/components/ui/Switch';
+import { hotToolsAtom } from '@/src/hooks/atoms';
+import { useAtom } from 'jotai';
 
 interface Tool {
   id: string;
@@ -11,13 +13,28 @@ interface Tool {
 }
 
 interface ToolsMenuProps {
-  activeTools: Set<string>;
-  onToggleTool: (toolId: string) => void;
 }
 
-export const ToolsMenu: React.FC<ToolsMenuProps> = ({ activeTools, onToggleTool }) => {
+export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
   const [showToolsMenu, setShowToolsMenu] = React.useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout>();
+  const [hotTools, setHotTools] = useAtom(hotToolsAtom);
+
+  const handleToggleTool = (toolId: string) => {
+    console.log("enabled tool", toolId)    
+
+    setHotTools(prev=>{
+      const newSet = new Set(prev);
+      if (newSet.has(toolId)) {
+        newSet.delete(toolId);
+      } else {
+        newSet.add(toolId);
+      }
+      return newSet;
+    })
+    
+  };
+  
 
   const availableTools: Tool[] = [
     {
@@ -79,7 +96,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ activeTools, onToggleTool 
                 <View
                   key={tool.id}
                   className={`flex-row items-center p-2 rounded-md ${
-                    activeTools.has(tool.id) ? 'bg-primary/20' : ''
+                    hotTools.has(tool.id) ? 'bg-primary/20' : ''
                   }`}
                 >
                   <Ionicons
@@ -88,8 +105,8 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ activeTools, onToggleTool 
                     className='!text-text mr-2'
                   />
                   <Switch
-                value={activeTools.has(tool.id)}
-                onValueChange={() => onToggleTool(tool.id)}
+                value={hotTools.has(tool.id)}
+                onValueChange={() => handleToggleTool(tool.id)}
               />
                   
                   {/* <Text className="ml-2 text-text">{tool.name}</Text> */}
@@ -120,9 +137,9 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ activeTools, onToggleTool 
           {availableTools.map((tool) => (
             <Pressable
               key={tool.id}
-              onPress={() => onToggleTool(tool.id)}
+              onPress={() => handleToggleTool(tool.id)}
               className={`flex-row items-center p-2 rounded-md ${
-                activeTools.has(tool.id) ? 'bg-primary/20' : ''
+                hotTools.has(tool.id) ? 'bg-primary/20' : ''
               }`}
             >
               <Ionicons
