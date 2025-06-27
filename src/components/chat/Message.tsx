@@ -13,6 +13,25 @@ import { CharacterAvatar } from '../character/CharacterAvatar';
 import { MessageActions } from './MessageActions';
 import { ThinkBlock } from './ThinkBlock';
 
+function extractThinkBlocks(content: string): { thinkBlocks: string[], remainingContent: string } {
+  const thinkBlocks: string[] = [];
+  let remainingContent = content;
+  
+  // Regular expression to match <think>...</think> blocks
+  const thinkRegex = /<think>(.*?)<\/think>/gs;
+  let match;
+  
+  // Extract all think blocks
+  while ((match = thinkRegex.exec(content)) !== null) {
+    thinkBlocks.push(match[1].trim());
+  }
+  
+  // Remove all think blocks from the content
+  remainingContent = content.replace(thinkRegex, '').trim();
+  
+  return { thinkBlocks, remainingContent };
+}
+
 interface MessageProps {
   content: string;
   isUser: boolean;
@@ -90,6 +109,7 @@ export const Message: React.FC<MessageProps> = ({
   const editingMessageIndex = useAtomValue(editingMessageIndexAtom);
   const isDark = colorScheme === 'dark';
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
+  const [thinkBlocks, setThinkBlocks] = useState<string[]>([]);
 
   const markdownStyles = {
     body: {
@@ -128,29 +148,10 @@ export const Message: React.FC<MessageProps> = ({
 
   useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
-      // Check for thinking tags
-    const thinkOpenIndex = content.indexOf('<think>');
-    const thinkCloseIndex = content.indexOf('</think>');
-
-    if (thinkOpenIndex !== -1) {
-      // Extract content after <think> tag
-      const thinkStart = thinkOpenIndex + '<think>'.length;
-      
-      if (thinkCloseIndex !== -1) {
-        // We have both opening and closing tags
-        setThinkingContent(content.substring(thinkStart, thinkCloseIndex).trim());
-        setDisplayContent(content.replace(/<think>.*?<\/think>/s, '').trim());
-      } else {
-        // Only opening tag exists - everything after is thinking
-        setThinkingContent(content.substring(thinkStart).trim());
-        setDisplayContent('');
-      }
-      setIsThinking(true);
-    } else {
-      setDisplayContent(content);
-      setIsThinking(false);
-      setThinkingContent(null);
-    }
+      const { thinkBlocks, remainingContent } = extractThinkBlocks(content);
+      setThinkBlocks(thinkBlocks);
+      setDisplayContent(remainingContent);
+      setIsThinking(thinkBlocks.length > 0);
     });
   }, [content]);
 
@@ -280,15 +281,27 @@ export const Message: React.FC<MessageProps> = ({
           )}
           {editingMessageIndex !== index && (
             <View>
-              {isThinking && thinkingContent && (
+              {isThinking && thinkBlocks.map((thinkContent, thinkIndex) => (
                 <ThinkBlock
-                  content={thinkingContent}
+                  key={`think-${index}-${thinkIndex}`}
+                  content={thinkContent}
                   isDark={isDark}
                   style={markdownStyles.code_block}
-                  isExpanded={expandedThinkBlocks.has(`think-${index}`)}
-                  onToggleExpand={handleToggleThinkBlock}
+                  isExpanded={expandedThinkBlocks.has(`think-${index}-${thinkIndex}`)}
+                  onToggleExpand={() => {
+                    setExpandedThinkBlocks(prev => {
+                      const newSet = new Set(prev);
+                      const blockId = `think-${index}-${thinkIndex}`;
+                      if (newSet.has(blockId)) {
+                        newSet.delete(blockId);
+                      } else {
+                        newSet.add(blockId);
+                      }
+                      return newSet;
+                    });
+                  }}
                 />
-              )}
+              ))}
               {displayContent && (
                 <Markdown 
                   style={markdownStyles}
