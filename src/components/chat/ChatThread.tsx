@@ -33,6 +33,7 @@ export const ChatThread: React.FC = () => {
 
   const chatInputRef = useRef<ChatInputRef>(null);
   const previousThreadId = useRef(currentThread.id);
+  const [selectedElement, setSelectedElement] = useState<DropdownElement | undefined>();
 
   useEffect(() => {
     chatInputRef.current?.focus();
@@ -59,12 +60,18 @@ export const ChatThread: React.FC = () => {
       image: character.image || character.icon,
       logo: character.icon,
       metadata: { type: 'character' as const, data: character }
-    }))
+    })),
   ], [models, characters]);
 
-  const selectedElement = selectedCharacter 
-    ? dropdownElements.find(el => el.id === selectedCharacter.id)
-    : dropdownElements.find(el => el.id === selectedModel?.id);
+  useEffect(()=>{
+    setSelectedElement(selectedCharacter 
+      ? dropdownElements.find(el => el.id === selectedCharacter.id)
+      : dropdownElements.find(el => el.id === selectedModel?.id) ?? dropdownElements.find(x=>true))
+  }, [dropdownElements])
+
+  // const selectedElement = selectedCharacter 
+  //   ? dropdownElements.find(el => el.id === selectedCharacter.id)
+  //   : dropdownElements.find(el => el.id === selectedModel?.id);
 
   const handleSelection = (element: DropdownElement) => {
     const { type, data } = element.metadata;
