@@ -21,7 +21,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ activeTools, onToggleTool 
 
   const availableTools: Tool[] = [
     {
-      id: 'web_search',
+      id: 'WebSearch',
       name: 'Web Search',
       icon: 'globe-outline',
       description: 'Enable real-time web search capabilities'

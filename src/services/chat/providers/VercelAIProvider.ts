@@ -11,10 +11,14 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { useTools } from '@/src/hooks/useTools';
 import { z } from 'zod';
 import { SimpleSchema, simpleSchemaToZod } from '@/src/utils/zodHelpers';
+import { hotToolsAtom } from '@/src/hooks/atoms';
+import { useAtom } from 'jotai';
+
 
 export function useVercelAIProvider() {
 
   const { getVercelCompatibleToolSet } = useTools();
+  const [hotTools, setHotTools] = useAtom(hotToolsAtom);
 
   const createProvider = (provider: any, modelId: string) => {
     let aiModel;
@@ -97,20 +101,18 @@ export function useVercelAIProvider() {
     const lastMessage = messages[messages.length - 1];
     const activeTools = lastMessage.activeTools || [];
 
-    // Add character tools if they exist
-    if(character?.toolIds){
-      
-      let toolIds = character.toolIds;
+    let toolIds = [];
 
-      // if character has documents, add document search tool
-      //if(character?.documentIds?.length && character.documentIds.length > 0) toolIds.push("DocumentSearch");
 
-      if (activeTools.includes('web_search')) toolIds.push("WebSearch");
+    if(character?.toolIds) toolIds.push(...character.toolIds);
+    if (Array.from(hotTools).length>0) toolIds.push(...Array.from(hotTools));
+    //if(character?.documentIds?.length && character.documentIds.length > 0) toolIds.push("DocumentSearch");
 
+    if(toolIds.length > 0) {
+      console.log("fetching for tools", toolIds);
       toolSchemas = await getVercelCompatibleToolSet(toolIds.filter(x=>x!="DocumentSearch"));
     }
 
-    
 
     console.log("Tool schemas", toolSchemas);
 

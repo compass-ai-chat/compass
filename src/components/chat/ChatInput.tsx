@@ -1,7 +1,7 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { View, TextInput, Pressable, Text, Platform, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { charactersAtom, editingMessageIndexAtom, fontPreferencesAtom } from '@/src/hooks/atoms';
+import { charactersAtom, editingMessageIndexAtom, fontPreferencesAtom, hotToolsAtom } from '@/src/hooks/atoms';
 import { useAtom, useAtomValue } from 'jotai';
 import { CharacterMentionPopup } from '@/src/components/character/CharacterMentionPopup';
 import { Character } from '@/src/types/core';
@@ -18,7 +18,7 @@ interface Tool {
 }
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[], activeTools: string[]) => void;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[]) => void;
   isGenerating?: boolean;
   onInterrupt?: () => void;
   className?: string;
@@ -51,31 +51,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
   const lineHeight = fontPreferences.lineHeight || 20; // Default line height if not specified
   const [inputHeight, setInputHeight] = useState<number>(initialInputRows * lineHeight); // Initial height
   const { t } = useLocalization();
-  const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
-  const closeTimeoutRef = useRef<NodeJS.Timeout>();
-  const menuRef = useRef<View>(null);
+  //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
+  const [hotTools, setHotTools] = useAtom(hotToolsAtom);
 
-  const availableTools: Tool[] = [
-    {
-      id: 'web_search',
-      name: 'Web Search',
-      icon: 'search',
-      description: 'Enable real-time web search capabilities'
-    }
-    // Add more tools here in the future
-  ];
-
-  const toggleTool = (toolId: string) => {
-    setActiveTools(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(toolId)) {
-        newSet.delete(toolId);
-      } else {
-        newSet.add(toolId);
-      }
-      return newSet;
-    });
-  };
 
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -137,7 +115,8 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
 
       if(!confirmed) return;
     }
-    onSend(message.trim(), mentionedCharacters, Array.from(activeTools));
+    console.log("Sending with tools", hotTools);
+    onSend(message.trim(), mentionedCharacters);
     setMentionedCharacters([]);
     setIsEditing(false);
     
@@ -214,7 +193,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
   };
 
   const handleToggleTool = (toolId: string) => {
-    setActiveTools(prev => {
+    console.log("enabled tool", toolId)    
+
+    setHotTools(prev=>{
       const newSet = new Set(prev);
       if (newSet.has(toolId)) {
         newSet.delete(toolId);
@@ -222,7 +203,18 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
         newSet.add(toolId);
       }
       return newSet;
-    });
+    })
+    
+    // setActiveTools(prev => {
+    //   const newSet = new Set(prev);
+    //   if (newSet.has(toolId)) {
+    //     newSet.delete(toolId);
+    //   } else {
+    //     newSet.add(toolId);
+    //   }
+    //   return newSet;
+    // });
+
   };
 
   return (
@@ -237,7 +229,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({ onSend, isG
       )}
       
       <ToolsMenu
-        activeTools={activeTools}
+        activeTools={hotTools}
         onToggleTool={handleToggleTool}
       />
 
