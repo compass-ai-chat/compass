@@ -36,7 +36,7 @@ export function CustomHeader() {
 
   return (
     <SafeAreaView className="flex-row items-center px-4 py-3 bg-background">
-      <View className='bg-surface web:rounded-lg w-full web:mt-2'>
+      <View className='bg-surface w-full web:mt-2 rounded-lg'>
       <TouchableOpacity className="flex-row items-center h-12 hover:opacity-80 rounded-lg px-2" onPress={() => navigation.goBack()}>
         {canGoBack && (
           <View className="mr-3">

@@ -52,8 +52,7 @@ export const defaultThreadAtom = atom(async (get)=>{
   const defaultModel = models.find((m) => m.id === defaultOption.id);
   const defaultCharacter = characters.find((c) => c.id === defaultOption.id);
 
-  const characterAllowdModel = defaultCharacter?.allowedModels?.length??0 > 0 ? defaultCharacter?.allowedModels?.[0] : undefined;
-  const characterModel = characterAllowdModel ? models.find((m) => m.id === characterAllowdModel.id) : undefined;
+  const characterModel = defaultCharacter?.modelRouting?.[0] ? models.find((m) => m.id === defaultCharacter?.modelRouting?.[0].modelId && m.provider.id === defaultCharacter?.modelRouting?.[0].providerId) : undefined;
   const model = characterModel ?? defaultModel;
 
   return {

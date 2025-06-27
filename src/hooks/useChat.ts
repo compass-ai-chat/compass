@@ -51,6 +51,30 @@ import {
 import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
 import { SimpleSchema } from '../utils/zodHelpers';
 
+function selectModelBasedOnRouting(character: Character | undefined, availableModels: Model[]): Model | undefined {
+  if (!character?.modelRouting || character.modelRouting.length < 1) {
+    return availableModels.find(x => true);
+  }
+
+  if(character.modelRouting.length === 1) {
+    return availableModels.find(x => x.id === character.modelRouting![0].modelId && x.provider.id === character.modelRouting![0].providerId);
+  }
+
+  // Generate a random number between 0 and 100
+  const randomValue = Math.random() * 100;
+
+  // If random value is less than first model's percentage, use first model
+  const selectedRouting = randomValue <= character.modelRouting[0].percentage 
+    ? character.modelRouting[0] 
+    : character.modelRouting[1];
+
+  console.log(`selected model ${selectedRouting.modelId} based on value ${randomValue}`);
+
+  return availableModels.find(
+    m => m.id === selectedRouting.modelId && m.provider.id === selectedRouting.providerId
+  );
+}
+
 export function useChat() {
   // ========== State Management ==========
   const currentThread = useAtomValue(currentThreadAtom);
@@ -163,8 +187,12 @@ export function useChat() {
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
 
-    // if latest thread has zero messages, do not add new thread
+    // if latest thread has zero messages, do not add new thread but instead set the current thread to the latest thread
     if(threads.length > 0 && threads[threads.length - 1].messages.length === 0){
+      dispatchThread({ type: 'setCurrent', payload: threads[threads.length - 1] });
+      if(Platform.OS != 'web' || window.innerWidth < 768){
+        router.push(`/thread/${threads[threads.length - 1].id}`);
+      }
       return;
     }
 
@@ -203,11 +231,13 @@ export function useChat() {
     currentThread.messages = messages;
     let context = contextManager.prepareContext(message, currentThread, mentionedCharacters);
     
-    if(!currentThread.selectedModel?.provider){
+    // Select model based on routing configuration
+    const selectedModel = selectModelBasedOnRouting(currentThread.character, models);
+    if (!selectedModel?.provider) {
       throw new Error('No provider found');
     }
 
-    const chatProvider = ChatProviderFactory.getProvider(currentThread.selectedModel?.provider);
+    const chatProvider = ChatProviderFactory.getProvider(selectedModel.provider);
 
     let relevantDocuments = documents.filter((doc: Document) => 
       currentThread.character?.documentIds?.includes(doc.id) ?? false
@@ -219,7 +249,10 @@ export function useChat() {
     const initialContext: MessageContext = {
       message,
       provider: chatProvider,
-      thread: currentThread,
+      thread: {
+        ...currentThread,
+        selectedModel // Update the thread's selected model
+      },
       mentionedCharacters,
       systemPrompt: currentThread.character?.content ?? '',
       context,
@@ -236,7 +269,13 @@ export function useChat() {
 
     try {
       const transformedContext = await pipeline.process(initialContext);
-      transformedContext.context.messagesToSend.push(transformedContext.context.assistantPlaceholder);
+      transformedContext.context.messagesToSend.push({
+        ...transformedContext.context.assistantPlaceholder,
+        modelUsed: {
+          id: selectedModel.id,
+          providerId: selectedModel.provider.id
+        }
+      });
 
       let messagesToSend = [
         ...transformedContext.context.historyToSend, 
@@ -253,7 +292,7 @@ export function useChat() {
 
       const response = await sendMessage(
         messagesToSend, 
-        currentThread.selectedModel, 
+        selectedModel,
         context.characterToUse, 
         abortController.current.signal
       );
@@ -263,17 +302,17 @@ export function useChat() {
     } catch (error: any) {
       console.log('Error sending message:', error);
       
-      if (error instanceof ModelNotFoundException && currentThread.selectedModel) {
+      if (error instanceof ModelNotFoundException && selectedModel) {
         const updatedModels = models.filter(
-          (m: Model) => !(m.id === currentThread.selectedModel?.id && 
-                         m.provider.id === currentThread.selectedModel?.provider.id)
+          (m: Model) => !(m.id === selectedModel?.id && 
+                         m.provider.id === selectedModel?.provider.id)
         );
         
         setModels(updatedModels || []);
         
         toastService.danger({
           title: 'Model Not Available',
-          description: `The model "${currentThread.selectedModel.id}" is no longer available. It has been removed from your models list.`
+          description: `The model "${selectedModel.id}" is no longer available. It has been removed from your models list.`
         });
       } else {
         toastService.danger({
@@ -307,9 +346,9 @@ export function useChat() {
   const handleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
     if (!providers.length) return;
 
-    if (Platform.OS == 'web') {
-      setSidebarVisible(false);
-    }
+    // if (Platform.OS == 'web') {
+    //   setSidebarVisible(false);
+    // }
     
     let messages = [...currentThread.messages];
     const isEditing = editingMessageIndex !== -1;

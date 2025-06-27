@@ -39,7 +39,7 @@ export const DocumentSelector: React.FC<DocumentSelectorProps> = ({
           <Ionicons name="exit-outline" onPress={()=>setShowModal(true)} size={24} className="ml-2 !text-primary" />
         </TouchableOpacity>
       </View>
-      <ScrollView className="max-h-40 bg-surface rounded-lg border-2 border-border">
+      <ScrollView className="max-h-64 bg-surface rounded-lg border-2 border-border">
         {documents.map((doc) => (
           <TouchableOpacity
             key={doc.id}

@@ -20,6 +20,10 @@ export interface ChatMessage {
   isSystem?: boolean;
   character?: Character;
   activeTools?: string[];
+  modelUsed?: {
+    id: string;
+    providerId: string;
+  };
 }
 
 export interface Model {
@@ -45,7 +49,7 @@ export interface Character {
   icon?: string;
   documentIds?: string[];
   voice?: Voice;
-  allowedModels?: AllowedModel[];
+  modelRouting?: ModelRouting[];
   exposeAsModel?: boolean;
   toolIds?: string[];
 }
@@ -128,4 +132,10 @@ export interface Note extends ResourceMetadata {
   title: string;
   content: string;
   createdAt: Date;
+}
+
+export interface ModelRouting {
+  modelId: string;
+  providerId: string;
+  percentage: number;
 }

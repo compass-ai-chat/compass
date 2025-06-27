@@ -8,6 +8,7 @@ import { useColorScheme } from 'nativewind';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalization } from '@/src/hooks/useLocalization';
 import { Dropdown, DropdownElement } from '../ui/Dropdown';
+import { Platform } from '@/src/utils/platform';
 
 interface ChatTopbarProps {
   dropdownElements: DropdownElement[];
@@ -31,7 +32,7 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
     }, [toggleColorScheme]);
 
     return (
-        <View className="absolute top-0 left-0 right-0 min-w-[25%] w-fit mx-auto p-2 flex-row justify-between items-center border-b border-border bg-surface shadow-2xl rounded-xl mt-2 z-10 opacity-60 hover:opacity-100 transition-all duration-200">
+        <View className={`absolute top-0 left-0 right-0 min-w-[25%] w-fit mx-auto p-2 flex-row justify-between items-center border-b border-border bg-surface shadow-2xl rounded-xl mt-2 z-10 ${Platform.isMobile ? 'opacity-100' : 'opacity-60'} hover:opacity-100 transition-all duration-200`}>
         <Dropdown 
           openUpwards={false}
           showSearch={true}
@@ -42,13 +43,7 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
           dropdownOptionClassName="w-64"
           position="left"
         />
-        {/* <ModelSelector 
-            onModelSelect={handleSelectModel}
-            onCharacterSelect={handleSelectCharacter}
-            thread={currentThread}
-            character={currentThread.character}
-            className=''
-            /> */}
+        
         <View className="flex-row items-center gap-2">
         {polarisUser && (
             <View className="flex-row items-center gap-2">

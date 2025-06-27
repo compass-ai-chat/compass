@@ -140,7 +140,6 @@ export class PolarisServer {
         icon: character.icon,
         image: character.image,
         documentIds: character.documentIds,
-        allowedModels: character.allowedModels,
         exposeAsModel: character.exposeAsModel,
         toolIds: character.toolIds,
       };
@@ -186,7 +185,7 @@ export class PolarisServer {
         icon: character.icon,
         image: character.image,
         documentIds: character.documentIds,
-        allowedModels: character.allowedModels,
+        modelRouting: character.modelRouting,
         exposeAsModel: character.exposeAsModel,
         toolIds: character.toolIds,
       };

@@ -97,30 +97,20 @@ export function useVercelAIProvider() {
     const lastMessage = messages[messages.length - 1];
     const activeTools = lastMessage.activeTools || [];
 
-    // If web search is active, add it to the tools
-    if (activeTools.includes('web_search')) {
-      toolSchemas = {
-        ...toolSchemas,
-        ...(await getVercelCompatibleToolSet(["WebSearch"]))
-      };
-    }
-
     // Add character tools if they exist
     if(character?.toolIds){
-      toolSchemas = {
-        ...toolSchemas,
-        ...(await getVercelCompatibleToolSet(character.toolIds))
-      };
+      
+      let toolIds = character.toolIds;
+
+      // if character has documents, add document search tool
+      //if(character?.documentIds?.length && character.documentIds.length > 0) toolIds.push("DocumentSearch");
+
+      if (activeTools.includes('web_search')) toolIds.push("WebSearch");
+
+      toolSchemas = await getVercelCompatibleToolSet(toolIds.filter(x=>x!="DocumentSearch"));
     }
 
-    // if character has documents, add document search tool
-    if(character?.documentIds?.length && character.documentIds.length > 0){
-      console.log("Adding document search tool");
-      toolSchemas = {
-        ...toolSchemas,
-        ...(await getVercelCompatibleToolSet(["DocumentSearch"]))
-      }
-    }
+    
 
     console.log("Tool schemas", toolSchemas);
 

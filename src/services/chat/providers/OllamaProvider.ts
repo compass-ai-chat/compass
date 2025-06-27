@@ -103,7 +103,7 @@ export class OllamaProvider implements ChatProvider {
         });
   
         const result = await generateText({
-          model: ollama(model.id),
+          model: ollama(model.id, {think:false}),
           messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }]
         });
   

@@ -46,9 +46,9 @@ export const useCharacterModelSelection = () => {
   }, [models, selectedModel, selectedCharacter]);
 
   const getCharacterModel = (character: Character) => {
-    if (character.allowedModels?.length) {
+    if (character.modelRouting?.length) {
       // fetch allowed model from character
-      return models.find((m) => character?.allowedModels?.map(x => x.id).includes(m.id));
+      return models.find((m) => character?.modelRouting?.map(x => x.modelId).includes(m.id));
     }
     // use first model if no models are available
     return models.find(x => true);

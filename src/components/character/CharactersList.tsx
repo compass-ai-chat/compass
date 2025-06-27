@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Character } from "@/src/types/core";
@@ -12,6 +11,7 @@ import { CharacterAvatar } from "@/src/components/character/CharacterAvatar";
 import { useLocalization } from "@/src/hooks/useLocalization";
 import { PREDEFINED_PROMPTS_BY_LOCALE } from "@/constants/characters";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
+import { SearchBar } from "@/src/components/ui/SearchBar";
 import { Card } from "@/src/components/ui/Card";
 import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
 import { IconSelector } from "./IconSelector";
@@ -49,52 +49,6 @@ export default function CharactersList({
     return characters.filter(character => character.name.toLowerCase().includes(search.toLowerCase()));
   }, [characters, search]);
 
-  const rightContent = showAddButton && onAddCharacter && characters.length > 0 ? (
-    <>
-      <TouchableOpacity
-        onPress={() => {
-          const defaultCharacters = PREDEFINED_PROMPTS_BY_LOCALE[locale];
-          setCharacters(defaultCharacters);
-        }}
-        className="bg-surface px-4 py-2 rounded-lg flex-row items-center hover:opacity-80 mr-2"
-      >
-        <Ionicons name="refresh" size={20} className="!text-primary" />
-        <Text className="text-primary ml-2 font-medium">{t('characters.reset_to_default')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onAddCharacter}
-        className="bg-primary px-4 py-2 rounded-lg flex-row items-center hover:opacity-80"
-      >
-        <Ionicons name="add" size={20} color="white" />
-        <Text className="text-white ml-2 font-medium">{t('characters.new_character')}</Text>
-      </TouchableOpacity>
-    </>
-  ) : null;
-
-  const renderActions = (character: Character) => (
-    <>
-      <TouchableOpacity 
-        onPress={() => onCharacterLongPress?.(character)}
-        className="p-2 bg-blue-100 rounded-lg"
-      >
-        <Ionicons name="play" size={16} className="!text-blue-800" />
-      </TouchableOpacity>
-      
-      {/* <TouchableOpacity 
-        onPress={() => onCharacterPress?.(character)}
-        className="p-2 bg-primary/10 rounded-lg"
-      >
-        <Ionicons name="pencil" size={16} className="!text-primary" />
-      </TouchableOpacity> */}
-      
-      <TouchableOpacity 
-        onPress={() => onDeleteCharacter?.(character)}
-        className="p-2 bg-red-100 rounded-lg"
-      >
-        <Ionicons name="trash" size={16} className="!text-red-800" />
-      </TouchableOpacity>
-    </>
-  );
 
   return (
     <View className={`bg-background ${className}`}>
@@ -105,29 +59,12 @@ export default function CharactersList({
       />
 
       {/* Search */}
-      <View className="bg-surface rounded-lg flex-row items-center mb-2 p-2">
-          <Ionicons
-            name="search"
-            size={getResponsiveSize(16, 20)}
-            className="!text-secondary mr-2"
-          />
-          <TextInput
-            className={`flex-1 text-text outline-none ${getResponsiveClass("text-sm", "")}`}
-            placeholder="Search characters..."
-            placeholderTextColor="#9CA3AF"
-            value={search}
-            onChangeText={setSearch}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch("")}>
-              <Ionicons
-                name="close-circle"
-                size={getResponsiveSize(16, 20)}
-                className="!text-secondary"
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+      <SearchBar
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Search characters..."
+        className="mb-2 mt-2"
+      />
       
       {true && (
         <ScrollView className="flex-1 p-2">

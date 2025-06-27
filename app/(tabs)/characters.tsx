@@ -1,4 +1,5 @@
-import { View, Platform, Text } from "react-native";
+import { View, Text } from "react-native";
+import { Platform } from "@/src/utils/platform";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -32,7 +33,7 @@ export default function CharactersScreen() {
   const { characters, setCharacters, handleEdit, handleAdd, handleSave, handleDelete } = useCharacters();
 
   const onEdit = (character: Character) => {
-    if (Platform.OS === "web") {
+    if (!Platform.isMobile) {
       if (editingCharacter?.id === character.id) {
         setEditingCharacter(undefined);
       } else {
@@ -45,7 +46,7 @@ export default function CharactersScreen() {
   };
 
   const onAdd = () => {
-    if (Platform.OS === "web") {
+    if (!Platform.isMobile) {
       const newCharacter = handleAdd();
       setEditingCharacter(newCharacter);
     } else {
@@ -78,7 +79,7 @@ export default function CharactersScreen() {
 
       await dispatchThread({ type: "update", payload: latestThread });
       await dispatchThread({ type: "setCurrent", payload: latestThread });
-      if (Platform.OS === "web") {
+      if (!Platform.isMobile) {
         setCurrentIndex(0);
         router.replace("/");
       } else {
@@ -100,7 +101,7 @@ export default function CharactersScreen() {
     await dispatchThread({ type: "add", payload: newThread });
 
     setTimeout(() => {
-      if (Platform.OS === "web") {
+      if (!Platform.isMobile) {
         setCurrentIndex(0);
         router.replace("/");
       } else {
@@ -117,7 +118,7 @@ export default function CharactersScreen() {
         onCharacterPress={onEdit}
         onCharacterLongPress={startChat}
         onAddCharacter={onAdd}
-        className="p-2 w-1/4 border-border border-r-2"
+        className={`p-2 border-border border-r-2 ${Platform.isMobile ? 'w-full' : 'w-1/5'}`}
         setCharacters={setCharacters}
         onDeleteCharacter={onDelete}
         selectedCharacter={editingCharacter}
