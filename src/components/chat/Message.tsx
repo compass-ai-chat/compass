@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CharacterAvatar } from '../character/CharacterAvatar';
 import { MessageActions } from './MessageActions';
 import { ThinkBlock } from './ThinkBlock';
+import { ToolCall } from '@/src/services/chat/providers/VercelAIProvider';
 
 function extractThinkBlocks(content: string): { thinkBlocks: string[], remainingContent: string } {
   const thinkBlocks: string[] = [];
@@ -95,15 +96,14 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ content, sourceInfo, isDark, styl
 };
 
 interface ToolCallIndicatorProps {
-  toolId: string | undefined;
+  toolCall: ToolCall;
   isDark: boolean;
 }
 
-const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolId, isDark }) => {
-  const getToolIcon = (toolId: string | undefined) => {
-    if (!toolId) return 'build-outline';
+const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark }) => {
+  const getToolIcon = (toolId: string) => {
     
-    switch (toolId) {
+    switch (toolCall.toolId) {
       case 'WebSearch':
         return 'globe-outline';
       default:
@@ -115,7 +115,7 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolId, isDark })
     <View className="mr-2 mb-2">
       <View className="bg-surface border border-border rounded-full p-2">
         <Ionicons 
-          name={getToolIcon(toolId)} 
+          name={getToolIcon(toolCall.toolId!)} 
           size={16} 
           className="!text-text opacity-70"
         />
@@ -267,10 +267,10 @@ export const Message: React.FC<MessageProps> = ({
           )}
           {message.toolCalls && message.toolCalls.length > 0 && (
             <View className="flex-row flex-wrap mt-1 mb-2">
-              {message.toolCalls.map((tool, idx) => (
+              {message.toolCalls.map((toolCall, idx) => (
                 <ToolCallIndicator 
                   key={`${index}-${idx}`}
-                  toolId={tool.toolId}
+                  toolCall={toolCall}
                   isDark={isDark}
                 />
               ))}
