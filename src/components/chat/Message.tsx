@@ -230,8 +230,6 @@ export const Message: React.FC<MessageProps> = ({
         setThinkBlocks([message.reasoning]);
       }
 
-      console.log(message);
-
       setDisplayContent(message.content);
       setIsThinking(!!message.reasoning && message.content.length == 0);
     });

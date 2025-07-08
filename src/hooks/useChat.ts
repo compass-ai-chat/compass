@@ -171,7 +171,7 @@ export function useChat() {
       let reasoning = "";
 
       for await (const content of reasoningStream) {
-        console.log(content);
+        if (!content) continue;
         reasoning += content;
         await updateLastAssistantMessage(
           { content: "", isUser: false, reasoning },
