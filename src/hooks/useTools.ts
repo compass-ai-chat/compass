@@ -107,18 +107,12 @@ export function useTools() {
   
 
   const executeTool = async (toolId: string, params: Record<string, any>) => {
-    console.log("Finding tool", toolId);
-    console.log("tools", tools);
     const tool = getTool(toolId);
     if (!tool) {
       throw new Error(`Tool not found`);
     }
 
-    console.log("tool found", tool);
-
     const handler = toolBlueprints.find(t => t.id === tool.blueprintId);
-    console.log("handler", handler);
-    console.log("handler paramsSchema", handler?.paramsSchema);
     if (!handler) {
       throw new Error(`Tool handler for ${tool.id} not found`);
     }

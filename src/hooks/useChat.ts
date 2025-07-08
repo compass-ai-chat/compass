@@ -26,7 +26,7 @@ import {
 import { useTTS } from './useTTS';
 import { useSearch } from './useSearch';
 import { useCharacterModelSelection } from './useCharacterModelSelection';
-import { useVercelAIProvider } from '@/src/services/chat/providers/VercelAIProvider';
+import { useVercelAIProvider, ToolCall } from '@/src/services/chat/providers/VercelAIProvider';
 
 // Services
 import { CharacterContextManager } from '@/src/services/chat/CharacterContextManager';
@@ -110,6 +110,19 @@ export function useChat() {
     .addTransform(firstMessageTransform);
 
   // ========== Stream Handling ==========
+  const handleToolCalls = async (toolCallStream: AsyncIterable<ToolCall>) => {
+    try {
+      for await (const toolCall of toolCallStream) {
+        console.log('Received tool call:', toolCall);
+        // Here you can add logic to handle tool calls
+        // For example, you might want to update UI state, log tool usage, etc.
+      }
+    } catch (error: any) {
+      console.log('Tool call handling error:', error);
+      LogService.log(error, {component: 'useChat', function: 'handleToolCalls'}, 'error');
+    }
+  };
+
   const handleStream = async (
     response: AsyncIterable<string>,
     thread: Thread,
@@ -152,6 +165,24 @@ export function useChat() {
       LogService.log(error, {component: 'useChat', function: 'handleStream'}, 'error');
     }
   };
+
+  const updateLastAssistantMessage = async (message: {content: string}, thread: Thread) => {
+    const updatedMessages = [...thread.messages];
+    const lastMessage = updatedMessages[updatedMessages.length - 1];
+    if (lastMessage && !lastMessage.isUser) {
+      lastMessage.content = message.content;
+      const updatedThread = await dispatchThread({
+        type: 'updateMessages',
+        payload: {
+          threadId: thread.id,
+          messages: updatedMessages
+        }
+      });
+      if (updatedThread?.messages[updatedThread.messages.length - 1]?.content !== message.content) {
+        throw new Error('Message update failed to persist');
+      }
+    }
+  }
 
   const updateMessageContent = async (
     content: string,
@@ -290,14 +321,17 @@ export function useChat() {
         });
       }
 
-      const response = await sendMessage(
+      const { textStream, toolCallStream } = await sendMessage(
         messagesToSend, 
         selectedModel,
         context.characterToUse, 
         abortController.current.signal
       );
 
-      await handleStream(response, transformedContext.metadata.updatedThread);
+      // Handle tool calls in parallel
+      handleToolCalls(toolCallStream);
+
+      await handleStream(textStream, transformedContext.metadata.updatedThread);
 
     } catch (error: any) {
       console.log('Error sending message:', error);
@@ -332,7 +366,12 @@ export function useChat() {
     if(!model){
       throw new Error('No model found');
     }
-    return await sendMessage(messages, model);
+    const { textStream, toolCallStream } = await sendMessage(messages, model);
+    
+    // Handle tool calls in background
+    handleToolCalls(toolCallStream);
+    
+    return textStream;
   }
 
   const generateJSONObject = async (prompt: string, schema: SimpleSchema) => {

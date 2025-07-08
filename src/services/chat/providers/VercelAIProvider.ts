@@ -14,6 +14,16 @@ import { SimpleSchema, simpleSchemaToZod } from '@/src/utils/zodHelpers';
 import { hotToolsAtom } from '@/src/hooks/atoms';
 import { useAtom } from 'jotai';
 
+export interface ToolCall {
+  toolName: string;
+  toolCallId: string;
+  args: any;
+}
+
+export interface StreamResponse {
+  textStream: AsyncIterable<string>;
+  toolCallStream: AsyncIterable<ToolCall>;
+}
 
 export function useVercelAIProvider() {
 
@@ -28,7 +38,7 @@ export function useVercelAIProvider() {
         console.log('ollama endpoint', provider.endpoint + '/api');
         aiModel = createOllama({
           baseURL: provider.endpoint + '/api',
-        })(modelId);
+        })(modelId, {think: false});
         break;
       case 'openai':
         aiModel = createOpenAI({
@@ -82,7 +92,7 @@ export function useVercelAIProvider() {
     return object;
   }
 
-  const sendMessage = async (messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> => {
+  const sendMessage = async (messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): Promise<StreamResponse> => {
     const newMessages = [
       ...messages.map(message => ({
         role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
@@ -103,7 +113,6 @@ export function useVercelAIProvider() {
 
     let toolIds = [];
 
-
     if(character?.toolIds) toolIds.push(...character.toolIds);
     if (Array.from(hotTools).length>0) toolIds.push(...Array.from(hotTools));
     //if(character?.documentIds?.length && character.documentIds.length > 0) toolIds.push("DocumentSearch");
@@ -113,14 +122,29 @@ export function useVercelAIProvider() {
       toolSchemas = await getVercelCompatibleToolSet(toolIds.filter(x=>x!="DocumentSearch"));
     }
 
-
     console.log("Tool schemas", toolSchemas);
 
     try {
         const provider = createProvider(model.provider, model.id);
 
         if(!Platform.isMobile){
-          const {textStream} = streamText({
+          // Create controllers for both streams
+          let textController!: ReadableStreamDefaultController<string>;
+          let toolCallController!: ReadableStreamDefaultController<ToolCall>;
+          
+          const textStream = new ReadableStream<string>({
+            start(controller) {
+              textController = controller;
+            }
+          });
+          
+          const toolCallStream = new ReadableStream<ToolCall>({
+            start(controller) {
+              toolCallController = controller;
+            }
+          });
+
+          const {textStream: originalTextStream} = streamText({
             model: provider,
             messages: newMessages as CoreUserMessage[],
             tools: toolSchemas,
@@ -128,32 +152,85 @@ export function useVercelAIProvider() {
             toolChoice: 'auto',
             onChunk: (chunk) => {
               if(chunk.chunk.type == 'tool-call'){
-                //console.log('tool call', chunk.chunk.toolName);
+                console.log('tool call', chunk.chunk);
+                toolCallController.enqueue({
+                  toolName: chunk.chunk.toolName,
+                  toolCallId: chunk.chunk.toolCallId,
+                  args: chunk.chunk.args
+                });
               }
               else{
                 //console.log('chunk', chunk);
               }
+            },
+            onFinish: () => {
+              textController.close();
+              toolCallController.close();
+            },
+            onError: (error) => {
+              textController.error(error);
+              toolCallController.error(error);
             }
           });
 
-          return textStream;
+          // Forward text chunks to our custom text stream
+          (async () => {
+            try {
+              for await (const content of originalTextStream) {
+                textController.enqueue(content);
+              }
+            } catch (error) {
+              textController.error(error);
+            }
+          })();
+
+          return {
+            textStream,
+            toolCallStream
+          };
         }
 
-
+        // For mobile, we use generateText which doesn't stream
         const {text, steps} = await generateText({
           model: provider,
           messages: newMessages as CoreMessage[],
           tools: toolSchemas,
-            maxSteps: 3,
-            toolChoice: 'auto'
+          maxSteps: 3,
+          toolChoice: 'auto'
         });
-  
-        return new ReadableStream({
+
+        // Create streams that immediately provide the final result
+        const textStream = new ReadableStream<string>({
           async start(controller) {
             controller.enqueue(text);
             controller.close();
           }
         });
+
+        const toolCallStream = new ReadableStream<ToolCall>({
+          async start(controller) {
+            // Extract tool calls from steps if any
+            if (steps) {
+              for (const step of steps) {
+                if (step.toolCalls) {
+                  for (const toolCall of step.toolCalls) {
+                    controller.enqueue({
+                      toolName: toolCall.toolName,
+                      toolCallId: toolCall.toolCallId,
+                      args: toolCall.args
+                    });
+                  }
+                }
+              }
+            }
+            controller.close();
+          }
+        });
+
+        return {
+          textStream,
+          toolCallStream
+        };
         
     } catch (error: any) {
       LogService.log(error, { component: 'OpenAIProvider', function: 'sendMessage' }, 'error');
