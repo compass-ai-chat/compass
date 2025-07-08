@@ -94,6 +94,36 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ content, sourceInfo, isDark, styl
   );
 };
 
+interface ToolCallIndicatorProps {
+  toolId: string | undefined;
+  isDark: boolean;
+}
+
+const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolId, isDark }) => {
+  const getToolIcon = (toolId: string | undefined) => {
+    if (!toolId) return 'build-outline';
+    
+    switch (toolId) {
+      case 'WebSearch':
+        return 'globe-outline';
+      default:
+        return 'build-outline'; // Default icon for other tools
+    }
+  };
+
+  return (
+    <View className="mr-2 mb-2">
+      <View className="bg-surface border border-border rounded-full p-2">
+        <Ionicons 
+          name={getToolIcon(toolId)} 
+          size={16} 
+          className="!text-text opacity-70"
+        />
+      </View>
+    </View>
+  );
+};
+
 export const Message: React.FC<MessageProps> = ({ 
   message,
   content, 
@@ -234,6 +264,17 @@ export const Message: React.FC<MessageProps> = ({
             <Text className="text-xs opacity-50 mb-1 text-text">
               via {modelUsed.id}
             </Text>
+          )}
+          {message.toolCalls && message.toolCalls.length > 0 && (
+            <View className="flex-row flex-wrap mt-1 mb-2">
+              {message.toolCalls.map((tool, idx) => (
+                <ToolCallIndicator 
+                  key={`${index}-${idx}`}
+                  toolId={tool.toolId}
+                  isDark={isDark}
+                />
+              ))}
+            </View>
           )}
           {editingMessageIndex !== index && (
             <View>

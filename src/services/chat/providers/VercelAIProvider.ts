@@ -18,6 +18,7 @@ export interface ToolCall {
   toolName: string;
   toolCallId: string;
   args: any;
+  toolId?: string;
 }
 
 export interface StreamResponse {
@@ -156,7 +157,8 @@ export function useVercelAIProvider() {
                 toolCallController.enqueue({
                   toolName: chunk.chunk.toolName,
                   toolCallId: chunk.chunk.toolCallId,
-                  args: chunk.chunk.args
+                  args: chunk.chunk.args, 
+                  toolId: chunk.chunk.toolName
                 });
               }
               else{
