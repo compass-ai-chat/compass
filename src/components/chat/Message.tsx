@@ -101,8 +101,9 @@ interface ToolCallIndicatorProps {
 }
 
 const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const getToolIcon = (toolId: string) => {
-    
     switch (toolCall.toolId) {
       case 'WebSearch':
         return 'globe-outline';
@@ -112,13 +113,20 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark 
   };
 
   return (
-    <View className="mr-2 mb-2">
-      <View className="bg-surface border border-border rounded-full p-2">
+    <View 
+      className="mr-2 mb-2 flex-row items-center"
+      onPointerEnter={() => setIsHovered(true)}
+      onPointerLeave={() => setIsHovered(false)}
+    >
+      <View className={`bg-surface border border-border rounded-full p-2 flex-row items-center transition-all duration-300 ease-in-out`}>
         <Ionicons 
           name={getToolIcon(toolCall.toolId!)} 
           size={16} 
           className="!text-text opacity-70"
         />
+        <Text className={`h-4 text-text text-sm transition-all duration-300 ease-in-out overflow-hidden ${isHovered ? 'opacity-100 ml-2' : 'opacity-0 max-w-0 h-0'}`}>
+          Used {toolCall.toolId}
+        </Text>
       </View>
     </View>
   );
