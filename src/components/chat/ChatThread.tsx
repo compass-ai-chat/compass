@@ -67,7 +67,7 @@ export const ChatThread: React.FC = () => {
     setSelectedElement(selectedCharacter 
       ? dropdownElements.find(el => el.id === selectedCharacter.id)
       : dropdownElements.find(el => el.id === selectedModel?.id) ?? dropdownElements.find(x=>true))
-  }, [dropdownElements])
+  }, [dropdownElements, selectedCharacter, selectedModel])
 
   // const selectedElement = selectedCharacter 
   //   ? dropdownElements.find(el => el.id === selectedCharacter.id)

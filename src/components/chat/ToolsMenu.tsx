@@ -1,8 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View, Pressable, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Switch } from '@/src/components/ui/Switch';
-import { hotToolsAtom, thinkingActiveAtom } from '@/src/hooks/atoms';
+import { currentThreadAtom, hotToolsAtom, thinkingActiveAtom } from '@/src/hooks/atoms';
 import { useAtom } from 'jotai';
 import { FontAwesome6 } from '@expo/vector-icons';
 
@@ -17,6 +17,7 @@ interface ToolsMenuProps {
 }
 
 export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
+  const [currentThread, setCurrentThread] = useAtom(currentThreadAtom);
   const [showToolsMenu, setShowToolsMenu] = React.useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout>();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
@@ -54,23 +55,27 @@ const getIconComponent = (iconName: string, className: string) => {
     })
     
   };
-  
 
-  const availableTools: Tool[] = [
+
+  let availableTools: Tool[] = [
     {
       id: 'WebSearch',
       name: 'Web Search',
       icon: 'globe-outline',
       description: 'Enable real-time web search capabilities'
-    }, 
-    {
+    }
+  ];
+  console.log('currentThread', currentThread);
+
+  // Only add thinking tool if the provider is ollama
+  if (currentThread?.selectedModel?.provider.name === 'Ollama') {
+    availableTools.push({
       id: 'Thinking',
       name: 'Thinking',
       icon: 'brain',
       description: 'Enable thinking capabilities'
-    }
-    // Add more tools here in the future
-  ];
+    })
+  }
 
   const handleShowMenu = useCallback(() => {
     if (closeTimeoutRef.current) {
