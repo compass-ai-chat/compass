@@ -243,7 +243,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
     return (
       <View className="">
-        <View className="flex-row">
+        <View className="flex-row mb-1">
           {urls.map((url) => (
             <Text
               onPress={() => {
