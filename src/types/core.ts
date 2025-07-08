@@ -1,3 +1,5 @@
+import { ToolCall } from "../services/chat/providers/VercelAIProvider";
+
 export interface ThreadMetadata {
   documentIds?: string[];
   webContent?: string[];
@@ -19,6 +21,7 @@ export interface ChatMessage {
   isUser: boolean;
   isSystem?: boolean;
   character?: Character;
+  toolCalls?: ToolCall[];
   activeTools?: string[];
   modelUsed?: {
     id: string;

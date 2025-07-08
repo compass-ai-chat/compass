@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, TouchableOpacity, Platform } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useColorScheme } from 'nativewind';
-import { Character } from '@/src/types/core';
+import { Character, ChatMessage } from '@/src/types/core';
 import { Text } from 'react-native';
 import { currentThreadAtom, editingMessageIndexAtom, fontPreferencesAtom, isGeneratingAtom } from '@/src/hooks/atoms';
 import { useAtom, useAtomValue } from 'jotai';
@@ -33,6 +33,7 @@ function extractThinkBlocks(content: string): { thinkBlocks: string[], remaining
 }
 
 interface MessageProps {
+  message: ChatMessage;
   content: string;
   isUser: boolean;
   character?: Character;
@@ -94,6 +95,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ content, sourceInfo, isDark, styl
 };
 
 export const Message: React.FC<MessageProps> = ({ 
+  message,
   content, 
   isUser, 
   character, 
@@ -191,41 +193,6 @@ export const Message: React.FC<MessageProps> = ({
     });
   };
 
-  function parseContent(content: string): Array<{ type: 'text' | 'annotation'; content: string }> {
-    const parts: { type: 'text' | 'annotation'; content: string }[] = [];
-    const regex = /\*(.*?)\*/g;
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(content)) !== null) {
-      // Add text before the annotation if any
-      if (match.index > lastIndex) {
-        parts.push({
-          type: 'text',
-          content: content.slice(lastIndex, match.index)
-        });
-      }
-
-      // Add the annotation without asterisks
-      parts.push({
-        type: 'annotation',
-        content: match[1]
-      });
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    // Add remaining text if any
-    if (lastIndex < content.length) {
-      parts.push({
-        type: 'text',
-        content: content.slice(lastIndex)
-      });
-    }
-
-    return parts;
-  }
-
   const handleToggleThinkBlock = () => {
     setExpandedThinkBlocks(prev => {
       const newSet = new Set(prev);
@@ -241,17 +208,6 @@ export const Message: React.FC<MessageProps> = ({
 
   return (
     <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}>
-      {/* {!isUser && (
-        <View className="mr-2 items-center my-auto">
-          <CharacterAvatar 
-            character={character || currentThread.character} 
-            size={32} 
-          />
-          <Text className="text-xs mt-1 text-gray-600 dark:text-gray-400 font-bold">
-            {character?.name || currentThread.character?.name}
-          </Text>
-        </View>
-      )} */}
       { !isUser && displayContent.length == 0 && isGenerating && (
         <View className="relative">
           <View className="bg-surface border border-border w-10 h-10 rounded-full items-center justify-center shadow-md">

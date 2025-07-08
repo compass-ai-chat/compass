@@ -110,10 +110,11 @@ export function useChat() {
     .addTransform(firstMessageTransform);
 
   // ========== Stream Handling ==========
-  const handleToolCalls = async (toolCallStream: AsyncIterable<ToolCall>) => {
+  const handleToolCalls = async (toolCallStream: AsyncIterable<ToolCall>, thread: Thread) => {
     try {
       for await (const toolCall of toolCallStream) {
         console.log('Received tool call:', toolCall);
+        await updateLastAssistantMessage({content: toolCall.toolName, isUser: false, toolCalls: [toolCall]}, thread);
         // Here you can add logic to handle tool calls
         // For example, you might want to update UI state, log tool usage, etc.
       }
@@ -166,11 +167,14 @@ export function useChat() {
     }
   };
 
-  const updateLastAssistantMessage = async (message: {content: string}, thread: Thread) => {
+  const updateLastAssistantMessage = async (message: ChatMessage, thread: Thread) => {
     const updatedMessages = [...thread.messages];
-    const lastMessage = updatedMessages[updatedMessages.length - 1];
+    let lastMessage = updatedMessages[updatedMessages.length - 1];
     if (lastMessage && !lastMessage.isUser) {
-      lastMessage.content = message.content;
+      updatedMessages[updatedMessages.length - 1] = {
+        ...lastMessage,
+        ...message
+      }
       const updatedThread = await dispatchThread({
         type: 'updateMessages',
         payload: {
@@ -196,22 +200,7 @@ export function useChat() {
       tts.streamText(content);
     }
 
-    // Update the thread with new content
-    const updatedMessages = [...thread.messages];
-    const lastMessage = updatedMessages[updatedMessages.length - 1];
-    if (lastMessage && !lastMessage.isUser) {
-      lastMessage.content = assistantMessage;
-      const updatedThread = await dispatchThread({
-        type: 'updateMessages',
-        payload: {
-          threadId: thread.id,
-          messages: updatedMessages
-        }
-      });
-      if (updatedThread?.messages[updatedThread.messages.length - 1]?.content !== assistantMessage) {
-        throw new Error('Message update failed to persist');
-      }
-    }
+    await updateLastAssistantMessage({content: assistantMessage, isUser: false}, thread);
   };
 
   // ========== Thread Management ==========
@@ -329,7 +318,7 @@ export function useChat() {
       );
 
       // Handle tool calls in parallel
-      handleToolCalls(toolCallStream);
+      handleToolCalls(toolCallStream, transformedContext.metadata.updatedThread);
 
       await handleStream(textStream, transformedContext.metadata.updatedThread);
 
@@ -369,7 +358,7 @@ export function useChat() {
     const { textStream, toolCallStream } = await sendMessage(messages, model);
     
     // Handle tool calls in background
-    handleToolCalls(toolCallStream);
+    //handleToolCalls(toolCallStream, currentThread);
     
     return textStream;
   }

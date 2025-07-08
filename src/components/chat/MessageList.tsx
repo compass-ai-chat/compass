@@ -39,6 +39,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
 
     return (
       <Message
+        message={message}
         content={message.content}
         isUser={message.isUser}
         character={message.character}
