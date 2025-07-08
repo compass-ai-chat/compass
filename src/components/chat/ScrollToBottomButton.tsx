@@ -10,13 +10,13 @@ interface ScrollToBottomButtonProps {
 
 export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
   visible,
-  onPress
+  onPress,
 }) => {
   if (!visible) return null;
 
   return (
-    <View className="absolute bottom-24 left-0 right-0 items-center mb-2">
-      <TouchableOpacity 
+    <View className="absolute bottom-28 left-0 right-0 items-center mb-2">
+      <TouchableOpacity
         onPress={onPress}
         className="bg-primary w-10 h-10 rounded-full items-center justify-center shadow-md"
       >
@@ -24,4 +24,4 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
       </TouchableOpacity>
     </View>
   );
-}; 
+};

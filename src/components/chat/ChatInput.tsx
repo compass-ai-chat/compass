@@ -242,8 +242,10 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     };
 
     return (
-      <View className="">
-        <View className="flex-row mb-1">
+      <View
+        className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}
+      >
+        <View className="flex-row absolute -top-10">
           {urls.map((url) => (
             <Text
               onPress={() => {
@@ -255,64 +257,60 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             </Text>
           ))}
         </View>
-        <View
-          className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}
-        >
-          {showMentionPopup && (
-            <CharacterMentionPopup
-              characters={allCharacters}
-              onSelect={handleSelectCharacter}
-              searchText={mentionSearch}
-              selectedIndex={selectedIndex}
-            />
-          )}
-
-          <ToolsMenu />
-
-          <TextInput
-            onBlur={handleBlur}
-            ref={inputRef}
-            className={`flex-1 py-1 outline-none w-full px-4 bg-surface rounded-lg mr-2 text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
-            placeholder={t("chats.type_a_message")}
-            placeholderTextColor="#9CA3AF"
-            value={message}
-            onChangeText={handleChangeText}
-            onKeyPress={handleKeyPress}
-            onSelectionChange={(event) => {
-              setCursorPosition(event.nativeEvent.selection.start);
-            }}
-            multiline
-            textAlignVertical="top"
-            style={{
-              fontFamily: fontPreferences.fontFamily,
-              fontSize: fontPreferences.fontSize,
-              lineHeight: fontPreferences.lineHeight - 4,
-              letterSpacing: fontPreferences.letterSpacing,
-              height: inputHeight,
-            }}
+        {showMentionPopup && (
+          <CharacterMentionPopup
+            characters={allCharacters}
+            onSelect={handleSelectCharacter}
+            searchText={mentionSearch}
+            selectedIndex={selectedIndex}
           />
+        )}
 
-          {isGenerating ? (
-            <Pressable
-              onPress={onInterrupt}
-              className="w-10 h-10 rounded-full bg-red-500 items-center justify-center"
-            >
-              <Ionicons name="stop" size={26} color="white" />
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={handleSend}
-              className="w-12 h-12 rounded-full bg-primary items-center justify-center"
-            >
-              <Ionicons name="send" size={26} color="white" />
-            </Pressable>
-          )}
-          {isEditing && (
-            <Text className="absolute -top-6 right-14 text-yellow-500 text-sm">
-              Editing message...
-            </Text>
-          )}
-        </View>
+        <ToolsMenu />
+
+        <TextInput
+          onBlur={handleBlur}
+          ref={inputRef}
+          className={`flex-1 py-1 outline-none w-full px-4 bg-surface rounded-lg mr-2 text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
+          placeholder={t("chats.type_a_message")}
+          placeholderTextColor="#9CA3AF"
+          value={message}
+          onChangeText={handleChangeText}
+          onKeyPress={handleKeyPress}
+          onSelectionChange={(event) => {
+            setCursorPosition(event.nativeEvent.selection.start);
+          }}
+          multiline
+          textAlignVertical="top"
+          style={{
+            fontFamily: fontPreferences.fontFamily,
+            fontSize: fontPreferences.fontSize,
+            lineHeight: fontPreferences.lineHeight - 4,
+            letterSpacing: fontPreferences.letterSpacing,
+            height: inputHeight,
+          }}
+        />
+
+        {isGenerating ? (
+          <Pressable
+            onPress={onInterrupt}
+            className="w-10 h-10 rounded-full bg-red-500 items-center justify-center"
+          >
+            <Ionicons name="stop" size={26} color="white" />
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={handleSend}
+            className="w-12 h-12 rounded-full bg-primary items-center justify-center"
+          >
+            <Ionicons name="send" size={26} color="white" />
+          </Pressable>
+        )}
+        {isEditing && (
+          <Text className="absolute -top-6 right-14 text-yellow-500 text-sm">
+            Editing message...
+          </Text>
+        )}
       </View>
     );
   },

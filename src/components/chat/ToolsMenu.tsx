@@ -1,10 +1,15 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View, Pressable, Text, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Switch } from '@/src/components/ui/Switch';
-import { currentThreadAtom, hotToolsAtom, thinkingActiveAtom } from '@/src/hooks/atoms';
-import { useAtom } from 'jotai';
-import { FontAwesome6 } from '@expo/vector-icons';
+import React, { useCallback, useEffect, useRef } from "react";
+import { View, Pressable, Text, Platform } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Switch } from "@/src/components/ui/Switch";
+import {
+  currentThreadAtom,
+  hotToolsAtom,
+  thinkingActiveAtom,
+} from "@/src/hooks/atoms";
+import { useAtom } from "jotai";
+import { FontAwesome6 } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 interface Tool {
   id: string;
@@ -13,10 +18,9 @@ interface Tool {
   description: string;
 }
 
-interface ToolsMenuProps {
-}
+interface ToolsMenuProps {}
 
-export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
+export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
   const [currentThread, setCurrentThread] = useAtom(currentThreadAtom);
   const [showToolsMenu, setShowToolsMenu] = React.useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout>();
@@ -24,56 +28,60 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
   // Add this helper function before the ToolCallIndicator component
-const getIconComponent = (iconName: string, className: string) => {
-  // List of all available Ionicons names
-  const ioniconsNames = Object.keys(Ionicons.glyphMap);
-  
-  // Check if the icon exists in Ionicons
-  if (ioniconsNames.includes(iconName)) {
-    return (<Ionicons name={iconName as any} size={20} className={className} />)
-  }
-  
-  // Fallback to FontAwesome
-  // Convert kebab-case or snake_case to camelCase for FontAwesome
-  const faName = iconName
-    .replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase())
-    .replace('-outline', '')
-    .replace('-sharp', '');
-    
-    return (<FontAwesome6 name={faName as any} size={20} className={className} />)
+  const getIconComponent = (iconName: string, className: string) => {
+    // List of all available Ionicons names
+    const ioniconsNames = Object.keys(Ionicons.glyphMap);
+
+    // Check if the icon exists in Ionicons
+    if (ioniconsNames.includes(iconName)) {
+      return (
+        <Ionicons name={iconName as any} size={20} className={className} />
+      );
+    }
+
+    // Fallback to FontAwesome
+    // Convert kebab-case or snake_case to camelCase for FontAwesome
+    const faName = iconName
+      .replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase())
+      .replace("-outline", "")
+      .replace("-sharp", "");
+
+    return (
+      <FontAwesome6 name={faName as any} size={20} className={className} />
+    );
   };
 
   const handleToggleTool = (toolId: string) => {
-
     setHotTools(async (prev) => {
       const newSet = await prev;
       if (newSet.includes(toolId)) {
         return newSet.filter((id) => id !== toolId);
       } else {
         return [...newSet, toolId];
-      } 
-    })
-    
+      }
+    });
   };
-
 
   let availableTools: Tool[] = [
     {
-      id: 'WebSearch',
-      name: 'Web Search',
-      icon: 'globe-outline',
-      description: 'Enable real-time web search capabilities'
-    }
+      id: "WebSearch",
+      name: "Web Search",
+      icon: "globe-outline",
+      description: "Enable real-time web search capabilities",
+    },
   ];
 
   // Only add thinking tool if the provider is ollama
-  if (currentThread?.selectedModel?.provider.name === 'Ollama' && currentThread?.selectedModel?.name.toLowerCase().includes('qwen3')) {
+  if (
+    currentThread?.selectedModel?.provider.name === "Ollama" &&
+    currentThread?.selectedModel?.name.toLowerCase().includes("qwen3")
+  ) {
     availableTools.push({
-      id: 'Thinking',
-      name: 'Thinking',
-      icon: 'brain',
-      description: 'Enable thinking capabilities'
-    })
+      id: "Thinking",
+      name: "Thinking",
+      icon: "brain",
+      description: "Enable thinking capabilities",
+    });
   }
 
   const handleShowMenu = useCallback(() => {
@@ -99,47 +107,45 @@ const getIconComponent = (iconName: string, className: string) => {
   }, []);
 
   const toolToggles = (availableTools: Tool[]) => {
-    return (
-      availableTools.map((tool) => (
-        <View
-          key={tool.id}
-          className={`flex-row items-center p-2 rounded-md ${
-            hotTools?.includes(tool.id) ? 'bg-primary/20' : ''
-          }`}
+    return availableTools.map((tool) => (
+      <Pressable
+        onPress={() => handleToggleTool(tool.id)}
+        key={tool.id}
+        className={`w-full flex-row items-center p-2 border rounded-md ${
+          hotTools?.includes(tool.id)
+            ? "!text-primary border-primary"
+            : "border-border"
+        }`}
+      >
+        {getIconComponent(
+          tool.icon,
+          `${hotTools?.includes(tool.id) ? "!text-primary" : "!text-text"} mr-2`,
+        )}
+        <Text
+          className={`${hotTools?.includes(tool.id) ? "!text-primary" : "!text-text"}`}
         >
-          {getIconComponent(tool.icon, '!text-text mr-2')}
-          <Switch
-        value={hotTools?.includes(tool.id)}
-        onValueChange={() => handleToggleTool(tool.id)}
-      />
-        </View>
-      ))
-    )
-  }
+          {tool.name}
+        </Text>
+      </Pressable>
+    ));
+  };
 
-  if(Platform.OS === 'web' && availableTools.length <= 2){
+  if (Platform.OS === "web" && availableTools.length <= 2) {
     return (
-      <View className="flex-col items-center">
+      <View className="flex-col items-center space-y-1">
         {toolToggles(availableTools)}
       </View>
-    )
+    );
   }
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     return (
-      <div 
-        onMouseEnter={handleShowMenu}
-        onMouseLeave={handleHideMenu}
-      >
+      <div onMouseEnter={handleShowMenu} onMouseLeave={handleHideMenu}>
         <Pressable
           onPress={() => setShowToolsMenu(!showToolsMenu)}
           className="w-10 h-10 items-center justify-center"
         >
-          <Ionicons 
-            name="apps" 
-            size={24} 
-            className='!text-text'
-          />
+          <Ionicons name="apps" size={24} className="!text-text" />
         </Pressable>
 
         {showToolsMenu && (
@@ -163,11 +169,7 @@ const getIconComponent = (iconName: string, className: string) => {
         onPress={() => setShowToolsMenu(!showToolsMenu)}
         className="w-10 h-10 items-center justify-center"
       >
-        <Ionicons 
-          name="apps" 
-          size={24} 
-          className='!text-text'
-        />
+        <Ionicons name="apps" size={24} className="!text-text" />
       </Pressable>
 
       {showToolsMenu && (
@@ -177,13 +179,10 @@ const getIconComponent = (iconName: string, className: string) => {
               key={tool.id}
               onPress={() => handleToggleTool(tool.id)}
               className={`flex-row items-center p-2 rounded-md ${
-                hotTools?.includes(tool.id) ? 'bg-primary/20' : ''
+                hotTools?.includes(tool.id) ? "bg-primary/20" : ""
               }`}
             >
-              <Ionicons
-                name={tool.icon}
-                size={20}
-              />
+              <Ionicons name={tool.icon} size={20} />
               <Text className="ml-2 text-text">{tool.name}</Text>
             </Pressable>
           ))}
@@ -191,4 +190,4 @@ const getIconComponent = (iconName: string, className: string) => {
       )}
     </>
   );
-}; 
+};
