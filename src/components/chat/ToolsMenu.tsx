@@ -21,16 +21,14 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
 
   const handleToggleTool = (toolId: string) => {
-    console.log("enabled tool", toolId)    
 
-    setHotTools(prev=>{
-      const newSet = new Set(prev);
-      if (newSet.has(toolId)) {
-        newSet.delete(toolId);
+    setHotTools(async (prev) => {
+      const newSet = await prev;
+      if (newSet.includes(toolId)) {
+        return newSet.filter((id) => id !== toolId);
       } else {
-        newSet.add(toolId);
-      }
-      return newSet;
+        return [...newSet, toolId];
+      } 
     })
     
   };
@@ -74,7 +72,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
         <View
           key={tool.id}
           className={`flex-row items-center p-2 rounded-md ${
-            hotTools.has(tool.id) ? 'bg-primary/20' : ''
+            hotTools?.includes(tool.id) ? 'bg-primary/20' : ''
           }`}
         >
           <Ionicons
@@ -83,7 +81,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
             className='!text-text mr-2'
           />
           <Switch
-        value={hotTools.has(tool.id)}
+        value={hotTools?.includes(tool.id)}
         onValueChange={() => handleToggleTool(tool.id)}
       />
         </View>
@@ -151,7 +149,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
               key={tool.id}
               onPress={() => handleToggleTool(tool.id)}
               className={`flex-row items-center p-2 rounded-md ${
-                hotTools.has(tool.id) ? 'bg-primary/20' : ''
+                hotTools?.includes(tool.id) ? 'bg-primary/20' : ''
               }`}
             >
               <Ionicons

@@ -616,4 +616,7 @@ export const downloadingModelsAtom = atomWithAsyncStorage<{
   [],
 );
 
-export const hotToolsAtom = atom<Set<string>>(new Set<string>());
+export const hotToolsAtom = atomWithAsyncStorage<string[]>(
+  "hotTools",
+  [],
+);
