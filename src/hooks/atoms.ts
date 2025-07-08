@@ -99,13 +99,18 @@ export type ThreadAction =
   | {
       type: "updateMessages";
       payload: { threadId: string; messages: ChatMessage[] };
-    };
+    }
+  | {
+    type: "updateMessage";
+    payload: { threadId: string; message: ChatMessage, index: number };
+  };
 
 // Update the threadActionsAtom with the proper type
 export const threadActionsAtom = atom(
   null,
   async (get, set, action: ThreadAction) => {
     const threads = await get(threadsAtom);
+    const currentThread = await get(currentThreadAtom);
 
     switch (action.type) {
       case "add":
@@ -145,6 +150,32 @@ export const threadActionsAtom = atom(
         await set(currentThreadAtom, await get(defaultThreadAtom));
         break;
 
+      case "updateMessage":
+        const existingMessage = threads.find(t => t.id === action.payload.threadId)?.messages[action.payload.index];
+        const updatedMessage = {
+          ...existingMessage,
+          ...action.payload.message
+        }
+        const threadsWithUpdatedMessage = threads.map((t) =>
+          t.id === action.payload.threadId
+            ? { ...t, messages: [...t.messages.slice(0, action.payload.index), updatedMessage, ...t.messages.slice(action.payload.index + 1)] }
+            : t,
+        );
+        await set(threadsAtom, threadsWithUpdatedMessage);
+        
+
+        if (currentThread.id === action.payload.threadId) {
+          const updatedThread = {
+            ...currentThread,
+            messages: [...currentThread.messages.slice(0, action.payload.index), updatedMessage, ...currentThread.messages.slice(action.payload.index + 1)],
+          };
+          await set(currentThreadAtom, updatedThread);
+          return updatedThread;
+        }
+        return currentThread;
+
+        break;
+
       case "updateMessages":
         const threadsWithUpdatedMessages = threads.map((t) =>
           t.id === action.payload.threadId
@@ -152,7 +183,6 @@ export const threadActionsAtom = atom(
             : t,
         );
         await set(threadsAtom, threadsWithUpdatedMessages);
-        const currentThread = await get(currentThreadAtom);
 
         if (currentThread.id === action.payload.threadId) {
           const updatedThread = {

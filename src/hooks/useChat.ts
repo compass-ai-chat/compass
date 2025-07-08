@@ -176,10 +176,11 @@ export function useChat() {
         ...message
       }
       const updatedThread = await dispatchThread({
-        type: 'updateMessages',
+        type: 'updateMessage',
         payload: {
           threadId: thread.id,
-          messages: updatedMessages
+          message: updatedMessages[updatedMessages.length - 1],
+          index: updatedMessages.length - 1
         }
       });
       if (updatedThread?.messages[updatedThread.messages.length - 1]?.content !== message.content) {
