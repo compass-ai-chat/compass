@@ -12,6 +12,7 @@ import {
   Text,
   Platform,
   Keyboard,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -78,6 +79,8 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       initialInputRows * lineHeight,
     ); // Initial height
     const { t } = useLocalization();
+    const [urls, setUrls] = useState<string[]>([]);
+
     //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
 
     useImperativeHandle(ref, () => ({
@@ -111,6 +114,16 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         setSelectedIndex(0);
       } else {
         setShowMentionPopup(false);
+      }
+
+      // Simple URL detection (can improve with more robust regex)
+      const urlRegex = /https?:\/\/[^\s]+/g;
+      const matches = text.match(urlRegex);
+      if (matches) {
+        console.log(matches);
+        setUrls(matches);
+      } else {
+        setUrls([]);
       }
     };
 
@@ -230,11 +243,18 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
     return (
       <View className="">
-        {/* <View className="flex-row">
-          <Text className="p-2 border border-blue-500 rounded-lg text-blue-500 w-fit mx-4 bg-surface">
-            https//anitagat.github.io/art-portfolio
-          </Text>
-        </View> */}
+        <View className="flex-row">
+          {urls.map((url) => (
+            <Text
+              onPress={() => {
+                Linking.openURL(url);
+              }}
+              className="p-2 border border-blue-500 rounded-lg text-blue-500 w-fit mx-4 bg-surface"
+            >
+              {url}
+            </Text>
+          ))}
+        </View>
         <View
           className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}
         >
