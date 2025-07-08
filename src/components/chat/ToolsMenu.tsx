@@ -68,6 +68,37 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
     };
   }, []);
 
+  const toolToggles = (availableTools: Tool[]) => {
+    return (
+      availableTools.map((tool) => (
+        <View
+          key={tool.id}
+          className={`flex-row items-center p-2 rounded-md ${
+            hotTools.has(tool.id) ? 'bg-primary/20' : ''
+          }`}
+        >
+          <Ionicons
+            name={tool.icon}
+            size={20}
+            className='!text-text mr-2'
+          />
+          <Switch
+        value={hotTools.has(tool.id)}
+        onValueChange={() => handleToggleTool(tool.id)}
+      />
+        </View>
+      ))
+    )
+  }
+
+  if(Platform.OS === 'web' && availableTools.length == 1){
+    return (
+      <View className="flex-col items-center">
+        {toolToggles(availableTools)}
+      </View>
+    )
+  }
+
   if (Platform.OS === 'web') {
     return (
       <div 
@@ -92,26 +123,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
             className="absolute bottom-full left-0 mb-2"
           >
             <View className="bg-surface border border-primary rounded-lg p-2 shadow-lg">
-              {availableTools.map((tool) => (
-                <View
-                  key={tool.id}
-                  className={`flex-row items-center p-2 rounded-md ${
-                    hotTools.has(tool.id) ? 'bg-primary/20' : ''
-                  }`}
-                >
-                  <Ionicons
-                    name={tool.icon}
-                    size={20}
-                    className='!text-text mr-2'
-                  />
-                  <Switch
-                value={hotTools.has(tool.id)}
-                onValueChange={() => handleToggleTool(tool.id)}
-              />
-                  
-                  {/* <Text className="ml-2 text-text">{tool.name}</Text> */}
-                </View>
-              ))}
+              {toolToggles(availableTools)}
             </View>
           </div>
         )}
