@@ -27,6 +27,7 @@ export interface ChatMessage {
     id: string;
     providerId: string;
   };
+  reasoning?: string;
 }
 
 export interface Model {

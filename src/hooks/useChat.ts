@@ -1,77 +1,99 @@
-import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
-import { router } from 'expo-router';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useEffect, useRef } from "react";
+import { Platform } from "react-native";
+import { router } from "expo-router";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
 // Types
-import { Character, ChatMessage, Thread, Document, Model, Provider } from '@/src/types/core';
-import { MentionedCharacter } from '@/src/components/chat/ChatInput';
+import {
+  Character,
+  ChatMessage,
+  Thread,
+  Document,
+  Model,
+  Provider,
+} from "@/src/types/core";
+import { MentionedCharacter } from "@/src/components/chat/ChatInput";
 
-// Atoms  
-import { 
-  currentThreadAtom, 
-  threadActionsAtom, 
-  searchEnabledAtom, 
-  documentsAtom, 
-  availableModelsAtom, 
-  defaultThreadAtom, 
-  availableProvidersAtom, 
-  sidebarVisibleAtom, 
-  isGeneratingAtom, 
-  editingMessageIndexAtom, 
-  threadsAtom 
-} from './atoms';
+// Atoms
+import {
+  currentThreadAtom,
+  threadActionsAtom,
+  searchEnabledAtom,
+  documentsAtom,
+  availableModelsAtom,
+  defaultThreadAtom,
+  availableProvidersAtom,
+  sidebarVisibleAtom,
+  isGeneratingAtom,
+  editingMessageIndexAtom,
+  threadsAtom,
+} from "./atoms";
 
 // Hooks
-import { useTTS } from './useTTS';
-import { useSearch } from './useSearch';
-import { useCharacterModelSelection } from './useCharacterModelSelection';
-import { useVercelAIProvider, ToolCall } from '@/src/services/chat/providers/VercelAIProvider';
+import { useTTS } from "./useTTS";
+import { useSearch } from "./useSearch";
+import { useCharacterModelSelection } from "./useCharacterModelSelection";
+import {
+  useVercelAIProvider,
+  ToolCall,
+} from "@/src/services/chat/providers/VercelAIProvider";
 
 // Services
-import { CharacterContextManager } from '@/src/services/chat/CharacterContextManager';
-import { ChatProviderFactory } from '@/src/services/chat/ChatProviderFactory';
-import LogService from '@/utils/LogService';
-import { toastService } from '@/src/services/toastService';
+import { CharacterContextManager } from "@/src/services/chat/CharacterContextManager";
+import { ChatProviderFactory } from "@/src/services/chat/ChatProviderFactory";
+import LogService from "@/utils/LogService";
+import { toastService } from "@/src/services/toastService";
 
 // Pipelines
-import { 
-  MessageContext, 
-  MessageTransformPipeline, 
-  relevantPassagesTransform, 
-  urlContentTransform, 
-  webSearchTransform, 
-  threadUpdateTransform, 
-  firstMessageTransform, 
-  documentContextTransform, 
-  templateVariableTransform 
-} from './pipelines';
+import {
+  MessageContext,
+  MessageTransformPipeline,
+  relevantPassagesTransform,
+  urlContentTransform,
+  webSearchTransform,
+  threadUpdateTransform,
+  firstMessageTransform,
+  documentContextTransform,
+  templateVariableTransform,
+} from "./pipelines";
 
 // Exceptions
-import { ModelNotFoundException } from '@/src/services/chat/streamUtils';
-import { SimpleSchema } from '../utils/zodHelpers';
+import { ModelNotFoundException } from "@/src/services/chat/streamUtils";
+import { SimpleSchema } from "../utils/zodHelpers";
 
-function selectModelBasedOnRouting(character: Character | undefined, availableModels: Model[]): Model | undefined {
+function selectModelBasedOnRouting(
+  character: Character | undefined,
+  availableModels: Model[],
+): Model | undefined {
   if (!character?.modelRouting || character.modelRouting.length < 1) {
-    return availableModels.find(x => true);
+    return availableModels.find((x) => true);
   }
 
-  if(character.modelRouting.length === 1) {
-    return availableModels.find(x => x.id === character.modelRouting![0].modelId && x.provider.id === character.modelRouting![0].providerId);
+  if (character.modelRouting.length === 1) {
+    return availableModels.find(
+      (x) =>
+        x.id === character.modelRouting![0].modelId &&
+        x.provider.id === character.modelRouting![0].providerId,
+    );
   }
 
   // Generate a random number between 0 and 100
   const randomValue = Math.random() * 100;
 
   // If random value is less than first model's percentage, use first model
-  const selectedRouting = randomValue <= character.modelRouting[0].percentage 
-    ? character.modelRouting[0] 
-    : character.modelRouting[1];
+  const selectedRouting =
+    randomValue <= character.modelRouting[0].percentage
+      ? character.modelRouting[0]
+      : character.modelRouting[1];
 
-  console.log(`selected model ${selectedRouting.modelId} based on value ${randomValue}`);
+  console.log(
+    `selected model ${selectedRouting.modelId} based on value ${randomValue}`,
+  );
 
   return availableModels.find(
-    m => m.id === selectedRouting.modelId && m.provider.id === selectedRouting.providerId
+    (m) =>
+      m.id === selectedRouting.modelId &&
+      m.provider.id === selectedRouting.providerId,
   );
 }
 
@@ -86,7 +108,9 @@ export function useChat() {
   const [providers] = useAtom(availableProvidersAtom);
   const [sidebarVisible, setSidebarVisible] = useAtom(sidebarVisibleAtom);
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
-  const [editingMessageIndex, setEditingMessageIndex] = useAtom(editingMessageIndexAtom);
+  const [editingMessageIndex, setEditingMessageIndex] = useAtom(
+    editingMessageIndexAtom,
+  );
   const defaultThread = useAtomValue(defaultThreadAtom);
 
   // ========== Refs and External Hooks ==========
@@ -99,10 +123,10 @@ export function useChat() {
 
   // ========== Services ==========
   const contextManager = new CharacterContextManager();
-  
+
   const pipeline = new MessageTransformPipeline()
     .addTransform(templateVariableTransform)
-    //.addTransform(documentContextTransform)  
+    //.addTransform(documentContextTransform)
     .addTransform(urlContentTransform)
     .addTransform(relevantPassagesTransform)
     .addTransform(webSearchTransform)
@@ -110,84 +134,123 @@ export function useChat() {
     .addTransform(firstMessageTransform);
 
   // ========== Stream Handling ==========
-  const handleToolCalls = async (toolCallStream: AsyncIterable<ToolCall>, thread: Thread) => {
+  const handleToolCalls = async (
+    toolCallStream: AsyncIterable<ToolCall>,
+    thread: Thread,
+  ) => {
     try {
       for await (const toolCall of toolCallStream) {
-        console.log('Received tool call:', toolCall);
-        await updateLastAssistantMessage({content: toolCall.toolName, isUser: false, toolCalls: [toolCall]}, thread);
+        console.log("Received tool call:", toolCall);
+        await updateLastAssistantMessage(
+          { content: toolCall.toolName, isUser: false, toolCalls: [toolCall] },
+          thread,
+        );
         // Here you can add logic to handle tool calls
         // For example, you might want to update UI state, log tool usage, etc.
       }
     } catch (error: any) {
-      console.log('Tool call handling error:', error);
-      LogService.log(error, {component: 'useChat', function: 'handleToolCalls'}, 'error');
+      console.log("Tool call handling error:", error);
+      LogService.log(
+        error,
+        { component: "useChat", function: "handleToolCalls" },
+        "error",
+      );
     }
   };
 
   const handleStream = async (
-    response: AsyncIterable<string>,
+    textStream: AsyncIterable<string>,
+    reasoningStream: AsyncIterable<string>,
     thread: Thread,
   ) => {
     try {
-      console.log("handling stream", typeof response, response);
-    
-      let assistantMessage = thread.messages[thread.messages.length - 1].content;
+      let assistantMessage =
+        thread.messages[thread.messages.length - 1].content;
       let chunkCount = 0;
-    
-      for await (const content of response) {
+
+      let reasoning = "";
+
+      alert("Reached reasoning");
+      for await (const content of reasoningStream) {
+        console.log(content);
+        reasoning += content;
+        await updateLastAssistantMessage(
+          { content: "", isUser: false, reasoning },
+          thread,
+        );
+      }
+
+      for await (const content of textStream) {
         chunkCount++;
         assistantMessage += content;
-        await updateMessageContent(content, chunkCount, assistantMessage, thread);
+        await updateMessageContent(
+          content,
+          chunkCount,
+          assistantMessage,
+          thread,
+        );
       }
 
       if (tts.isSupported) {
         await tts.streamText("");
       }
-    } 
-    catch(error: any) {
-      if(error instanceof ModelNotFoundException){
+    } catch (error: any) {
+      if (error instanceof ModelNotFoundException) {
         throw error;
       }
-      
-      console.log('Stream handling error:', error);
+
+      console.log("Stream handling error:", error);
       const vercelErrorResponse = error?.error?.lastError?.responseBody;
-      if(vercelErrorResponse){
-        try{
+      if (vercelErrorResponse) {
+        try {
           const json = JSON.parse(vercelErrorResponse);
           toastService.warning({
-            title: "Error", 
-            description: json.error.charAt(0).toUpperCase() + json.error.slice(1)
+            title: "Error",
+            description:
+              json.error.charAt(0).toUpperCase() + json.error.slice(1),
+          });
+        } catch (e) {
+          toastService.danger({
+            title: "Error",
+            description: vercelErrorResponse,
           });
         }
-        catch(e){
-          toastService.danger({title: "Error", description: vercelErrorResponse});
-        }
       }
-      LogService.log(error, {component: 'useChat', function: 'handleStream'}, 'error');
+      LogService.log(
+        error,
+        { component: "useChat", function: "handleStream" },
+        "error",
+      );
     }
   };
 
-  const updateLastAssistantMessage = async (message: ChatMessage, thread: Thread) => {
+  const updateLastAssistantMessage = async (
+    message: ChatMessage,
+    thread: Thread,
+  ) => {
     const updatedMessages = [...thread.messages];
     let lastMessage = updatedMessages[updatedMessages.length - 1];
     if (lastMessage && !lastMessage.isUser) {
       updatedMessages[updatedMessages.length - 1] = {
         ...lastMessage,
-        ...message
-      }
+        ...message,
+      };
       const updatedThread = await dispatchThread({
-        type: 'updateMessage',
+        type: "updateMessage",
         payload: {
           threadId: thread.id,
           message: updatedMessages[updatedMessages.length - 1],
-          index: updatedMessages.length - 1
-        }
+          index: updatedMessages.length - 1,
+        },
       });
-      if (updatedThread?.messages[updatedThread.messages.length - 1]?.content !== message.content) {
-        throw new Error('Message update failed to persist');
+      if (
+        updatedThread?.messages[updatedThread.messages.length - 1]?.content !==
+        message.content
+      ) {
+        throw new Error("Message update failed to persist");
       }
     }
-  }
+  };
 
   const updateMessageContent = async (
     content: string,
@@ -201,7 +264,10 @@ export function useChat() {
       tts.streamText(content);
     }
 
-    await updateLastAssistantMessage({content: assistantMessage, isUser: false}, thread);
+    await updateLastAssistantMessage(
+      { content: assistantMessage, isUser: false },
+      thread,
+    );
   };
 
   // ========== Thread Management ==========
@@ -209,24 +275,30 @@ export function useChat() {
     console.log("selected model", selectedModel);
 
     // if latest thread has zero messages, do not add new thread but instead set the current thread to the latest thread
-    if(threads.length > 0 && threads[threads.length - 1].messages.length === 0){
-      dispatchThread({ type: 'setCurrent', payload: threads[threads.length - 1] });
-      if(Platform.OS != 'web' || window.innerWidth < 768){
+    if (
+      threads.length > 0 &&
+      threads[threads.length - 1].messages.length === 0
+    ) {
+      dispatchThread({
+        type: "setCurrent",
+        payload: threads[threads.length - 1],
+      });
+      if (Platform.OS != "web" || window.innerWidth < 768) {
         router.push(`/thread/${threads[threads.length - 1].id}`);
       }
       return;
     }
 
     const newThread = {
-      ...defaultThread, 
+      ...defaultThread,
       id: Date.now().toString(),
       character: selectedCharacter,
-      selectedModel: selectedModel
+      selectedModel: selectedModel,
     };
-    
-    dispatchThread({ type: 'add', payload: newThread });
-    
-    if(Platform.OS != 'web' || window.innerWidth < 768){
+
+    dispatchThread({ type: "add", payload: newThread });
+
+    if (Platform.OS != "web" || window.innerWidth < 768) {
       // wait 100 ms before pushing to allow for thread to be added to state
       setTimeout(() => {
         router.push(`/thread/${newThread.id}`);
@@ -244,46 +316,59 @@ export function useChat() {
 
   // ========== Message Handling ==========
   const sendChatMessage = async (
-    messages: ChatMessage[], 
-    message: string, 
-    mentionedCharacters: MentionedCharacter[] = []
+    messages: ChatMessage[],
+    message: string,
+    mentionedCharacters: MentionedCharacter[] = [],
   ) => {
     abortController.current = new AbortController();
     currentThread.messages = messages;
-    let context = contextManager.prepareContext(message, currentThread, mentionedCharacters);
-    
+    let context = contextManager.prepareContext(
+      message,
+      currentThread,
+      mentionedCharacters,
+    );
+
     // Select model based on routing configuration
-    const selectedModel = selectModelBasedOnRouting(currentThread.character, models);
+    const selectedModel = selectModelBasedOnRouting(
+      currentThread.character,
+      models,
+    );
     if (!selectedModel?.provider) {
-      throw new Error('No provider found');
+      throw new Error("No provider found");
     }
 
-    const chatProvider = ChatProviderFactory.getProvider(selectedModel.provider);
-
-    let relevantDocuments = documents.filter((doc: Document) => 
-      currentThread.character?.documentIds?.includes(doc.id) ?? false
+    const chatProvider = ChatProviderFactory.getProvider(
+      selectedModel.provider,
     );
-    relevantDocuments.push(...documents.filter((doc: Document) => 
-      currentThread.metadata?.documentIds?.includes(doc.id) ?? []
-    ));
+
+    let relevantDocuments = documents.filter(
+      (doc: Document) =>
+        currentThread.character?.documentIds?.includes(doc.id) ?? false,
+    );
+    relevantDocuments.push(
+      ...documents.filter(
+        (doc: Document) =>
+          currentThread.metadata?.documentIds?.includes(doc.id) ?? [],
+      ),
+    );
 
     const initialContext: MessageContext = {
       message,
       provider: chatProvider,
       thread: {
         ...currentThread,
-        selectedModel // Update the thread's selected model
+        selectedModel, // Update the thread's selected model
       },
       mentionedCharacters,
-      systemPrompt: currentThread.character?.content ?? '',
+      systemPrompt: currentThread.character?.content ?? "",
       context,
       metadata: {
         messages,
         searchEnabled,
         searchFunction: search,
         dispatchThread,
-        documents: relevantDocuments
-      }
+        documents: relevantDocuments,
+      },
     };
 
     console.log("initialContext", initialContext);
@@ -294,91 +379,107 @@ export function useChat() {
         ...transformedContext.context.assistantPlaceholder,
         modelUsed: {
           id: selectedModel.id,
-          providerId: selectedModel.provider.id
-        }
+          providerId: selectedModel.provider.id,
+        },
       });
 
       let messagesToSend = [
-        ...transformedContext.context.historyToSend, 
-        ...transformedContext.context.messagesToSend
+        ...transformedContext.context.historyToSend,
+        ...transformedContext.context.messagesToSend,
       ];
-      
-      if(transformedContext.systemPrompt.trim().length > 0){
+
+      if (transformedContext.systemPrompt.trim().length > 0) {
         messagesToSend.unshift({
-          content: transformedContext.systemPrompt, 
-          isUser: false, 
-          isSystem: true
+          content: transformedContext.systemPrompt,
+          isUser: false,
+          isSystem: true,
         });
       }
 
-      const { textStream, toolCallStream } = await sendMessage(
-        messagesToSend, 
+      const { textStream, toolCallStream, reasoningStream } = await sendMessage(
+        messagesToSend,
         selectedModel,
-        context.characterToUse, 
-        abortController.current.signal
+        context.characterToUse,
+        abortController.current.signal,
       );
 
       // Handle tool calls in parallel
-      handleToolCalls(toolCallStream, transformedContext.metadata.updatedThread);
+      handleToolCalls(
+        toolCallStream,
+        transformedContext.metadata.updatedThread,
+      );
 
-      await handleStream(textStream, transformedContext.metadata.updatedThread);
-
+      await handleStream(
+        textStream,
+        reasoningStream,
+        transformedContext.metadata.updatedThread,
+      );
     } catch (error: any) {
-      console.log('Error sending message:', error);
-      
+      console.log("Error sending message:", error);
+
       if (error instanceof ModelNotFoundException && selectedModel) {
         const updatedModels = models.filter(
-          (m: Model) => !(m.id === selectedModel?.id && 
-                         m.provider.id === selectedModel?.provider.id)
+          (m: Model) =>
+            !(
+              m.id === selectedModel?.id &&
+              m.provider.id === selectedModel?.provider.id
+            ),
         );
-        
+
         setModels(updatedModels || []);
-        
+
         toastService.danger({
-          title: 'Model Not Available',
-          description: `The model "${selectedModel.id}" is no longer available. It has been removed from your models list.`
+          title: "Model Not Available",
+          description: `The model "${selectedModel.id}" is no longer available. It has been removed from your models list.`,
         });
       } else {
         toastService.danger({
-          title: 'Error sending message',
-          description: error.message
+          title: "Error sending message",
+          description: error.message,
         });
       }
-      
-      LogService.log(error, {component: 'useChat', function: 'sendChatMessage'}, 'error');
+
+      LogService.log(
+        error,
+        { component: "useChat", function: "sendChatMessage" },
+        "error",
+      );
     } finally {
       abortController.current = null;
     }
   };
 
   const streamMessage = async (messages: ChatMessage[]) => {
-    const model = models.find(x=>true);
-    if(!model){
-      throw new Error('No model found');
+    const model = models.find((x) => true);
+    if (!model) {
+      throw new Error("No model found");
     }
     const { textStream, toolCallStream } = await sendMessage(messages, model);
-    
+
     // Handle tool calls in background
     //handleToolCalls(toolCallStream, currentThread);
-    
+
     return textStream;
-  }
+  };
 
   const generateJSONObject = async (prompt: string, schema: SimpleSchema) => {
-    const model = models.find(x=>true);
-    if(!model){
-      throw new Error('No model found');
+    const model = models.find((x) => true);
+    if (!model) {
+      throw new Error("No model found");
     }
     return await generateJSON(prompt, schema, model);
-  }
+  };
 
-  const handleSend = async (message: string, mentionedCharacters: MentionedCharacter[]) => {
+  const handleSend = async (
+    message: string,
+    mentionedCharacters: MentionedCharacter[],
+  ) => {
     if (!providers.length) return;
 
     // if (Platform.OS == 'web') {
     //   setSidebarVisible(false);
     // }
-    
+
     let messages = [...currentThread.messages];
     const isEditing = editingMessageIndex !== -1;
 
@@ -387,10 +488,13 @@ export function useChat() {
       setEditingMessageIndex(-1);
     }
 
-    if (currentThread.messages.length === 0 && threads.filter(t => t.id === currentThread.id).length === 0) {
-      await dispatchThread({ 
-        type: 'add', 
-        payload: currentThread 
+    if (
+      currentThread.messages.length === 0 &&
+      threads.filter((t) => t.id === currentThread.id).length === 0
+    ) {
+      await dispatchThread({
+        type: "add",
+        payload: currentThread,
       });
     }
 
@@ -398,7 +502,7 @@ export function useChat() {
     try {
       await sendChatMessage(messages, message, mentionedCharacters);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     } finally {
       setIsGenerating(false);
     }
@@ -412,7 +516,7 @@ export function useChat() {
 
   const isModelAvailable = () => {
     return models.length > 0;
-  }
+  };
 
   // ========== Effects ==========
   useEffect(() => {
@@ -422,29 +526,28 @@ export function useChat() {
   }, [currentThread.id]);
 
   // ========== Return Interface ==========
-  return { 
+  return {
     // Core message handling
     handleSend,
     handleInterrupt,
     handleMessagePress,
     streamMessage,
-    
-    // Thread management  
+
+    // Thread management
     addNewThread,
-    
+
     // State
     isGenerating,
     setIsGenerating,
     editingMessageIndex,
     sidebarVisible,
     currentThread,
-    
+
     // Legacy support (deprecated)
     wrappedHandleSend: handleSend,
 
     // JSON generation
     generateJSONObject,
-    isModelAvailable
+    isModelAvailable,
   };
 }
-

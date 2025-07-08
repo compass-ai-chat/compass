@@ -72,7 +72,6 @@ export function useTools() {
   } 
 
   const createToolBlueprint = async (tool: ToolBlueprint) => {
-    console.log("Creating tool", tool);
     if (tool.id === 'dynamic') {
       await registerToolBlueprint({
         id: tool.id,
@@ -122,7 +121,6 @@ export function useTools() {
     
     console.log("executing tool", handler.execute, typeof handler.execute);
     let result = await handler.execute(params, tool.configValues || {});
-    console.log("result", result);
     return result;
   };
 

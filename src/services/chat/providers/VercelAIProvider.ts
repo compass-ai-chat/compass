@@ -24,6 +24,7 @@ export interface ToolCall {
 export interface StreamResponse {
   textStream: AsyncIterable<string>;
   toolCallStream: AsyncIterable<ToolCall>;
+  reasoningStream: AsyncIterable<string>;
 }
 
 export function useVercelAIProvider() {
@@ -133,6 +134,7 @@ export function useVercelAIProvider() {
           // Create controllers for both streams
           let textController!: ReadableStreamDefaultController<string>;
           let toolCallController!: ReadableStreamDefaultController<ToolCall>;
+          let reasoningController!: ReadableStreamDefaultController<string>;
           
           const textStream = new ReadableStream<string>({
             start(controller) {
@@ -143,6 +145,12 @@ export function useVercelAIProvider() {
           const toolCallStream = new ReadableStream<ToolCall>({
             start(controller) {
               toolCallController = controller;
+            }
+          });
+
+          const reasoningStream = new ReadableStream<string>({
+            start(controller) {
+              reasoningController = controller;
             }
           });
 
@@ -162,17 +170,23 @@ export function useVercelAIProvider() {
                   toolId: chunk.chunk.toolName
                 });
               }
+              else if(chunk.chunk.type == 'reasoning'){
+                reasoningController.enqueue(chunk.chunk.textDelta);
+              }
               else{
+                console.log('chunk', chunk.chunk);
                 //console.log('chunk', chunk);
               }
             },
             onFinish: () => {
               textController.close();
               toolCallController.close();
+              reasoningController.close();
             },
             onError: (error) => {
               textController.error(error);
               toolCallController.error(error);
+              reasoningController.error(error);
             }
           });
 
@@ -189,12 +203,13 @@ export function useVercelAIProvider() {
 
           return {
             textStream,
-            toolCallStream
+            toolCallStream,
+            reasoningStream
           };
         }
 
         // For mobile, we use generateText which doesn't stream
-        const {text, steps} = await generateText({
+        const {text, steps, reasoning} = await generateText({
           model: provider,
           messages: newMessages as CoreMessage[],
           tools: toolSchemas,
@@ -206,6 +221,13 @@ export function useVercelAIProvider() {
         const textStream = new ReadableStream<string>({
           async start(controller) {
             controller.enqueue(text);
+            controller.close();
+          }
+        });
+
+        const reasoningStream = new ReadableStream<string>({
+          async start(controller) {
+            controller.enqueue(reasoning);
             controller.close();
           }
         });
@@ -232,7 +254,8 @@ export function useVercelAIProvider() {
 
         return {
           textStream,
-          toolCallStream
+          toolCallStream,
+          reasoningStream
         };
         
     } catch (error: any) {
