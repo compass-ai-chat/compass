@@ -2,13 +2,14 @@ import React, { useCallback, useRef } from 'react';
 import { View, Pressable, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Switch } from '@/src/components/ui/Switch';
-import { hotToolsAtom } from '@/src/hooks/atoms';
+import { hotToolsAtom, thinkingActiveAtom } from '@/src/hooks/atoms';
 import { useAtom } from 'jotai';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 interface Tool {
   id: string;
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap | typeof FontAwesome6.glyphMap;
   description: string;
 }
 
@@ -19,6 +20,27 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
   const [showToolsMenu, setShowToolsMenu] = React.useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout>();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
+  const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
+
+  // Add this helper function before the ToolCallIndicator component
+const getIconComponent = (iconName: string, className: string) => {
+  // List of all available Ionicons names
+  const ioniconsNames = Object.keys(Ionicons.glyphMap);
+  
+  // Check if the icon exists in Ionicons
+  if (ioniconsNames.includes(iconName)) {
+    return (<Ionicons name={iconName as any} size={20} className={className} />)
+  }
+  
+  // Fallback to FontAwesome
+  // Convert kebab-case or snake_case to camelCase for FontAwesome
+  const faName = iconName
+    .replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase())
+    .replace('-outline', '')
+    .replace('-sharp', '');
+    
+    return (<FontAwesome6 name={faName as any} size={20} className={className} />)
+  };
 
   const handleToggleTool = (toolId: string) => {
 
@@ -40,6 +62,12 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
       name: 'Web Search',
       icon: 'globe-outline',
       description: 'Enable real-time web search capabilities'
+    }, 
+    {
+      id: 'Thinking',
+      name: 'Thinking',
+      icon: 'brain',
+      description: 'Enable thinking capabilities'
     }
     // Add more tools here in the future
   ];
@@ -75,11 +103,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
             hotTools?.includes(tool.id) ? 'bg-primary/20' : ''
           }`}
         >
-          <Ionicons
-            name={tool.icon}
-            size={20}
-            className='!text-text mr-2'
-          />
+          {getIconComponent(tool.icon, '!text-text mr-2')}
           <Switch
         value={hotTools?.includes(tool.id)}
         onValueChange={() => handleToggleTool(tool.id)}
@@ -89,7 +113,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ }) => {
     )
   }
 
-  if(Platform.OS === 'web' && availableTools.length == 1){
+  if(Platform.OS === 'web' && availableTools.length <= 2){
     return (
       <View className="flex-col items-center">
         {toolToggles(availableTools)}

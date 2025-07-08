@@ -620,3 +620,8 @@ export const hotToolsAtom = atomWithAsyncStorage<string[]>(
   "hotTools",
   [],
 );
+
+export const thinkingActiveAtom = atomWithAsyncStorage<boolean>(
+  "thinkingActive",
+  false,
+);

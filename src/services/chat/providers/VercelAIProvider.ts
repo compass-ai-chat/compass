@@ -11,7 +11,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { useTools } from '@/src/hooks/useTools';
 import { z } from 'zod';
 import { SimpleSchema, simpleSchemaToZod } from '@/src/utils/zodHelpers';
-import { hotToolsAtom } from '@/src/hooks/atoms';
+import { hotToolsAtom, thinkingActiveAtom } from '@/src/hooks/atoms';
 import { useAtom } from 'jotai';
 
 export interface ToolCall {
@@ -30,6 +30,7 @@ export function useVercelAIProvider() {
 
   const { getVercelCompatibleToolSet } = useTools();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
+  const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
   const createProvider = (provider: any, modelId: string) => {
     let aiModel;
@@ -39,7 +40,7 @@ export function useVercelAIProvider() {
         console.log('ollama endpoint', provider.endpoint + '/api');
         aiModel = createOllama({
           baseURL: provider.endpoint + '/api',
-        })(modelId, {think: false});
+        })(modelId, {think: hotTools.includes('Thinking')});
         break;
       case 'openai':
         aiModel = createOpenAI({
