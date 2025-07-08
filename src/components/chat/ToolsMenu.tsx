@@ -65,10 +65,9 @@ const getIconComponent = (iconName: string, className: string) => {
       description: 'Enable real-time web search capabilities'
     }
   ];
-  console.log('currentThread', currentThread);
 
   // Only add thinking tool if the provider is ollama
-  if (currentThread?.selectedModel?.provider.name === 'Ollama') {
+  if (currentThread?.selectedModel?.provider.name === 'Ollama' && currentThread?.selectedModel?.name.toLowerCase().includes('qwen3')) {
     availableTools.push({
       id: 'Thinking',
       name: 'Thinking',
