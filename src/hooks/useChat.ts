@@ -170,7 +170,6 @@ export function useChat() {
 
       let reasoning = "";
 
-      alert("Reached reasoning");
       for await (const content of reasoningStream) {
         console.log(content);
         reasoning += content;
@@ -243,6 +242,7 @@ export function useChat() {
           index: updatedMessages.length - 1,
         },
       });
+      await new Promise((resolve) => setTimeout(resolve, 50));
       if (
         updatedThread?.messages[updatedThread.messages.length - 1]?.content !==
         message.content
