@@ -205,6 +205,12 @@ export const Message: React.FC<MessageProps> = ({
       borderRadius: 8,
       fontFamily: "monospace",
     },
+    hr: {
+      backgroundColor: isUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
+      height: 2,
+      padding: 1,
+      margin: 8,
+    },
   };
 
   const [displayContent, setDisplayContent] = useState("");
