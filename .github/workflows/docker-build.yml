@@ -42,7 +42,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:v${{ inputs.version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/compass:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/compass:v${{ inputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/compass-ai-chat:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/compass-ai-chat:v${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
