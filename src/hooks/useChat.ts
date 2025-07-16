@@ -327,12 +327,16 @@ export function useChat() {
       currentThread,
       mentionedCharacters,
     );
+    let selectedModel = currentThread.selectedModel;
 
-    // Select model based on routing configuration
-    const selectedModel = selectModelBasedOnRouting(
-      currentThread.character,
-      models,
-    );
+    if(currentThread.character || !selectedModel){
+      // Select model based on routing configuration
+      selectedModel = selectModelBasedOnRouting(
+        currentThread.character,
+        models,
+      );
+    }
+    
     if (!selectedModel?.provider) {
       throw new Error("No provider found");
     }
