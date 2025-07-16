@@ -28,6 +28,7 @@ export interface ChatMessage {
     providerId: string;
   };
   reasoning?: string;
+  documentIds?: string[];
 }
 
 export interface Model {

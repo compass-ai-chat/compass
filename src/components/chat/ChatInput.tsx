@@ -28,6 +28,8 @@ import { scanForSensitiveInfo } from "@/src/utils/privacyScanner";
 import { modalService } from "@/src/services/modalService";
 import { ToolsMenu } from "./ToolsMenu";
 import { DocumentUpload } from "./DocumentUpload";
+import { Document } from '@/src/types/core';
+import { UploadedDocument } from "./UploadedDocument";
 
 interface Tool {
   id: string;
@@ -81,6 +83,8 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     ); // Initial height
     const { t } = useLocalization();
     const [urls, setUrls] = useState<string[]>([]);
+
+    const [uploadedDocuments, setUploadedDocuments] = useState<Document[]>([]);
 
     //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
 
@@ -242,11 +246,21 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setEditingMessageIndex(-1);
     };
 
+    const handleDocumentUpload = (document: Document) => {
+      console.log("Document uploaded", document);
+      setUploadedDocuments([...uploadedDocuments, document]);
+    };
+
+    const handleDocumentRemove = (document: Document) => {
+      console.log("Document removed", document);
+      setUploadedDocuments(uploadedDocuments.filter((d) => d.id !== document.id));
+    };
+
     return (
       <View
         className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}
       >
-        <View className="flex-row absolute -top-10">
+        <View className="flex-row absolute -top-14">
           {urls.map((url) => (
             <Text
               onPress={() => {
@@ -256,6 +270,10 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             >
               {url}
             </Text>
+          ))}
+
+          {uploadedDocuments.map((document) => (
+            <UploadedDocument document={document} onRemove={handleDocumentRemove} />
           ))}
         </View>
         {showMentionPopup && (
@@ -291,7 +309,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             }}
           />
           <View className="flex-row items-center mr-auto">
-            <DocumentUpload className="mr-1 h-10" />
+            <DocumentUpload className="mr-1 h-10" onDocumentUpload={handleDocumentUpload} />
             <ToolsMenu />
           </View>
         </View>
