@@ -27,6 +27,7 @@ import { useLocalization } from "@/src/hooks/useLocalization";
 import { scanForSensitiveInfo } from "@/src/utils/privacyScanner";
 import { modalService } from "@/src/services/modalService";
 import { ToolsMenu } from "./ToolsMenu";
+import { DocumentUpload } from "./DocumentUpload";
 
 interface Tool {
   id: string;
@@ -289,7 +290,10 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
               height: inputHeight,
             }}
           />
-          <ToolsMenu />
+          <View className="flex-row items-center mr-auto">
+            <DocumentUpload className="mr-1 h-10" />
+            <ToolsMenu />
+          </View>
         </View>
 
 
