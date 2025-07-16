@@ -78,8 +78,8 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
   ) {
     availableTools.push({
       id: "Thinking",
-      name: "Thinking",
-      icon: "brain",
+      name: "Think",
+      icon: "lightbulb",
       description: "Enable thinking capabilities",
     });
   }
@@ -111,7 +111,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
       <Pressable
         onPress={() => handleToggleTool(tool.id)}
         key={tool.id}
-        className={`w-full flex-row items-center p-2 border rounded-md ${
+        className={`w-32 flex-row items-center p-2 border rounded-md ${
           hotTools?.includes(tool.id)
             ? "!text-primary border-primary"
             : "border-border"
@@ -132,7 +132,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
 
   if (Platform.OS === "web" && availableTools.length <= 2) {
     return (
-      <View className="flex-col items-center space-y-1">
+      <View className="flex-row items-center space-x-1 mr-auto">
         {toolToggles(availableTools)}
       </View>
     );

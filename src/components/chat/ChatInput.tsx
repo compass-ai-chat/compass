@@ -266,30 +266,32 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           />
         )}
 
-        <ToolsMenu />
+        <View className="flex-col items-center flex-1">
+          <TextInput
+            onBlur={handleBlur}
+            ref={inputRef}
+            className={`flex-1 m-2 py-1 outline-none w-full px-4 bg-surface rounded-lg text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
+            placeholder={t("chats.type_a_message")}
+            placeholderTextColor="#9CA3AF"
+            value={message}
+            onChangeText={handleChangeText}
+            onKeyPress={handleKeyPress}
+            onSelectionChange={(event) => {
+              setCursorPosition(event.nativeEvent.selection.start);
+            }}
+            multiline
+            textAlignVertical="top"
+            style={{
+              fontFamily: fontPreferences.fontFamily,
+              fontSize: fontPreferences.fontSize,
+              lineHeight: fontPreferences.lineHeight - 4,
+              letterSpacing: fontPreferences.letterSpacing,
+              height: inputHeight,
+            }}
+          />
+          <ToolsMenu />
+        </View>
 
-        <TextInput
-          onBlur={handleBlur}
-          ref={inputRef}
-          className={`flex-1 py-1 outline-none w-full px-4 bg-surface rounded-lg mr-2 text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
-          placeholder={t("chats.type_a_message")}
-          placeholderTextColor="#9CA3AF"
-          value={message}
-          onChangeText={handleChangeText}
-          onKeyPress={handleKeyPress}
-          onSelectionChange={(event) => {
-            setCursorPosition(event.nativeEvent.selection.start);
-          }}
-          multiline
-          textAlignVertical="top"
-          style={{
-            fontFamily: fontPreferences.fontFamily,
-            fontSize: fontPreferences.fontSize,
-            lineHeight: fontPreferences.lineHeight - 4,
-            letterSpacing: fontPreferences.letterSpacing,
-            height: inputHeight,
-          }}
-        />
 
         {isGenerating ? (
           <Pressable
