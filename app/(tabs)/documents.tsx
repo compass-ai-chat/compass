@@ -77,35 +77,6 @@ export default function DocumentsRoute() {
       description: `Successfully processed the document`
     });
 
-
-
-    // FOR POLARIS
-    // // Create document object
-    // const newDoc: Document = {
-    //   id: Date.now().toString(),
-    //   name: file.name,
-    //   path: file.uri,
-    //   type: 'pdf',
-    //   pages: 0, // Will be updated after processing
-    // };
-
-    // // For web, we can get the file blob to send to server
-    // let fileBlob: Blob | undefined;
-    // if (Platform.OS === 'web') {
-    //   try {
-    //     const response = await fetch(file.uri);
-    //     fileBlob = await response.blob();
-    //   } catch (error) {
-    //     console.error('Failed to get file blob:', error);
-    //   }
-    // }
-
-    // await DocumentService.uploadDocument(newDoc, fileBlob);
-    // const documents = await DocumentService.getDocuments();
-    // setPolarisDocuments(documents);
-    // onUpload(newDoc);
-
-
   };
 
   const onStartDocumentChat = async (doc: Document) => {
