@@ -288,7 +288,7 @@ export const Message: React.FC<MessageProps> = ({
 
   return (
     <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}> 
-      <View className={`flex-col`}>
+      <View className={`flex-col w-full`}>
       <View className="flex flex-row">
       {
         message.mentionedDocumentIds && message.mentionedDocumentIds.length > 0 && (
@@ -301,7 +301,7 @@ export const Message: React.FC<MessageProps> = ({
       }
       </View>
     
-    <View className="flex flex-row justify-end">
+    <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"}`}>
       
       {!isUser && displayContent.length == 0 && isGenerating && (
         <View className="relative">
