@@ -23,6 +23,7 @@ export interface ChatMessage {
   character?: Character;
   toolCalls?: ToolCall[];
   activeTools?: string[];
+  mentionedDocumentIds?: string[];
   modelUsed?: {
     id: string;
     providerId: string;

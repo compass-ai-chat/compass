@@ -57,6 +57,32 @@ export const urlContentTransform: MessageTransform = {
   },
 };
 
+export const mentionedDocumentsTransform: MessageTransform = {
+  name: "mentionedDocuments",
+  transform: async (ctx: MessageContext): Promise<MessageContext> => {
+    const mentionedDocuments = ctx.mentionedDocuments;
+    if (!mentionedDocuments.length) return ctx;
+
+    const documents = ctx.allDocuments || [];
+    const relevantDocs = documents.filter((doc: Document) =>
+      mentionedDocuments.map(x=>x.id).includes(doc.id),
+    );
+
+    if (!relevantDocs.length) return ctx;
+
+    const allText = relevantDocs
+      .map((doc: Document) => doc.chunks?.join("\n") || "")
+      .join("\n");
+
+    ctx.context.messagesToSend.push({
+      content: `Relevant document context:\n${allText}`,
+      isSystem: true,
+      isUser: false,
+    });
+    return ctx;
+  },
+};
+
 export const relevantPassagesTransform: MessageTransform = {
   name: "relevantPassages",
   transform: async (ctx: MessageContext): Promise<MessageContext> => {
@@ -130,7 +156,7 @@ export const threadUpdateTransform: MessageTransform = {
       ...ctx.thread,
       messages: [
         ...ctx.metadata.messages,
-        { content: ctx.message, isUser: true },
+        { content: ctx.message, isUser: true, mentionedDocumentIds: ctx.mentionedDocuments.map(x=>x.id) },
         ctx.context.assistantPlaceholder,
       ],
     };
@@ -347,6 +373,8 @@ export interface MessageContext {
   provider: ChatProvider;
   thread: Thread;
   mentionedCharacters: MentionedCharacter[];
+  mentionedDocuments: Document[];
+  allDocuments: Document[];
   systemPrompt: string;
   context: {
     messagesToSend: ChatMessage[];

@@ -18,6 +18,8 @@ import { CharacterAvatar } from "../character/CharacterAvatar";
 import { MessageActions } from "./MessageActions";
 import { ThinkBlock } from "./ThinkBlock";
 import { ToolCall } from "@/src/services/chat/providers/VercelAIProvider";
+import { UploadedDocument } from "./UploadedDocument";
+import { MentionedDocument } from "./MentionedDocument";
 
 function extractThinkBlocks(content: string): {
   thinkBlocks: string[];
@@ -82,7 +84,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <View style={style} className="border-border border">
+    <View style={style} className="border-border border mb-4">
       <View className="flex-row justify-between items-center">
         <TouchableOpacity
           onPress={onToggleExpand}
@@ -285,9 +287,22 @@ export const Message: React.FC<MessageProps> = ({
   };
 
   return (
-    <View
-      className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}
-    >
+    <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}> 
+      <View className={`flex-col`}>
+      <View className="flex flex-row">
+      {
+        message.mentionedDocumentIds && message.mentionedDocumentIds.length > 0 && (
+          <View className="flex-row flex-wrap mt-1 mb-2">
+            {message.mentionedDocumentIds.map((documentId) => (
+              <MentionedDocument documentId={documentId} />
+            ))}
+          </View>
+        )
+      }
+      </View>
+    
+    <View className="flex flex-row justify-end">
+      
       {!isUser && displayContent.length == 0 && isGenerating && (
         <View className="relative">
           <View className="bg-surface border border-border w-10 h-10 rounded-full items-center justify-center shadow-md">
@@ -302,7 +317,7 @@ export const Message: React.FC<MessageProps> = ({
       {(displayContent.length > 0 || isThinking) && (
         <View
           className={`relative px-4 py-2 mb-4 rounded-2xl max-w-[100%] ${
-            isUser ? "bg-primary rounded-tr-none" : "bg-surface rounded-tl-none"
+            isUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
           } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
           onPointerEnter={() => setIsHovered(true)}
           onPointerLeave={() => setIsHovered(false)}
@@ -377,6 +392,8 @@ export const Message: React.FC<MessageProps> = ({
           )}
         </View>
       )}
+    </View>
+    </View>
     </View>
   );
 };

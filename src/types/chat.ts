@@ -3,7 +3,7 @@ import { Character, Provider, Thread } from "@/src/types/core";
 
 import { ChatMessage } from "@/src/types/core";
 
-import { Model } from "@/src/types/core";
+import { Model, Document } from "@/src/types/core";
 
 export interface ChatProvider {
   provider: Provider;
@@ -22,9 +22,10 @@ export interface MessageStreamHandler {
 }
 
 export interface ChatContextManager {
-  prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[]): {
+  prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]): {
     messagesToSend: ChatMessage[];
     assistantPlaceholder: ChatMessage;
     characterToUse: Character | undefined;
+    mentionedDocuments: Document[];
   };
 } 

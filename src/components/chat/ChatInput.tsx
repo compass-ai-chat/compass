@@ -39,7 +39,7 @@ interface Tool {
 }
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[]) => void;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]) => void;
   isGenerating?: boolean;
   onInterrupt?: () => void;
   className?: string;
@@ -164,7 +164,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
         if (!confirmed) return;
       }
-      onSend(message.trim(), mentionedCharacters);
+      onSend(message.trim(), mentionedCharacters, uploadedDocuments);
       setMentionedCharacters([]);
       setIsEditing(false);
 

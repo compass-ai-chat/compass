@@ -55,6 +55,7 @@ import {
   firstMessageTransform,
   documentContextTransform,
   templateVariableTransform,
+  mentionedDocumentsTransform,
 } from "./pipelines";
 
 // Exceptions
@@ -129,9 +130,11 @@ export function useChat() {
     //.addTransform(documentContextTransform)
     .addTransform(urlContentTransform)
     .addTransform(relevantPassagesTransform)
+    .addTransform(mentionedDocumentsTransform)
     .addTransform(webSearchTransform)
     .addTransform(threadUpdateTransform)
     .addTransform(firstMessageTransform);
+    
 
   // ========== Stream Handling ==========
   const handleToolCalls = async (
@@ -319,6 +322,7 @@ export function useChat() {
     messages: ChatMessage[],
     message: string,
     mentionedCharacters: MentionedCharacter[] = [],
+    mentionedDocuments: Document[] = [],
   ) => {
     abortController.current = new AbortController();
     currentThread.messages = messages;
@@ -326,6 +330,7 @@ export function useChat() {
       message,
       currentThread,
       mentionedCharacters,
+      mentionedDocuments
     );
     let selectedModel = currentThread.selectedModel;
 
@@ -363,7 +368,9 @@ export function useChat() {
         ...currentThread,
         selectedModel, // Update the thread's selected model
       },
+      allDocuments: documents,
       mentionedCharacters,
+      mentionedDocuments,
       systemPrompt: currentThread.character?.content ?? "",
       context,
       metadata: {
@@ -477,6 +484,7 @@ export function useChat() {
   const handleSend = async (
     message: string,
     mentionedCharacters: MentionedCharacter[],
+    mentionedDocuments: Document[],
   ) => {
     if (!providers.length) return;
 
@@ -504,7 +512,7 @@ export function useChat() {
 
     setIsGenerating(true);
     try {
-      await sendChatMessage(messages, message, mentionedCharacters);
+      await sendChatMessage(messages, message, mentionedCharacters, mentionedDocuments);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
