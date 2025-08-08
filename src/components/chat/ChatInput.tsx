@@ -19,6 +19,7 @@ import {
   charactersAtom,
   editingMessageIndexAtom,
   fontPreferencesAtom,
+  userDocumentsAtom,
 } from "@/src/hooks/atoms";
 import { useAtom, useAtomValue } from "jotai";
 import { CharacterMentionPopup } from "@/src/components/character/CharacterMentionPopup";
@@ -30,6 +31,7 @@ import { ToolsMenu } from "./ToolsMenu";
 import { DocumentUpload } from "./DocumentUpload";
 import { Document } from '@/src/types/core';
 import { UploadedDocument } from "./UploadedDocument";
+import { DocumentMentionPopup } from "@/src/components/documents/DocumentMentionPopup";
 
 interface Tool {
   id: string;
@@ -85,6 +87,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const [urls, setUrls] = useState<string[]>([]);
 
     const [uploadedDocuments, setUploadedDocuments] = useState<Document[]>([]);
+    const userDocuments = useAtomValue(userDocumentsAtom);
+    const [showDocumentPopup, setShowDocumentPopup] = useState(false);
+    const [documentSelectedIndex, setDocumentSelectedIndex] = useState(0);
 
     //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
 
@@ -130,6 +135,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       } else {
         setUrls([]);
       }
+
+      // Hide document popup when typing resumes
+      if (showDocumentPopup) setShowDocumentPopup(false);
     };
 
     const handleSelectCharacter = (character: Character) => {
@@ -168,6 +176,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setMentionedCharacters([]);
       setIsEditing(false);
 
+      // Also close document popup if open
+      setShowDocumentPopup(false);
+
       // Clear the message and reset input height
       handleChangeText("");
 
@@ -200,8 +211,43 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const handleKeyPress = ({
       nativeEvent,
     }: {
-      nativeEvent: { key: string; shiftKey?: boolean };
+      nativeEvent: { key: string; shiftKey?: boolean; ctrlKey?: boolean };
     }) => {
+      // Ctrl+/ opens documents popup (web only)
+      if (Platform.OS === "web" && nativeEvent.ctrlKey && nativeEvent.key === "/") {
+        setShowDocumentPopup(true);
+        setDocumentSelectedIndex(0);
+        return;
+      }
+
+      // If document popup is open, handle navigation/selection
+      if (Platform.OS === "web" && showDocumentPopup) {
+        const docs = userDocuments;
+        if (!docs || docs.length === 0) return;
+        switch (nativeEvent.key) {
+          case "ArrowUp":
+            setDocumentSelectedIndex((prev) => (prev > 0 ? prev - 1 : docs.length - 1));
+            return;
+          case "ArrowDown":
+            setDocumentSelectedIndex((prev) => (prev < docs.length - 1 ? prev + 1 : 0));
+            return;
+          case "Enter": {
+            const selected = docs[documentSelectedIndex];
+            if (selected) {
+              const exists = uploadedDocuments.some((d) => d.id === selected.id);
+              if (!exists) {
+                setUploadedDocuments([...uploadedDocuments, selected]);
+              }
+              setShowDocumentPopup(false);
+            }
+            return;
+          }
+          case "Escape":
+            setShowDocumentPopup(false);
+            return;
+        }
+      }
+
       // Only handle Enter for sending on desktop/web platforms
       if (Platform.OS === "web" && nativeEvent.key === "Enter") {
         if (!nativeEvent.shiftKey) {
@@ -244,6 +290,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setMentionedCharacters([]);
       setShowMentionPopup(false);
       setEditingMessageIndex(-1);
+      setShowDocumentPopup(false);
     };
 
     const handleDocumentUpload = (document: Document) => {
@@ -282,6 +329,19 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             onSelect={handleSelectCharacter}
             searchText={mentionSearch}
             selectedIndex={selectedIndex}
+          />
+        )}
+        {showDocumentPopup && (
+          <DocumentMentionPopup
+            documents={userDocuments}
+            selectedIndex={documentSelectedIndex}
+            onSelect={(doc) => {
+              const exists = uploadedDocuments.some((d) => d.id === doc.id);
+              if (!exists) {
+                setUploadedDocuments([...uploadedDocuments, doc]);
+              }
+              setShowDocumentPopup(false);
+            }}
           />
         )}
 
