@@ -26,10 +26,12 @@ import { hotToolsAtom, thinkingActiveAtom } from "@/src/hooks/atoms";
 import { useAtom } from "jotai";
 
 export interface ToolCall {
-  toolName: string;
+  toolName?: string;
   toolCallId: string;
   args: any;
   toolId?: string;
+  pending?: boolean;
+  result?: any;
 }
 
 export interface StreamResponse {
@@ -187,20 +189,32 @@ export function useVercelAIProvider() {
           toolChoice: "auto",
           onChunk: (chunk) => {
             if (chunk.chunk.type == "tool-call") {
-              console.log("tool call", chunk.chunk);
-              toolCallController.enqueue({
+              const tc: ToolCall = {
                 toolName: chunk.chunk.toolName,
                 toolCallId: chunk.chunk.toolCallId,
                 args: chunk.chunk.args,
                 toolId: chunk.chunk.toolName,
-              });
+                pending: true,
+              };
+              toolCallController.enqueue(tc);
             } else if (chunk.chunk.type == "reasoning") {
               reasoningController.enqueue(chunk.chunk.textDelta);
+            } else if (chunk.chunk.type === "tool-result") {
+              const tc: ToolCall = {
+                toolName: chunk.chunk.toolName,
+                toolCallId: chunk.chunk.toolCallId,
+                args: chunk.chunk.args,
+                toolId: chunk.chunk.toolName,
+                pending: false,
+                result: chunk.chunk.result,
+              };
+              toolCallController.enqueue(tc);
             } else {
-              //console.log('chunk', chunk);
+              // other chunk types ignored
             }
           },
           onFinish: () => {
+            
             textController.close();
             toolCallController.close();
             reasoningController.close();
@@ -265,6 +279,8 @@ export function useVercelAIProvider() {
                     toolName: toolCall.toolName,
                     toolCallId: toolCall.toolCallId,
                     args: toolCall.args,
+                    pending: false,
+                    toolId: toolCall.toolName,
                   });
                 }
               }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Image, TouchableOpacity, Platform } from "react-native";
+import { View, Image, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { useColorScheme } from "nativewind";
 import { Character, ChatMessage } from "@/src/types/core";
@@ -145,17 +145,21 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({
       onPointerLeave={() => setIsHovered(false)}
     >
       <View
-        className={`bg-surface border border-border rounded-full p-2 flex-row items-center transition-all duration-300 ease-in-out`}
+        className={`bg-surface border border-border rounded-full px-2 py-2 flex-row items-center transition-all duration-300 ease-in-out ${toolCall?.pending ? "animate-pulse" : ""}`}
       >
-        <Ionicons
-          name={getToolIcon(toolCall.toolId!)}
-          size={16}
-          className="!text-text opacity-70"
-        />
+        {toolCall?.pending ? (
+          <ActivityIndicator size="small" color={isDark ? "#fff" : "#000"} />
+        ) : (
+          <Ionicons
+            name={getToolIcon(toolCall.toolId!)}
+            size={16}
+            className="!text-text opacity-70"
+          />
+        )}
         <Text
-          className={`h-4 text-text text-sm transition-all duration-300 ease-in-out overflow-hidden ${isHovered ? "opacity-100 ml-2" : "opacity-0 max-w-0 h-0"}`}
+          className={`h-4 text-text text-sm transition-all duration-300 ease-in-out overflow-hidden ${(isHovered || toolCall?.pending) ? "opacity-100 ml-2" : "opacity-0 max-w-0 h-0"}`}
         >
-          Used {toolCall.toolId}
+          {toolCall?.pending ? `Using ${toolCall.toolId}...` : `Used ${toolCall.toolId}`}
         </Text>
       </View>
     </View>
@@ -289,6 +293,17 @@ export const Message: React.FC<MessageProps> = ({
   return (
     <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}> 
       <View className={`flex-col w-full`}>
+      {message.toolCalls && message.toolCalls.length > 0 && (
+            <View className="flex-row flex-wrap mt-1 mb-2">
+              {message.toolCalls.map((toolCall, idx) => (
+                <ToolCallIndicator
+                  key={`${index}-${idx}`}
+                  toolCall={toolCall}
+                  isDark={isDark}
+                />
+              ))}
+            </View>
+          )}
       <View className="flex flex-row">
       {
         message.mentionedDocumentIds && message.mentionedDocumentIds.length > 0 && (
@@ -330,17 +345,7 @@ export const Message: React.FC<MessageProps> = ({
               via {modelUsed.id}
             </Text>
           )}
-          {message.toolCalls && message.toolCalls.length > 0 && (
-            <View className="flex-row flex-wrap mt-1 mb-2">
-              {message.toolCalls.map((toolCall, idx) => (
-                <ToolCallIndicator
-                  key={`${index}-${idx}`}
-                  toolCall={toolCall}
-                  isDark={isDark}
-                />
-              ))}
-            </View>
-          )}
+          
           {editingMessageIndex !== index && (
             <View>
               {true &&

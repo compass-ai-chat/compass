@@ -142,14 +142,21 @@ export function useChat() {
     thread: Thread,
   ) => {
     try {
+      let toolCalls: ToolCall[] = [];
       for await (const toolCall of toolCallStream) {
-        console.log("Received tool call:", toolCall);
+
+        // if toolCall not in toolCalls, add it - otherwise replace it - based on toolCallId
+        const idx = toolCalls.findIndex(tc => tc.toolCallId === toolCall.toolCallId);
+        if (idx === -1) {
+          toolCalls.push(toolCall);
+        } else {
+          toolCalls[idx] = toolCall;
+        }
+
         await updateLastAssistantMessage(
-          { content: toolCall.toolName, isUser: false, toolCalls: [toolCall] },
+          { isUser: false, toolCalls: toolCalls },
           thread,
         );
-        // Here you can add logic to handle tool calls
-        // For example, you might want to update UI state, log tool usage, etc.
       }
     } catch (error: any) {
       console.log("Tool call handling error:", error);
@@ -177,7 +184,7 @@ export function useChat() {
         if (!content) continue;
         reasoning += content;
         await updateLastAssistantMessage(
-          { content: "", isUser: false, reasoning },
+          { isUser: false, reasoning },
           thread,
         );
       }
@@ -227,16 +234,14 @@ export function useChat() {
   };
 
   const updateLastAssistantMessage = async (
-    message: ChatMessage,
+    message: Partial<ChatMessage>,
     thread: Thread,
   ) => {
     const updatedMessages = [...thread.messages];
     let lastMessage = updatedMessages[updatedMessages.length - 1];
     if (lastMessage && !lastMessage.isUser) {
-      updatedMessages[updatedMessages.length - 1] = {
-        ...lastMessage,
-        ...message,
-      };
+      const merged = { ...lastMessage, ...message } as ChatMessage;
+      updatedMessages[updatedMessages.length - 1] = merged;
       const updatedThread = await dispatchThread({
         type: "updateMessage",
         payload: {
@@ -247,8 +252,9 @@ export function useChat() {
       });
       await new Promise((resolve) => setTimeout(resolve, 50));
       if (
+        Object.prototype.hasOwnProperty.call(message, "content") &&
         updatedThread?.messages[updatedThread.messages.length - 1]?.content !==
-        message.content
+          message.content
       ) {
         throw new Error("Message update failed to persist");
       }
