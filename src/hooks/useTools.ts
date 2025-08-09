@@ -146,9 +146,11 @@ export function useTools() {
           continue;
         }
 
-        toolSet[filteredTool.name] = tool({
+        toolSet["websearch"] = tool({
           description: blueprint.description,
-          inputSchema: simpleSchemaToZod(blueprint.paramsSchema),
+          inputSchema: z.object({
+            query: z.string().describe('The query to search the web for'),
+          }),
           execute: async (params: any) => {
             console.log("Executing tool", filteredTool.name, params);
             return await blueprint.execute?.(params, filteredTool.configValues || {});
