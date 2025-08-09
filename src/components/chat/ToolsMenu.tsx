@@ -111,7 +111,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
       <Pressable
         onPress={() => handleToggleTool(tool.id)}
         key={tool.id}
-        className={`w-32 flex-row items-center p-2 border rounded-md ${
+        className={`w-32 flex-row items-center p-2 border rounded-md hover:opacity-60 ${
           hotTools?.includes(tool.id)
             ? "!text-primary border-primary"
             : "border-border"
