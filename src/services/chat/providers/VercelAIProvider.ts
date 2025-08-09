@@ -186,6 +186,7 @@ export function useVercelAIProvider() {
           tools: toolSchemas,
           maxSteps: 3,
           toolChoice: "auto",
+          abortSignal: signal,
           onChunk: (chunk) => {
             const c: any = (chunk as any).chunk;
             if (c?.type === "tool-call" || c?.type === "tool-call-delta" || c?.type === "tool-call-streaming-start") {
@@ -258,6 +259,7 @@ export function useVercelAIProvider() {
         tools: toolSchemas,
         maxSteps: 3,
         toolChoice: "auto",
+        abortSignal: signal,
       });
 
       // Create streams that immediately provide the final result

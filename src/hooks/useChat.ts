@@ -62,6 +62,12 @@ import {
 import { ModelNotFoundException } from "@/src/services/chat/streamUtils";
 import { SimpleSchema } from "../utils/zodHelpers";
 
+const isAbortError = (error: any): boolean => {
+  if (!error) return false;
+  const msg = typeof error.message === 'string' ? error.message.toLowerCase() : '';
+  return error.name === 'AbortError' || error.code === 'ABORT_ERR' || msg.includes('abort');
+};
+
 function selectModelBasedOnRouting(
   character: Character | undefined,
   availableModels: Model[],
@@ -160,6 +166,7 @@ export function useChat() {
         );
       }
     } catch (error: any) {
+      if (isAbortError(error)) return;
       console.log("Tool call handling error:", error);
       LogService.log(
         error,
@@ -205,6 +212,9 @@ export function useChat() {
         await tts.streamText("");
       }
     } catch (error: any) {
+      if (isAbortError(error)) {
+        return;
+      }
       if (error instanceof ModelNotFoundException) {
         throw error;
       }
@@ -322,6 +332,7 @@ export function useChat() {
       abortController.current = null;
     }
     tts.stopStreaming();
+    setIsGenerating(false);
   };
 
   // ========== Message Handling ==========
@@ -435,7 +446,9 @@ export function useChat() {
     } catch (error: any) {
       console.log("Error sending message:", error);
 
-      if (error instanceof ModelNotFoundException && selectedModel) {
+      if (isAbortError(error)) {
+        // user-initiated cancel; no toast
+      } else if (error instanceof ModelNotFoundException && selectedModel) {
         const updatedModels = models.filter(
           (m: Model) =>
             !(
