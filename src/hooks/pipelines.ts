@@ -48,7 +48,6 @@ export const urlContentTransform: MessageTransform = {
     ctx.metadata.webContent = webContent;
     ctx.metadata.urls = urls;
     ctx.context.messagesToSend.push({
-      isSystem: true,
       role: 'system',
       content: `${webContent.join("\n")}\n`,
     });
@@ -76,7 +75,6 @@ export const mentionedDocumentsTransform: MessageTransform = {
 
     ctx.context.messagesToSend.push({
       content: `Relevant document context:\n${allText}`,
-      isSystem: true,
       role: 'system',
     });
     return ctx;
