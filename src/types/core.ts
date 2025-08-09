@@ -16,10 +16,24 @@ export interface Thread {
   metadata?: ThreadMetadata;
 }
 
+export type MessageRole = "user" | "assistant" | "system";
+
 export interface ChatMessage {
   content: string;
-  isUser: boolean;
+  /**
+   * Preferred: use `role` to determine message role.
+   * @deprecated Use `role === 'user'` instead.
+   */
+  isUser?: boolean;
+  /**
+   * Preferred: use `role` to determine message role.
+   * @deprecated Use `role === 'system'` instead.
+   */
   isSystem?: boolean;
+  /**
+   * Discriminant for the message role. If omitted, fall back to `isUser`/`isSystem` semantics.
+   */
+  role?: MessageRole;
   character?: Character;
   toolCalls?: ToolCall[];
   activeTools?: string[];

@@ -24,6 +24,7 @@ import { z } from "zod";
 import { SimpleSchema, simpleSchemaToZod } from "@/src/utils/zodHelpers";
 import { hotToolsAtom, thinkingActiveAtom } from "@/src/hooks/atoms";
 import { useAtom } from "jotai";
+import { getMessageRole } from "@/src/utils/chatMessage";
 
 export interface ToolCall {
   toolName?: string;
@@ -121,11 +122,7 @@ export function useVercelAIProvider() {
   ): Promise<StreamResponse> => {
     const newMessages = [
       ...messages.map((message) => ({
-        role: message.isUser
-          ? "user"
-          : message.isSystem
-            ? "system"
-            : "assistant",
+        role: getMessageRole(message),
         content: message.content,
       })),
     ];
@@ -185,34 +182,38 @@ export function useVercelAIProvider() {
 
         const { textStream: originalTextStream } = streamText({
           model: provider,
-          messages: newMessages as CoreUserMessage[],
+          messages: newMessages as CoreMessage[],
           tools: toolSchemas,
           maxSteps: 3,
           toolChoice: "auto",
           onChunk: (chunk) => {
-            if (chunk.chunk.type == "tool-call") {
+            const c: any = (chunk as any).chunk;
+            if (c?.type === "tool-call" || c?.type === "tool-call-delta" || c?.type === "tool-call-streaming-start") {
               const tc: ToolCall = {
-                toolName: chunk.chunk.toolName,
-                toolCallId: chunk.chunk.toolCallId,
-                args: chunk.chunk.args,
-                toolId: chunk.chunk.toolName,
+                toolName: c.toolName,
+                toolCallId: c.toolCallId,
+                args: c.args,
+                toolId: c.toolName,
                 pending: true,
-                icon: getIcon(chunk.chunk.toolName),
-                status: getToolCallStatus(chunk.chunk.toolName, chunk.chunk.args, true),
+                icon: getIcon(c.toolName),
+                status: getToolCallStatus(c.toolName, c.args, true),
               };
               toolCallController.enqueue(tc);
-            } else if (chunk.chunk.type == "reasoning") {
-              reasoningController.enqueue(chunk.chunk.textDelta);
-            } else if (chunk.chunk.type === "tool-result") {
+            } else if (c?.type === "reasoning") {
+              // Some SDK versions emit "reasoning" or include thinking in text/source streams
+              if (typeof c.textDelta === "string") {
+                reasoningController.enqueue(c.textDelta);
+              }
+            } else if (c?.type === "tool-result") {
               const tc: ToolCall = {
-                toolName: chunk.chunk.toolName,
-                toolCallId: chunk.chunk.toolCallId,
-                args: chunk.chunk.args,
-                toolId: chunk.chunk.toolName,
+                toolName: c.toolName,
+                toolCallId: c.toolCallId,
+                args: c.args,
+                toolId: c.toolName,
                 pending: false,
-                result: chunk.chunk.result,
-                icon: getIcon(chunk.chunk.toolName),
-                status: getToolCallStatus(chunk.chunk.toolName, chunk.chunk.args, false),
+                result: c.result,
+                icon: getIcon(c.toolName),
+                status: getToolCallStatus(c.toolName, c.args, false),
               };
               toolCallController.enqueue(tc);
             } else {

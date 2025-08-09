@@ -18,6 +18,7 @@ import { MessageActions } from "./MessageActions";
 import { ThinkBlock } from "./ThinkBlock";
 import { ToolCall } from "@/src/services/chat/providers/VercelAIProvider";
 import { MentionedDocument } from "./MentionedDocument";
+import { getMessageRole } from "@/src/utils/chatMessage";
 
 interface MessageProps {
   message: ChatMessage;
@@ -152,34 +153,36 @@ export const Message: React.FC<MessageProps> = ({
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
   const [thinkBlocks, setThinkBlocks] = useState<string[]>([]);
 
+  const isFromUser = isUser ?? getMessageRole(message) === "user";
+
   const markdownStyles = {
     body: {
-      color: isUser ? "#fff" : isDark ? "#fff" : "#1f2937",
+      color: isFromUser ? "#fff" : isDark ? "#fff" : "#1f2937",
       fontFamily: preferences.fontFamily,
       fontSize: preferences.fontSize,
       lineHeight: preferences.lineHeight,
       letterSpacing: preferences.letterSpacing,
     },
     code_block: {
-      backgroundColor: isUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
+      backgroundColor: isFromUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
       padding: 8,
       borderRadius: 8,
       fontFamily: "monospace",
     },
     code_inline: {
-      backgroundColor: isUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
+      backgroundColor: isFromUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
       padding: 4,
       borderRadius: 4,
       fontFamily: "monospace",
     },
     fence: {
-      backgroundColor: isUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
+      backgroundColor: isFromUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
       padding: 8,
       borderRadius: 8,
       fontFamily: "monospace",
     },
     hr: {
-      backgroundColor: isUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
+      backgroundColor: isFromUser ? "#1e40af" : isDark ? "#374151" : "#f3f4f6",
       height: 2,
       padding: 1,
       margin: 8,
@@ -258,7 +261,7 @@ export const Message: React.FC<MessageProps> = ({
   };
 
   return (
-    <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"} mb-2`}> 
+    <View className={`flex flex-row ${isFromUser ? "justify-end" : "justify-start"} mb-2`}>
       <View className={`flex-col w-full`}>
       {message.toolCalls && message.toolCalls.length > 0 && (
             <View className="flex-row flex-wrap mt-1 mb-2">
@@ -283,15 +286,15 @@ export const Message: React.FC<MessageProps> = ({
       }
       </View>
     
-    <View className={`flex flex-row ${isUser ? "justify-end" : "justify-start"}`}>
+    <View className={`flex flex-row ${isFromUser ? "justify-end" : "justify-start"}`}>
       
-      {!isUser && displayContent.length == 0 && isGenerating && (
+      {!isFromUser && displayContent.length == 0 && isGenerating && (
         <View className="relative">
           <View className="bg-surface border border-border w-10 h-10 rounded-full items-center justify-center shadow-md">
             <Ionicons
               name="compass"
               size={24}
-              className={`!text-primary ${Platform.OS === "web" ? "animate-spin duration-[2000ms]" : ""}`}
+              className={`${Platform.OS === "web" ? "animate-spin duration-[2000ms]" : ""} !text-primary`}
             />
           </View>
         </View>
@@ -299,7 +302,7 @@ export const Message: React.FC<MessageProps> = ({
       {(displayContent.length > 0 || isThinking) && (
         <View
           className={`relative px-4 py-2 mb-4 rounded-2xl max-w-[100%] ${
-            isUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
+            isFromUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
           } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
           onPointerEnter={() => setIsHovered(true)}
           onPointerLeave={() => setIsHovered(false)}
@@ -307,7 +310,7 @@ export const Message: React.FC<MessageProps> = ({
           {editingMessageIndex === index && (
             <Text className="text-yellow-400 text-xs mb-1">Editing...</Text>
           )}
-          {!isUser && modelUsed && (
+          {!(isFromUser) && modelUsed && (
             <Text className="text-xs opacity-50 mb-1 text-text">
               via {modelUsed.id}
             </Text>
@@ -355,7 +358,7 @@ export const Message: React.FC<MessageProps> = ({
 
           {isHovered && (
             <MessageActions
-              isUser={isUser}
+              isUser={isFromUser}
               hasPreviewableCode={hasPreviewableCode}
               onCopy={handleCopyMessage}
               onPreviewCode={onPreviewCode}

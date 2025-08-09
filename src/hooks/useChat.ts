@@ -155,7 +155,7 @@ export function useChat() {
         }
 
         await updateLastAssistantMessage(
-          { isUser: false, toolCalls: toolCalls },
+          { isUser: false, role: 'assistant', toolCalls: toolCalls },
           thread,
         );
       }
@@ -185,7 +185,7 @@ export function useChat() {
         if (!content) continue;
         reasoning += content;
         await updateLastAssistantMessage(
-          { isUser: false, reasoning },
+          { isUser: false, role: 'assistant', reasoning },
           thread,
         );
       }
@@ -275,7 +275,7 @@ export function useChat() {
     }
 
     await updateLastAssistantMessage(
-      { content: assistantMessage, isUser: false },
+      { content: assistantMessage, isUser: false, role: 'assistant' },
       thread,
     );
   };
@@ -399,6 +399,8 @@ export function useChat() {
           id: selectedModel.id,
           providerId: selectedModel.provider.id,
         },
+        role: 'assistant',
+        isUser: false,
       });
 
       let messagesToSend = [
@@ -411,6 +413,7 @@ export function useChat() {
           content: transformedContext.systemPrompt,
           isUser: false,
           isSystem: true,
+          role: 'system',
         });
       }
 
