@@ -240,7 +240,7 @@ export function useChat() {
   ) => {
     const updatedMessages = [...thread.messages];
     let lastMessage = updatedMessages[updatedMessages.length - 1];
-    if (lastMessage && !lastMessage.isUser) {
+    if (lastMessage && lastMessage.role != 'user') {
       const merged = { ...lastMessage, ...message } as ChatMessage;
       updatedMessages[updatedMessages.length - 1] = merged;
       const updatedThread = await dispatchThread({
@@ -531,7 +531,7 @@ export function useChat() {
   };
 
   const handleMessagePress = (index: number, message: ChatMessage) => {
-    if (message.isUser) {
+    if (message.role == 'user') {
       setEditingMessageIndex(index);
     }
   };

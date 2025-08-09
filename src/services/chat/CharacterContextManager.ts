@@ -5,19 +5,20 @@ import { Thread } from '@/src/types/core';
 
 export class CharacterContextManager implements ChatContextManager {
   prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]): { messagesToSend: ChatMessage[]; historyToSend: ChatMessage[]; assistantPlaceholder: ChatMessage; useMention: boolean; characterToUse: Character | undefined, mentionedDocuments: Document[] } {
-    const newMessage = { content: message, isUser: true };
-    let assistantPlaceholder: ChatMessage = { content: "", isUser: false };
+    const newMessage = { content: message, isUser: true, role: 'user' };
+    let assistantPlaceholder: ChatMessage = { content: "", isUser: false, role: 'assistant' };
     let messagesToSend: ChatMessage[] = [];
 
     if (mentionedCharacters.length > 0) {
       const contextMessage = this.buildContextMessage(currentThread);
       assistantPlaceholder = { 
         content: '', 
-        isUser: false, 
+        isUser: false,
+        role: 'assistant',
         character: mentionedCharacters[0].character 
       };
       messagesToSend = [
-        { content: contextMessage, isUser: false,isSystem: true },
+        { content: contextMessage, isUser: false, role: 'system' },
         newMessage
       ];
     } else {
@@ -29,7 +30,7 @@ export class CharacterContextManager implements ChatContextManager {
     for (let i = 0; i < currentThread.messages.length; i++) {
         const message = currentThread.messages[i];
         if (message.character && historyToSend.length > 0) {
-          historyToSend.push({ content: `${message.character.name} responded: "${message.content}"`, isUser: false, isSystem: true });
+          historyToSend.push({ content: `${message.character.name} responded: "${message.content}"`, isUser: false, role: 'system' });
         } 
         else{
           historyToSend.push(message);

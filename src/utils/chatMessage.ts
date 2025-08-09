@@ -2,7 +2,7 @@ import { ChatMessage, MessageRole } from "@/src/types/core";
 
 export function getMessageRole(message: ChatMessage): MessageRole {
   if (message.role) return message.role;
-  if (message.isUser) return "user";
+  if (message.role == 'user') return "user";
   if (message.isSystem) return "system";
   return "assistant";
 }
@@ -13,7 +13,7 @@ export function withNormalizedRole<T extends ChatMessage>(message: T): T {
     ...message,
     role,
     // Keep legacy flags in sync if they were present
-    isUser: role === "user" ? true : message.isUser ? false : undefined,
+    isUser: role === "user" ? true : message.role == 'user' ? false : undefined,
     isSystem: role === "system" ? true : message.isSystem ? false : undefined,
   } as T;
 }

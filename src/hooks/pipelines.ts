@@ -50,6 +50,7 @@ export const urlContentTransform: MessageTransform = {
     ctx.context.messagesToSend.push({
       isSystem: true,
       isUser: false,
+      role: 'system',
       content: `${webContent.join("\n")}\n`,
     });
 
@@ -78,6 +79,7 @@ export const mentionedDocumentsTransform: MessageTransform = {
       content: `Relevant document context:\n${allText}`,
       isSystem: true,
       isUser: false,
+      role: 'system',
     });
     return ctx;
   },
@@ -108,6 +110,7 @@ export const relevantPassagesTransform: MessageTransform = {
         content: `Web content context:\n${relevantPassages.map((p) => p.text).join("\n")}`,
         isSystem: true,
         isUser: false,
+        role: 'system',
       });
     }
 
@@ -141,6 +144,7 @@ export const webSearchTransform: MessageTransform = {
             .join("\n")}`,
           isSystem: true,
           isUser: false,
+          role: 'system',
         });
       }
     }
@@ -156,7 +160,7 @@ export const threadUpdateTransform: MessageTransform = {
       ...ctx.thread,
       messages: [
         ...ctx.metadata.messages,
-        { content: ctx.message, isUser: true, mentionedDocumentIds: ctx.mentionedDocuments.map(x=>x.id) },
+        { content: ctx.message, isUser: true, role: 'user', mentionedDocumentIds: ctx.mentionedDocuments.map(x=>x.id) },
         ctx.context.assistantPlaceholder,
       ],
     };
@@ -261,6 +265,7 @@ export const documentContextTransform: MessageTransform = {
         content: `Relevant document context:\n${relevantPassages.map((p) => p.text).join("\n")}`,
         isSystem: false,
         isUser: true,
+        role: 'user',
       });
     }
 
