@@ -90,7 +90,6 @@ export function FontSelector({ className }: FontSelectorProps) {
         <Message
           message={{
             content: t('settings.font_settings.preview_message'),
-            isUser: false,
           }}
           content={t('settings.font_settings.preview_message')}
           isUser={false}
@@ -99,7 +98,6 @@ export function FontSelector({ className }: FontSelectorProps) {
         <Message
           message={{
             content: t('settings.font_settings.preview_user_message'),
-            isUser: true,
           }}
           content={t('settings.font_settings.preview_user_message')}
           isUser={true}
