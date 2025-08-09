@@ -32,6 +32,7 @@ import { DocumentUpload } from "./DocumentUpload";
 import { Document } from '@/src/types/core';
 import { UploadedDocument } from "./UploadedDocument";
 import { DocumentMentionPopup } from "@/src/components/documents/DocumentMentionPopup";
+import { MicButton } from "./MicButton";
 
 interface Tool {
   id: string;
@@ -371,6 +372,20 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           <View className="flex-row items-center mr-auto">
             <DocumentUpload className="mr-1 h-10" onDocumentUpload={handleDocumentUpload} />
             <ToolsMenu />
+            <MicButton
+              className="ml-2"
+              onPartial={(text) => {
+                // show interim in the input without sending
+                const base = message.endsWith(' ') || message.length === 0 ? message : message + ' ';
+                setMessage(base + text);
+              }}
+              onFinal={(text) => {
+                // commit final text to the input
+                const base = message.endsWith(' ') || message.length === 0 ? message : message + ' ';
+                const newMsg = base + text.trim();
+                handleChangeText(newMsg);
+              }}
+            />
           </View>
         </View>
 
