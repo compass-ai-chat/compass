@@ -146,7 +146,7 @@ export function useTools() {
           continue;
         }
 
-        toolSet["websearch"] = tool({
+        toolSet[filteredTool.name.toLowerCase()] = tool({
           description: blueprint.description,
           inputSchema: z.object({
             query: z.string().describe('The query to search the web for'),
