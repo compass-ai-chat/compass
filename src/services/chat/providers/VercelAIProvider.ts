@@ -3,14 +3,10 @@ import { ChatMessage, Model } from "@/src/types/core";
 import LogService from "@/utils/LogService";
 import {
   CoreMessage,
-  CoreUserMessage,
-  createDataStream,
-  embedMany,
   generateObject,
   generateText,
-  StreamData,
+  stepCountIs,
   streamText,
-  tool,
   ToolSet,
 } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -48,7 +44,7 @@ export function useVercelAIProvider() {
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
-  const createProvider = (provider: any, modelId: string) => {
+  const createProvider = (provider: any, modelId: string) : any => {
     let aiModel;
 
     switch (provider.name.toLowerCase()) {
@@ -56,7 +52,7 @@ export function useVercelAIProvider() {
         console.log("ollama endpoint", provider.endpoint + "/api");
         aiModel = createOllama({
           baseURL: provider.endpoint + "/api",
-        })(modelId, { think: hotTools.includes("Thinking") });
+        })(modelId);
         break;
       case "openai":
         aiModel = createOpenAI({
@@ -182,9 +178,10 @@ export function useVercelAIProvider() {
 
         const { textStream: originalTextStream } = streamText({
           model: provider,
+          providerOptions: { ollama: {think: hotTools.includes("Thinking")}},
           messages: newMessages as CoreMessage[],
           tools: toolSchemas,
-          maxSteps: 3,
+          stopWhen: stepCountIs(3),
           toolChoice: "auto",
           abortSignal: signal,
           onChunk: (chunk) => {
@@ -257,7 +254,7 @@ export function useVercelAIProvider() {
         model: provider,
         messages: newMessages as CoreMessage[],
         tools: toolSchemas,
-        maxSteps: 3,
+        stopWhen: stepCountIs(3),
         toolChoice: "auto",
         abortSignal: signal,
       });
@@ -272,7 +269,9 @@ export function useVercelAIProvider() {
 
       const reasoningStream = new ReadableStream<string>({
         async start(controller) {
-          controller.enqueue(reasoning);
+          for (const part of reasoning) {
+            controller.enqueue(part.text);
+          }
           controller.close();
         },
       });
@@ -287,7 +286,7 @@ export function useVercelAIProvider() {
                   controller.enqueue({
                     toolName: toolCall.toolName,
                     toolCallId: toolCall.toolCallId,
-                    args: toolCall.args,
+                    args: toolCall.input,
                     pending: false,
                     toolId: toolCall.toolName,
                   });
