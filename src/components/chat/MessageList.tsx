@@ -41,7 +41,6 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
       <Message
         message={message}
         content={message.content}
-        isUser={message.role == 'user'}
         character={message.character}
         index={index}
         onEdit={() => onMessagePress(index, message)}

@@ -23,7 +23,6 @@ import { getMessageRole } from "@/src/utils/chatMessage";
 interface MessageProps {
   message: ChatMessage;
   content: string;
-  isUser: boolean;
   character?: Character;
   index: number;
   onEdit?: (index: number) => void;
@@ -137,7 +136,6 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({
 export const Message: React.FC<MessageProps> = ({
   message,
   content,
-  isUser,
   character,
   index,
   onEdit,
@@ -153,7 +151,7 @@ export const Message: React.FC<MessageProps> = ({
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
   const [thinkBlocks, setThinkBlocks] = useState<string[]>([]);
 
-  const isFromUser = isUser ?? getMessageRole(message) === "user";
+  const isFromUser = message.role === "user";
 
   const markdownStyles = {
     body: {

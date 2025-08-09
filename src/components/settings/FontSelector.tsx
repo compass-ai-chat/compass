@@ -90,17 +90,17 @@ export function FontSelector({ className }: FontSelectorProps) {
         <Message
           message={{
             content: t('settings.font_settings.preview_message'),
+            role: 'assistant'
           }}
           content={t('settings.font_settings.preview_message')}
-          isUser={false}
           index={0}
         />
         <Message
           message={{
             content: t('settings.font_settings.preview_user_message'),
+            role: 'user'
           }}
           content={t('settings.font_settings.preview_user_message')}
-          isUser={true}
           index={0}
         />
       </View>
