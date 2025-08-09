@@ -31,7 +31,9 @@ export interface ToolCall {
   args: any;
   toolId?: string;
   pending?: boolean;
+  status?: string;
   result?: any;
+  icon?: string;
 }
 
 export interface StreamResponse {
@@ -41,7 +43,7 @@ export interface StreamResponse {
 }
 
 export function useVercelAIProvider() {
-  const { getVercelCompatibleToolSet } = useTools();
+  const { getVercelCompatibleToolSet, getIcon, getToolCallStatus } = useTools();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
@@ -195,6 +197,8 @@ export function useVercelAIProvider() {
                 args: chunk.chunk.args,
                 toolId: chunk.chunk.toolName,
                 pending: true,
+                icon: getIcon(chunk.chunk.toolName),
+                status: getToolCallStatus(chunk.chunk.toolName, chunk.chunk.args, true),
               };
               toolCallController.enqueue(tc);
             } else if (chunk.chunk.type == "reasoning") {
@@ -207,6 +211,8 @@ export function useVercelAIProvider() {
                 toolId: chunk.chunk.toolName,
                 pending: false,
                 result: chunk.chunk.result,
+                icon: getIcon(chunk.chunk.toolName),
+                status: getToolCallStatus(chunk.chunk.toolName, chunk.chunk.args, false),
               };
               toolCallController.enqueue(tc);
             } else {

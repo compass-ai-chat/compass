@@ -151,7 +151,7 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({
           <ActivityIndicator size="small" color={isDark ? "#fff" : "#000"} />
         ) : (
           <Ionicons
-            name={getToolIcon(toolCall.toolId!)}
+            name={toolCall.icon as any}
             size={16}
             className="!text-text opacity-70"
           />
@@ -159,7 +159,7 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({
         <Text
           className={`h-4 text-text text-sm transition-all duration-300 ease-in-out overflow-hidden ${(isHovered || toolCall?.pending) ? "opacity-100 ml-2" : "opacity-0 max-w-0 h-0"}`}
         >
-          {toolCall?.pending ? `Using ${toolCall.toolId}...` : `Used ${toolCall.toolId}`}
+          {toolCall?.pending ? toolCall.status : toolCall.status}
         </Text>
       </View>
     </View>

@@ -71,6 +71,12 @@ export function useTools() {
   
   } 
 
+  const getIcon = (toolId: string) => {
+    const tool = toolBlueprints.find(t => t.id === toolId);
+    if (!tool) return 'code';
+    return tool.icon;
+  }
+
   const createToolBlueprint = async (tool: ToolBlueprint) => {
     if (tool.id === 'dynamic') {
       await registerToolBlueprint({
@@ -164,6 +170,14 @@ export function useTools() {
       return toolBlueprints;
   }
 
+  const getToolCallStatus = (toolId: string, args: any, pending: boolean) => {
+    
+    if(toolId == "WebSearch"){
+      return pending ? `Searching the web for ${args.query}...` : `Searched the web for ${args.query}`;
+    }
+    return pending ? `Using ${toolId}...` : `Used ${toolId}`;
+  }
+
   const registerToolBlueprint = (blueprint: ToolBlueprint) : ToolBlueprint => {
     try {
 
@@ -224,7 +238,9 @@ export function useTools() {
     registerToolBlueprint,
     setToolExecutor,
     executeTool,
-    addTool
+    addTool,
+    getIcon,
+    getToolCallStatus
   };
 }
 

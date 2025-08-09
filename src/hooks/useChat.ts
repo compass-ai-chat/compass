@@ -144,6 +144,7 @@ export function useChat() {
     try {
       let toolCalls: ToolCall[] = [];
       for await (const toolCall of toolCallStream) {
+        //console.log("toolCall", toolCall);
 
         // if toolCall not in toolCalls, add it - otherwise replace it - based on toolCallId
         const idx = toolCalls.findIndex(tc => tc.toolCallId === toolCall.toolCallId);
