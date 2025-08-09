@@ -15,7 +15,7 @@ import { WeatherToolService } from '../tools/weather.tool';
 import { LengthConverterToolService } from '../tools/lengthconverter.tool';
 import { WeightConverterToolService } from '../tools/weightconverter.tool';
 import { DocumentSearchTool } from '../tools/documentSearch.tool';
-
+import { tool } from 'ai';
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
   const [toolBlueprints, setToolBlueprints] = useAtom(toolBlueprintsAtom);
@@ -137,25 +137,25 @@ export function useTools() {
 
     let toolSet: ToolSet = {};
 
-    for (const tool of filteredTools) {
+    for (const filteredTool of filteredTools) {
       try {
-        const blueprint = toolBlueprints.find(t => t.id === tool.blueprintId);
+        const blueprint = toolBlueprints.find(t => t.id === filteredTool.blueprintId);
 
         if(!blueprint?.execute){
-          console.error("Missing execute function for tool", tool.name);
+          console.error("Missing execute function for tool", filteredTool.name);
           continue;
         }
 
-        toolSet[tool.name] = {
+        toolSet[filteredTool.name] = tool({
           description: blueprint.description,
-          parameters: simpleSchemaToZod(blueprint.paramsSchema),
+          inputSchema: simpleSchemaToZod(blueprint.paramsSchema),
           execute: async (params: any) => {
-            console.log("Executing tool", tool.name, params);
-            return await blueprint.execute?.(params, tool.configValues || {});
+            console.log("Executing tool", filteredTool.name, params);
+            return await blueprint.execute?.(params, filteredTool.configValues || {});
           }
-        };
+        });
       } catch (error) {
-        console.error(`Error processing tool ${tool.id}:`, error);
+        console.error(`Error processing tool ${filteredTool.id}:`, error);
         // Skip this tool if there's an error
         continue;
       }
@@ -244,44 +244,8 @@ export function useTools() {
   };
 }
 
-export function zodHasConfigOptions(schema: z.ZodSchema): boolean {
-  if (!schema) return false;
-
-  // Check if the config schema is an empty object
-  if (schema instanceof z.ZodObject) {
-    return Object.keys(schema._def.shape()).length > 0;
-  }
-  return false;
-}
 
 export function simpleSchemaHasConfigOptions(schema: SimpleSchema | undefined): boolean {
   if (!schema) return false;
   return Object.keys(schema).length > 0;
-}
-
-
-
-function serializeSchema(schema: z.ZodSchema | undefined): string {
-  if (!schema) return 'z.object({})';
-  
-  // Handle built-in Zod schemas
-  if (schema instanceof z.ZodObject) {
-    const shape = schema._def.shape();
-    const entries = Object.entries(shape).map(([key, value]) => {
-      return `${key}: ${serializeSchema(value as z.ZodSchema)}`;
-    });
-    return `z.object({${entries.join(',')}})`;
-  }
-  if (schema instanceof z.ZodString) return 'z.string()';
-  if (schema instanceof z.ZodNumber) return 'z.number()';
-  if (schema instanceof z.ZodBoolean) return 'z.boolean()';
-  if (schema instanceof z.ZodArray) {
-    return `z.array(${serializeSchema(schema._def.type)})`;
-  }
-  if (schema instanceof z.ZodOptional) {
-    return `${serializeSchema(schema._def.innerType)}.optional()`;
-  }
-  
-  // Fallback
-  return 'z.any()';
 }
