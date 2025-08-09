@@ -14,34 +14,10 @@ import { useAtom, useAtomValue } from "jotai";
 import { InteractionManager, Clipboard } from "react-native";
 import { toastService } from "@/src/services/toastService";
 import { Ionicons } from "@expo/vector-icons";
-import { CharacterAvatar } from "../character/CharacterAvatar";
 import { MessageActions } from "./MessageActions";
 import { ThinkBlock } from "./ThinkBlock";
 import { ToolCall } from "@/src/services/chat/providers/VercelAIProvider";
-import { UploadedDocument } from "./UploadedDocument";
 import { MentionedDocument } from "./MentionedDocument";
-
-function extractThinkBlocks(content: string): {
-  thinkBlocks: string[];
-  remainingContent: string;
-} {
-  const thinkBlocks: string[] = [];
-  let remainingContent = content;
-
-  // Regular expression to match <think>...</think> blocks
-  const thinkRegex = /<think>(.*?)<\/think>/gs;
-  let match;
-
-  // Extract all think blocks
-  while ((match = thinkRegex.exec(content)) !== null) {
-    thinkBlocks.push(match[1].trim());
-  }
-
-  // Remove all think blocks from the content
-  remainingContent = content.replace(thinkRegex, "").trim();
-
-  return { thinkBlocks, remainingContent };
-}
 
 interface MessageProps {
   message: ChatMessage;
@@ -128,15 +104,6 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({
   isDark,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-
-  const getToolIcon = (toolId: string) => {
-    switch (toolCall.toolId) {
-      case "WebSearch":
-        return "globe-outline";
-      default:
-        return "build-outline"; // Default icon for other tools
-    }
-  };
 
   return (
     <View
