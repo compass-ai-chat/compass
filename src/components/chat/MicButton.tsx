@@ -52,7 +52,11 @@ export const MicButton: React.FC<MicButtonProps> = ({ onPartial, onFinal, classN
         else interim += transcript;
       }
       if (interim && onPartial) onPartial(interim);
-      if (final && onFinal) onFinal(final);
+      if (final && onFinal) {
+        onFinal(final);
+        stopWebRecognition();
+        console.log("final", final);
+      }
     };
 
     recognition.onend = () => {
@@ -125,8 +129,8 @@ export const MicButton: React.FC<MicButtonProps> = ({ onPartial, onFinal, classN
   };
 
   return (
-    <Pressable onPress={onPress} className={`w-10 h-10 rounded-full ${isListening ? 'bg-red-500' : 'bg-primary'} items-center justify-center ${className}`}>
-      <Ionicons name={isListening ? 'mic' : 'mic-outline'} size={22} color="white" />
+    <Pressable onPress={onPress} className={`w-10 h-10 rounded-full ${isListening ? 'bg-red-500' : 'bg-surface'} hover:opacity-60 border border-border items-center justify-center ${className}`}>
+      <Ionicons name={isListening ? 'mic' : 'mic-outline'} size={22} className="!text-text" />
       {Platform.OS === 'web' && isListening ? null : null}
     </Pressable>
   );
