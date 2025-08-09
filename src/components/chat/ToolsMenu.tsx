@@ -65,7 +65,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
   let availableTools: Tool[] = [
     {
       id: "WebSearch",
-      name: "Web Search",
+      name: "Search",
       icon: "globe-outline",
       description: "Enable real-time web search capabilities",
     },
@@ -111,7 +111,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
       <Pressable
         onPress={() => handleToggleTool(tool.id)}
         key={tool.id}
-        className={`w-32 flex-row items-center p-2 border rounded-md hover:opacity-60 ${
+        className={`flex-row items-center p-2 border rounded-full hover:opacity-60 ${
           hotTools?.includes(tool.id)
             ? "!text-primary border-primary"
             : "border-border"
