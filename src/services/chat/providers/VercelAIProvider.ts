@@ -3,14 +3,10 @@ import { ChatMessage, Model } from "@/src/types/core";
 import LogService from "@/utils/LogService";
 import {
   CoreMessage,
-  CoreUserMessage,
-  createDataStream,
-  embedMany,
   generateObject,
   generateText,
-  StreamData,
+  stepCountIs,
   streamText,
-  tool,
   ToolSet,
 } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -24,12 +20,17 @@ import { z } from "zod";
 import { SimpleSchema, simpleSchemaToZod } from "@/src/utils/zodHelpers";
 import { hotToolsAtom, thinkingActiveAtom } from "@/src/hooks/atoms";
 import { useAtom } from "jotai";
+import { getMessageRole } from "@/src/utils/chatMessage";
 
 export interface ToolCall {
-  toolName: string;
+  toolName?: string;
   toolCallId: string;
   args: any;
   toolId?: string;
+  pending?: boolean;
+  status?: string;
+  result?: any;
+  icon?: string;
 }
 
 export interface StreamResponse {
@@ -39,11 +40,11 @@ export interface StreamResponse {
 }
 
 export function useVercelAIProvider() {
-  const { getVercelCompatibleToolSet } = useTools();
+  const { getVercelCompatibleToolSet, getIcon, getToolCallStatus } = useTools();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
-  const createProvider = (provider: any, modelId: string) => {
+  const createProvider = (provider: any, modelId: string) : any => {
     let aiModel;
 
     switch (provider.name.toLowerCase()) {
@@ -51,7 +52,7 @@ export function useVercelAIProvider() {
         console.log("ollama endpoint", provider.endpoint + "/api");
         aiModel = createOllama({
           baseURL: provider.endpoint + "/api",
-        })(modelId, { think: hotTools.includes("Thinking") });
+        })(modelId);
         break;
       case "openai":
         aiModel = createOpenAI({
@@ -117,11 +118,7 @@ export function useVercelAIProvider() {
   ): Promise<StreamResponse> => {
     const newMessages = [
       ...messages.map((message) => ({
-        role: message.isUser
-          ? "user"
-          : message.isSystem
-            ? "system"
-            : "assistant",
+        role: getMessageRole(message),
         content: message.content,
       })),
     ];
@@ -181,26 +178,48 @@ export function useVercelAIProvider() {
 
         const { textStream: originalTextStream } = streamText({
           model: provider,
-          messages: newMessages as CoreUserMessage[],
+          providerOptions: { ollama: {think: hotTools.includes("Thinking")}},
+          messages: newMessages as CoreMessage[],
           tools: toolSchemas,
-          maxSteps: 3,
+          stopWhen: stepCountIs(3),
           toolChoice: "auto",
+          abortSignal: signal,
           onChunk: (chunk) => {
-            if (chunk.chunk.type == "tool-call") {
-              console.log("tool call", chunk.chunk);
-              toolCallController.enqueue({
-                toolName: chunk.chunk.toolName,
-                toolCallId: chunk.chunk.toolCallId,
-                args: chunk.chunk.args,
-                toolId: chunk.chunk.toolName,
-              });
-            } else if (chunk.chunk.type == "reasoning") {
-              reasoningController.enqueue(chunk.chunk.textDelta);
+            const c: any = (chunk as any).chunk;
+            if (c?.type === "tool-call" || c?.type === "tool-call-delta" || c?.type === "tool-call-streaming-start") {
+              const tc: ToolCall = {
+                toolName: c.toolName,
+                toolCallId: c.toolCallId,
+                args: c.args,
+                toolId: c.toolName,
+                pending: true,
+                icon: getIcon(c.toolName),
+                status: getToolCallStatus(c.toolName, c.args, true),
+              };
+              toolCallController.enqueue(tc);
+            } else if (c?.type === "reasoning") {
+              // Some SDK versions emit "reasoning" or include thinking in text/source streams
+              if (typeof c.textDelta === "string") {
+                reasoningController.enqueue(c.textDelta);
+              }
+            } else if (c?.type === "tool-result") {
+              const tc: ToolCall = {
+                toolName: c.toolName,
+                toolCallId: c.toolCallId,
+                args: c.args,
+                toolId: c.toolName,
+                pending: false,
+                result: c.result,
+                icon: getIcon(c.toolName),
+                status: getToolCallStatus(c.toolName, c.args, false),
+              };
+              toolCallController.enqueue(tc);
             } else {
-              //console.log('chunk', chunk);
+              // other chunk types ignored
             }
           },
           onFinish: () => {
+            
             textController.close();
             toolCallController.close();
             reasoningController.close();
@@ -235,8 +254,9 @@ export function useVercelAIProvider() {
         model: provider,
         messages: newMessages as CoreMessage[],
         tools: toolSchemas,
-        maxSteps: 3,
+        stopWhen: stepCountIs(3),
         toolChoice: "auto",
+        abortSignal: signal,
       });
 
       // Create streams that immediately provide the final result
@@ -249,7 +269,9 @@ export function useVercelAIProvider() {
 
       const reasoningStream = new ReadableStream<string>({
         async start(controller) {
-          controller.enqueue(reasoning);
+          for (const part of reasoning) {
+            controller.enqueue(part.text);
+          }
           controller.close();
         },
       });
@@ -264,7 +286,9 @@ export function useVercelAIProvider() {
                   controller.enqueue({
                     toolName: toolCall.toolName,
                     toolCallId: toolCall.toolCallId,
-                    args: toolCall.args,
+                    args: toolCall.input,
+                    pending: false,
+                    toolId: toolCall.toolName,
                   });
                 }
               }

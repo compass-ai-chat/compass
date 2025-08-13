@@ -3,10 +3,11 @@ import { View, Text, Platform } from 'react-native';
 import { useLocalization } from '../../hooks/useLocalization';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
 import { useChat } from '@/src/hooks/useChat';
+import { Document } from '@/src/types/core';
 
 interface EmptyChatStateProps {
   characterName: string;
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[]) => Promise<void>;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]) => void;
   isGenerating: boolean;
   onInterrupt: () => void;
 }

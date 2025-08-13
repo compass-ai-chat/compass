@@ -5,10 +5,11 @@ import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
 import { MessageList, MessageListRef } from './MessageList';
 import { ChatMessage } from '@/src/types/core';
 import { useChat } from '@/src/hooks/useChat';
+import { Document } from '@/src/types/core';
 
 interface ChatContainerProps {
   messages: ChatMessage[];
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[]) => Promise<void>;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]) => void;
   isGenerating: boolean;
   onInterrupt: () => void;
   onMessagePress: (index: number, message: ChatMessage) => void;

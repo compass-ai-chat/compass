@@ -48,11 +48,35 @@ export const urlContentTransform: MessageTransform = {
     ctx.metadata.webContent = webContent;
     ctx.metadata.urls = urls;
     ctx.context.messagesToSend.push({
-      isSystem: true,
-      isUser: false,
+      role: 'system',
       content: `${webContent.join("\n")}\n`,
     });
 
+    return ctx;
+  },
+};
+
+export const mentionedDocumentsTransform: MessageTransform = {
+  name: "mentionedDocuments",
+  transform: async (ctx: MessageContext): Promise<MessageContext> => {
+    const mentionedDocuments = ctx.mentionedDocuments;
+    if (!mentionedDocuments.length) return ctx;
+
+    const documents = ctx.allDocuments || [];
+    const relevantDocs = documents.filter((doc: Document) =>
+      mentionedDocuments.map(x=>x.id).includes(doc.id),
+    );
+
+    if (!relevantDocs.length) return ctx;
+
+    const allText = relevantDocs
+      .map((doc: Document) => doc.chunks?.join("\n") || "")
+      .join("\n");
+
+    ctx.context.messagesToSend.push({
+      content: `Relevant document context:\n${allText}`,
+      role: 'system',
+    });
     return ctx;
   },
 };
@@ -80,8 +104,7 @@ export const relevantPassagesTransform: MessageTransform = {
     if (relevantPassages.length > 0) {
       ctx.context.messagesToSend.push({
         content: `Web content context:\n${relevantPassages.map((p) => p.text).join("\n")}`,
-        isSystem: true,
-        isUser: false,
+        role: 'system',
       });
     }
 
@@ -113,8 +136,7 @@ export const webSearchTransform: MessageTransform = {
             .slice(0, 3)
             .map((result: any) => result.content)
             .join("\n")}`,
-          isSystem: true,
-          isUser: false,
+          role: 'system',
         });
       }
     }
@@ -130,7 +152,7 @@ export const threadUpdateTransform: MessageTransform = {
       ...ctx.thread,
       messages: [
         ...ctx.metadata.messages,
-        { content: ctx.message, isUser: true },
+        { content: ctx.message, role: 'user', mentionedDocumentIds: ctx.mentionedDocuments.map(x=>x.id) },
         ctx.context.assistantPlaceholder,
       ],
     };
@@ -233,8 +255,7 @@ export const documentContextTransform: MessageTransform = {
     if (relevantPassages.length > 0) {
       ctx.context.messagesToSend.push({
         content: `Relevant document context:\n${relevantPassages.map((p) => p.text).join("\n")}`,
-        isSystem: false,
-        isUser: true,
+        role: 'user',
       });
     }
 
@@ -347,6 +368,8 @@ export interface MessageContext {
   provider: ChatProvider;
   thread: Thread;
   mentionedCharacters: MentionedCharacter[];
+  mentionedDocuments: Document[];
+  allDocuments: Document[];
   systemPrompt: string;
   context: {
     messagesToSend: ChatMessage[];

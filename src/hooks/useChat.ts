@@ -55,11 +55,18 @@ import {
   firstMessageTransform,
   documentContextTransform,
   templateVariableTransform,
+  mentionedDocumentsTransform,
 } from "./pipelines";
 
 // Exceptions
 import { ModelNotFoundException } from "@/src/services/chat/streamUtils";
 import { SimpleSchema } from "../utils/zodHelpers";
+
+const isAbortError = (error: any): boolean => {
+  if (!error) return false;
+  const msg = typeof error.message === 'string' ? error.message.toLowerCase() : '';
+  return error.name === 'AbortError' || error.code === 'ABORT_ERR' || msg.includes('abort');
+};
 
 function selectModelBasedOnRouting(
   character: Character | undefined,
@@ -129,9 +136,11 @@ export function useChat() {
     //.addTransform(documentContextTransform)
     .addTransform(urlContentTransform)
     .addTransform(relevantPassagesTransform)
+    .addTransform(mentionedDocumentsTransform)
     .addTransform(webSearchTransform)
     .addTransform(threadUpdateTransform)
     .addTransform(firstMessageTransform);
+    
 
   // ========== Stream Handling ==========
   const handleToolCalls = async (
@@ -139,16 +148,25 @@ export function useChat() {
     thread: Thread,
   ) => {
     try {
+      let toolCalls: ToolCall[] = [];
       for await (const toolCall of toolCallStream) {
-        console.log("Received tool call:", toolCall);
+        //console.log("toolCall", toolCall);
+
+        // if toolCall not in toolCalls, add it - otherwise replace it - based on toolCallId
+        const idx = toolCalls.findIndex(tc => tc.toolCallId === toolCall.toolCallId);
+        if (idx === -1) {
+          toolCalls.push(toolCall);
+        } else {
+          toolCalls[idx] = toolCall;
+        }
+
         await updateLastAssistantMessage(
-          { content: toolCall.toolName, isUser: false, toolCalls: [toolCall] },
+          { role: 'assistant', toolCalls: toolCalls },
           thread,
         );
-        // Here you can add logic to handle tool calls
-        // For example, you might want to update UI state, log tool usage, etc.
       }
     } catch (error: any) {
+      if (isAbortError(error)) return;
       console.log("Tool call handling error:", error);
       LogService.log(
         error,
@@ -174,7 +192,7 @@ export function useChat() {
         if (!content) continue;
         reasoning += content;
         await updateLastAssistantMessage(
-          { content: "", isUser: false, reasoning },
+          { role: 'assistant', reasoning },
           thread,
         );
       }
@@ -194,6 +212,9 @@ export function useChat() {
         await tts.streamText("");
       }
     } catch (error: any) {
+      if (isAbortError(error)) {
+        return;
+      }
       if (error instanceof ModelNotFoundException) {
         throw error;
       }
@@ -224,16 +245,14 @@ export function useChat() {
   };
 
   const updateLastAssistantMessage = async (
-    message: ChatMessage,
+    message: Partial<ChatMessage>,
     thread: Thread,
   ) => {
     const updatedMessages = [...thread.messages];
     let lastMessage = updatedMessages[updatedMessages.length - 1];
-    if (lastMessage && !lastMessage.isUser) {
-      updatedMessages[updatedMessages.length - 1] = {
-        ...lastMessage,
-        ...message,
-      };
+    if (lastMessage && lastMessage.role != 'user') {
+      const merged = { ...lastMessage, ...message } as ChatMessage;
+      updatedMessages[updatedMessages.length - 1] = merged;
       const updatedThread = await dispatchThread({
         type: "updateMessage",
         payload: {
@@ -244,8 +263,9 @@ export function useChat() {
       });
       await new Promise((resolve) => setTimeout(resolve, 50));
       if (
+        Object.prototype.hasOwnProperty.call(message, "content") &&
         updatedThread?.messages[updatedThread.messages.length - 1]?.content !==
-        message.content
+          message.content
       ) {
         throw new Error("Message update failed to persist");
       }
@@ -265,7 +285,7 @@ export function useChat() {
     }
 
     await updateLastAssistantMessage(
-      { content: assistantMessage, isUser: false },
+      { content: assistantMessage, role: 'assistant' },
       thread,
     );
   };
@@ -312,6 +332,7 @@ export function useChat() {
       abortController.current = null;
     }
     tts.stopStreaming();
+    setIsGenerating(false);
   };
 
   // ========== Message Handling ==========
@@ -319,6 +340,7 @@ export function useChat() {
     messages: ChatMessage[],
     message: string,
     mentionedCharacters: MentionedCharacter[] = [],
+    mentionedDocuments: Document[] = [],
   ) => {
     abortController.current = new AbortController();
     currentThread.messages = messages;
@@ -326,13 +348,18 @@ export function useChat() {
       message,
       currentThread,
       mentionedCharacters,
+      mentionedDocuments
     );
+    let selectedModel = currentThread.selectedModel;
 
-    // Select model based on routing configuration
-    const selectedModel = selectModelBasedOnRouting(
-      currentThread.character,
-      models,
-    );
+    if(currentThread.character || !selectedModel){
+      // Select model based on routing configuration
+      selectedModel = selectModelBasedOnRouting(
+        currentThread.character,
+        models,
+      );
+    }
+    
     if (!selectedModel?.provider) {
       throw new Error("No provider found");
     }
@@ -359,7 +386,9 @@ export function useChat() {
         ...currentThread,
         selectedModel, // Update the thread's selected model
       },
+      allDocuments: documents,
       mentionedCharacters,
+      mentionedDocuments,
       systemPrompt: currentThread.character?.content ?? "",
       context,
       metadata: {
@@ -381,6 +410,7 @@ export function useChat() {
           id: selectedModel.id,
           providerId: selectedModel.provider.id,
         },
+        role: 'assistant',
       });
 
       let messagesToSend = [
@@ -391,8 +421,7 @@ export function useChat() {
       if (transformedContext.systemPrompt.trim().length > 0) {
         messagesToSend.unshift({
           content: transformedContext.systemPrompt,
-          isUser: false,
-          isSystem: true,
+          role: 'system',
         });
       }
 
@@ -417,7 +446,9 @@ export function useChat() {
     } catch (error: any) {
       console.log("Error sending message:", error);
 
-      if (error instanceof ModelNotFoundException && selectedModel) {
+      if (isAbortError(error)) {
+        // user-initiated cancel; no toast
+      } else if (error instanceof ModelNotFoundException && selectedModel) {
         const updatedModels = models.filter(
           (m: Model) =>
             !(
@@ -473,6 +504,7 @@ export function useChat() {
   const handleSend = async (
     message: string,
     mentionedCharacters: MentionedCharacter[],
+    mentionedDocuments: Document[],
   ) => {
     if (!providers.length) return;
 
@@ -500,7 +532,7 @@ export function useChat() {
 
     setIsGenerating(true);
     try {
-      await sendChatMessage(messages, message, mentionedCharacters);
+      await sendChatMessage(messages, message, mentionedCharacters, mentionedDocuments);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -509,7 +541,7 @@ export function useChat() {
   };
 
   const handleMessagePress = (index: number, message: ChatMessage) => {
-    if (message.isUser) {
+    if (message.role == 'user') {
       setEditingMessageIndex(index);
     }
   };

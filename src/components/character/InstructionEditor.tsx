@@ -103,7 +103,7 @@ Your purpose is to assist with clarity, precision, and grounded perspective. You
     ${traits.map(trait => `${trait.name}: ${trait.options[trait.current]}`).join('\n')}
     `;
 
-    const result = await streamMessage([{isSystem: true, content: systemPrompt, isUser:false}, {isUser: true, content: prompt}]);
+    const result = await streamMessage([{role: 'system', content: systemPrompt}, {role: 'user', content: prompt}]);
     let content = "";
     for await (const chunk of result) {
       content += chunk;

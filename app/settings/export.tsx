@@ -26,7 +26,7 @@ export default function ExportScreen() {
       case 'csv':
         const csvContent = threads.map(thread => {
           return thread.messages.map(msg => (
-            `"${thread.title}","${msg.isUser ? 'User' : 'Assistant'}","${msg.content.replace(/"/g, '""')}","${new Date(parseInt(thread.id)).toISOString()}"`
+            `"${thread.title}","${msg.role == 'user' ? 'User' : 'Assistant'}","${msg.content.replace(/"/g, '""')}","${new Date(parseInt(thread.id)).toISOString()}"`
           )).join('\n');
         }).join('\n');
         exportContent = `Thread,Speaker,Message,Timestamp\n${csvContent}`;

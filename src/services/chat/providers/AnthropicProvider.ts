@@ -22,7 +22,7 @@ export class AnthropicProvider implements ChatProvider {
   async sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map(message => ({
-        role: message.isUser ? 'user' : message.isSystem ? 'system' : 'assistant',
+        role: message.role,
         content: message.content
       }))
     ];

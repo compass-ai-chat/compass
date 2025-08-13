@@ -29,11 +29,7 @@ export class PolarisProvider implements ChatProvider {
   ): Promise<AsyncIterable<string>> {
     const newMessages = [
       ...messages.map((message) => ({
-        role: message.isUser
-          ? "user"
-          : message.isSystem
-            ? "system"
-            : "assistant",
+        role: message.role,
         content: message.content,
       })),
     ];

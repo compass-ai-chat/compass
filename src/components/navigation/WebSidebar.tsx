@@ -43,7 +43,7 @@ export function WebSidebar({ className }: { className?: string }) {
           onPress={() => handleNavigation(route, index)}
           className={`group-hover:w-32 z-20 w-14 transition-all duration-200 flex-row items-center justify-between p-4 m-2 rounded-lg hover:bg-surface ${
             currentIndex === index
-              ? 'border-r border-primary border shadow-sm bg-surface'
+              ? 'shadow-lg bg-surface'
               : ''
           }`}
         >

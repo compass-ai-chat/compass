@@ -16,18 +16,21 @@ export interface Thread {
   metadata?: ThreadMetadata;
 }
 
+export type MessageRole = "user" | "assistant" | "system";
+
 export interface ChatMessage {
   content: string;
-  isUser: boolean;
-  isSystem?: boolean;
+  role: MessageRole;
   character?: Character;
   toolCalls?: ToolCall[];
   activeTools?: string[];
+  mentionedDocumentIds?: string[];
   modelUsed?: {
     id: string;
     providerId: string;
   };
   reasoning?: string;
+  documentIds?: string[];
 }
 
 export interface Model {

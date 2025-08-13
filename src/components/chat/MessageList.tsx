@@ -35,13 +35,12 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
   }));
 
   const renderItem = ({ item: message, index }: { item: any; index: number }) => {
-    const parsedCode = !message.isUser ? parseCodeBlocks(message.content) : null;
+    const parsedCode = message.role == 'assistant' ? parseCodeBlocks(message.content) : null;
 
     return (
       <Message
         message={message}
         content={message.content}
-        isUser={message.isUser}
         character={message.character}
         index={index}
         onEdit={() => onMessagePress(index, message)}

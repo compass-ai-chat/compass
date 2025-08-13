@@ -19,6 +19,7 @@ import {
   charactersAtom,
   editingMessageIndexAtom,
   fontPreferencesAtom,
+  userDocumentsAtom,
 } from "@/src/hooks/atoms";
 import { useAtom, useAtomValue } from "jotai";
 import { CharacterMentionPopup } from "@/src/components/character/CharacterMentionPopup";
@@ -27,6 +28,11 @@ import { useLocalization } from "@/src/hooks/useLocalization";
 import { scanForSensitiveInfo } from "@/src/utils/privacyScanner";
 import { modalService } from "@/src/services/modalService";
 import { ToolsMenu } from "./ToolsMenu";
+import { DocumentUpload } from "./DocumentUpload";
+import { Document } from '@/src/types/core';
+import { UploadedDocument } from "./UploadedDocument";
+import { DocumentMentionPopup } from "@/src/components/documents/DocumentMentionPopup";
+import { MicButton } from "./MicButton";
 
 interface Tool {
   id: string;
@@ -36,7 +42,7 @@ interface Tool {
 }
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[]) => void;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]) => void;
   isGenerating?: boolean;
   onInterrupt?: () => void;
   className?: string;
@@ -80,6 +86,11 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     ); // Initial height
     const { t } = useLocalization();
     const [urls, setUrls] = useState<string[]>([]);
+
+    const [uploadedDocuments, setUploadedDocuments] = useState<Document[]>([]);
+    const userDocuments = useAtomValue(userDocumentsAtom);
+    const [showDocumentPopup, setShowDocumentPopup] = useState(false);
+    const [documentSelectedIndex, setDocumentSelectedIndex] = useState(0);
 
     //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
 
@@ -125,6 +136,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       } else {
         setUrls([]);
       }
+
+      // Hide document popup when typing resumes
+      if (showDocumentPopup) setShowDocumentPopup(false);
     };
 
     const handleSelectCharacter = (character: Character) => {
@@ -159,9 +173,12 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
         if (!confirmed) return;
       }
-      onSend(message.trim(), mentionedCharacters);
+      onSend(message.trim(), mentionedCharacters, uploadedDocuments);
       setMentionedCharacters([]);
       setIsEditing(false);
+
+      // Also close document popup if open
+      setShowDocumentPopup(false);
 
       // Clear the message and reset input height
       handleChangeText("");
@@ -195,8 +212,43 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const handleKeyPress = ({
       nativeEvent,
     }: {
-      nativeEvent: { key: string; shiftKey?: boolean };
+      nativeEvent: { key: string; shiftKey?: boolean; ctrlKey?: boolean };
     }) => {
+      // Ctrl+/ opens documents popup (web only)
+      if (Platform.OS === "web" && nativeEvent.ctrlKey && nativeEvent.key === "/") {
+        setShowDocumentPopup(true);
+        setDocumentSelectedIndex(0);
+        return;
+      }
+
+      // If document popup is open, handle navigation/selection
+      if (Platform.OS === "web" && showDocumentPopup) {
+        const docs = userDocuments;
+        if (!docs || docs.length === 0) return;
+        switch (nativeEvent.key) {
+          case "ArrowUp":
+            setDocumentSelectedIndex((prev) => (prev > 0 ? prev - 1 : docs.length - 1));
+            return;
+          case "ArrowDown":
+            setDocumentSelectedIndex((prev) => (prev < docs.length - 1 ? prev + 1 : 0));
+            return;
+          case "Enter": {
+            const selected = docs[documentSelectedIndex];
+            if (selected) {
+              const exists = uploadedDocuments.some((d) => d.id === selected.id);
+              if (!exists) {
+                setUploadedDocuments([...uploadedDocuments, selected]);
+              }
+              setShowDocumentPopup(false);
+            }
+            return;
+          }
+          case "Escape":
+            setShowDocumentPopup(false);
+            return;
+        }
+      }
+
       // Only handle Enter for sending on desktop/web platforms
       if (Platform.OS === "web" && nativeEvent.key === "Enter") {
         if (!nativeEvent.shiftKey) {
@@ -239,13 +291,24 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setMentionedCharacters([]);
       setShowMentionPopup(false);
       setEditingMessageIndex(-1);
+      setShowDocumentPopup(false);
+    };
+
+    const handleDocumentUpload = (document: Document) => {
+      console.log("Document uploaded", document);
+      setUploadedDocuments([...uploadedDocuments, document]);
+    };
+
+    const handleDocumentRemove = (document: Document) => {
+      console.log("Document removed", document);
+      setUploadedDocuments(uploadedDocuments.filter((d) => d.id !== document.id));
     };
 
     return (
       <View
         className={`border border-primary relative flex-row items-center p-2 bg-surface rounded-t-xl mx-2 shadow-lg shadow-primary ${className}`}
       >
-        <View className="flex-row absolute -top-10">
+        <View className="flex-row absolute -top-14">
           {urls.map((url) => (
             <Text
               onPress={() => {
@@ -256,6 +319,10 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
               {url}
             </Text>
           ))}
+
+          {uploadedDocuments.map((document) => (
+            <UploadedDocument document={document} onRemove={handleDocumentRemove} />
+          ))}
         </View>
         {showMentionPopup && (
           <CharacterMentionPopup
@@ -265,31 +332,63 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             selectedIndex={selectedIndex}
           />
         )}
+        {showDocumentPopup && (
+          <DocumentMentionPopup
+            documents={userDocuments}
+            selectedIndex={documentSelectedIndex}
+            onSelect={(doc) => {
+              const exists = uploadedDocuments.some((d) => d.id === doc.id);
+              if (!exists) {
+                setUploadedDocuments([...uploadedDocuments, doc]);
+              }
+              setShowDocumentPopup(false);
+            }}
+          />
+        )}
 
-        <ToolsMenu />
+        <View className="flex-col items-center flex-1">
+          <TextInput
+            onBlur={handleBlur}
+            ref={inputRef}
+            className={`flex-1 m-2 py-1 outline-none w-full px-4 bg-surface rounded-lg text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
+            placeholder={t("chats.type_a_message")}
+            placeholderTextColor="#9CA3AF"
+            value={message}
+            onChangeText={handleChangeText}
+            onKeyPress={handleKeyPress}
+            onSelectionChange={(event) => {
+              setCursorPosition(event.nativeEvent.selection.start);
+            }}
+            multiline
+            textAlignVertical="top"
+            style={{
+              fontFamily: fontPreferences.fontFamily,
+              fontSize: fontPreferences.fontSize,
+              lineHeight: fontPreferences.lineHeight - 4,
+              letterSpacing: fontPreferences.letterSpacing,
+              height: inputHeight,
+            }}
+          />
+          <View className="flex-row items-center mr-auto">
+            <DocumentUpload className="mr-1 h-10" onDocumentUpload={handleDocumentUpload} />
+            <ToolsMenu />
+            <MicButton
+              className="ml-2"
+              onPartial={(text) => {
+                // show interim in the input without sending
+                const base = message.endsWith(' ') || message.length === 0 ? message : message + ' ';
+                setMessage(base + text);
+              }}
+              onFinal={(text) => {
+                // commit final text to the input
+                const base = message.endsWith(' ') || message.length === 0 ? message : message + ' ';
+                const newMsg = base + text.trim();
+                handleChangeText(newMsg);
+              }}
+            />
+          </View>
+        </View>
 
-        <TextInput
-          onBlur={handleBlur}
-          ref={inputRef}
-          className={`flex-1 py-1 outline-none w-full px-4 bg-surface rounded-lg mr-2 text-text ${isEditing ? "border-2 border-yellow-500" : ""}`}
-          placeholder={t("chats.type_a_message")}
-          placeholderTextColor="#9CA3AF"
-          value={message}
-          onChangeText={handleChangeText}
-          onKeyPress={handleKeyPress}
-          onSelectionChange={(event) => {
-            setCursorPosition(event.nativeEvent.selection.start);
-          }}
-          multiline
-          textAlignVertical="top"
-          style={{
-            fontFamily: fontPreferences.fontFamily,
-            fontSize: fontPreferences.fontSize,
-            lineHeight: fontPreferences.lineHeight - 4,
-            letterSpacing: fontPreferences.letterSpacing,
-            height: inputHeight,
-          }}
-        />
 
         {isGenerating ? (
           <Pressable
@@ -301,7 +400,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         ) : (
           <Pressable
             onPress={handleSend}
-            className="w-12 h-12 rounded-full bg-primary items-center justify-center"
+            className="w-12 h-12 rounded-full bg-primary items-center justify-center hover:opacity-60"
           >
             <Ionicons name="send" size={26} color="white" />
           </Pressable>
