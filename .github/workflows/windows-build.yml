@@ -35,7 +35,7 @@ jobs:
           Start-Process -FilePath $WebView2Setup -Args "/silent /install" -Wait
 
       - name: Install app dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
       
       - name: Build Tauri App
         run: npm run build:windows
