@@ -211,7 +211,7 @@ export function useChat() {
           );
         }
       };
-      
+
       await Promise.allSettled([handleReasoning(), handleText()]);
 
       if (tts.isSupported) {
@@ -449,6 +449,8 @@ export function useChat() {
         reasoningStream,
         transformedContext.metadata.updatedThread,
       );
+
+      firstMessageTransform.transform(initialContext);
     } catch (error: any) {
       console.log("Error sending message:", error);
 
