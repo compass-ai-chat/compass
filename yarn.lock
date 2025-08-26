@@ -74,16 +74,6 @@
     nanoid "^3.3.8"
     secure-json-parse "^2.7.0"
 
-"@ai-sdk/provider-utils@3.0.0-beta.2":
-  version "3.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@ai-sdk/provider-utils/-/provider-utils-3.0.0-beta.2.tgz#9ef6a8ee56c3d4b1101f10898d2138093be52584"
-  integrity sha512-H4K+4weOVgWqrDDeAbQWoA4U5mN4WrQPHQFdH7ynQYcnhj/pzctU9Q6mGlR5ESMWxaXxazxlOblSITlXo9bahA==
-  dependencies:
-    "@ai-sdk/provider" "2.0.0-beta.1"
-    "@standard-schema/spec" "^1.0.0"
-    eventsource-parser "^3.0.3"
-    zod-to-json-schema "^3.24.1"
-
 "@ai-sdk/provider-utils@3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@ai-sdk/provider-utils/-/provider-utils-3.0.1.tgz#f1c229506420c3eaa60df15c9fc9a15b0b75d516"
@@ -115,13 +105,6 @@
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@ai-sdk/provider/-/provider-2.0.0.tgz#b853c739d523b33675bc74b6c506b2c690bc602b"
   integrity sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA==
-  dependencies:
-    json-schema "^0.4.0"
-
-"@ai-sdk/provider@2.0.0-beta.1":
-  version "2.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@ai-sdk/provider/-/provider-2.0.0-beta.1.tgz#2aa72843fe5ab43d9925db8e90c6586383906d5d"
-  integrity sha512-Z8SPncMtS3RsoXITmT7NVwrAq6M44dmw0DoUOYJqNNtCu8iMWuxB8Nxsoqpa0uEEy9R1V1ZThJAXTYgjTUxl3w==
   dependencies:
     json-schema "^0.4.0"
 
@@ -5693,13 +5676,13 @@ object-hash@^3.0.0:
   resolved "https://registry.npmjs.org/object-hash/-/object-hash-3.0.0.tgz"
   integrity sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==
 
-ollama-ai-provider-v2@^1.0.0-alpha.3:
-  version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/ollama-ai-provider-v2/-/ollama-ai-provider-v2-1.0.0-alpha.3.tgz#3fbe9346b594a1fc358c3f6ef8fcc3759674c989"
-  integrity sha512-91wtWFTIeTdrqgE/Ygm+t/S6LrcxKxjrwuJ/2/dvce6jCrZbXmp9WI/00/EdoT3mxihOcmL2FSQX4+EwJ26thA==
+ollama-ai-provider-v2@^1.1.1:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/ollama-ai-provider-v2/-/ollama-ai-provider-v2-1.1.2.tgz#e2e2ac23c6c3cb9e1423f3a2765d538d68c75f87"
+  integrity sha512-M7mI9OGGarFYGuL5r2pvJiOyN84EvEYAbHqk/YeOmaXX8Enb+E+5QIqPGWsgA1CJFulofsdEGEkJFDMEut8QyQ==
   dependencies:
-    "@ai-sdk/provider" "2.0.0-beta.1"
-    "@ai-sdk/provider-utils" "3.0.0-beta.2"
+    "@ai-sdk/provider" "2.0.0"
+    "@ai-sdk/provider-utils" "3.0.1"
 
 on-finished@2.4.1:
   version "2.4.1"

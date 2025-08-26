@@ -23,7 +23,7 @@ import { WelcomeIntroduction } from "@/src/components/onboarding/WelcomeIntroduc
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ProxyUrlSync } from "@/src/components/ProxyUrlSync";
-import { localeAtom } from '@/src/hooks/atoms';
+import { localeAtom, isDarkModeAtom } from '@/src/hooks/atoms';
 import { setupAuthCallbackListener, checkStoredAuthToken } from '@/src/utils/authCallback';
 import { useTools } from '@/src/hooks/useTools';
 import '@/i18n';
@@ -32,18 +32,22 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { themePreset } = useThemePreset();
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const [syncToPolaris] = useAtom(syncToPolarisAtom);
   const locale = useAtomValue(localeAtom);
+  const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
+
   const { initializeTools } = useTools();
   useKeyboardShortcuts();
 
   const theme = React.useMemo(() => {
+    setColorScheme(isDarkMode?'dark': 'light')
     if (!rawThemes[themePreset]) {
-      return rawThemes['default'][colorScheme ?? 'light'];
+      return rawThemes['default'][isDarkMode?'dark':'light'];
     }
-    return rawThemes[themePreset][colorScheme ?? 'light'];
-  }, [themePreset, colorScheme]);
+    return rawThemes[themePreset][isDarkMode?'dark':'light'];
+  }, [themePreset, isDarkMode]);
+
 
   const isDesktop = Platform.isDesktop && window.innerWidth >= 768;
 

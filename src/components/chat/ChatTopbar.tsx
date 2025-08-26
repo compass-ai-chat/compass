@@ -2,8 +2,8 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Settings } from './Settings';
 import { VoiceSelector } from './VoiceSelector';
 import { useAtom, useSetAtom } from 'jotai';
-import { currentThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom, downloadingModelsAtom } from '@/src/hooks/atoms';
-import { useCallback } from 'react';
+import { currentThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom, downloadingModelsAtom, isDarkModeAtom } from '@/src/hooks/atoms';
+import { useCallback, useEffect } from 'react';
 import { useColorScheme } from 'nativewind';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalization } from '@/src/hooks/useLocalization';
@@ -21,15 +21,16 @@ export const ChatTopbar: React.FC<ChatTopbarProps> = ({ dropdownElements, select
     const [polarisUser] = useAtom(polarisUserAtom);
     const [ttsEnabled, setTtsEnabled] = useAtom(ttsEnabledAtom);
     const dispatchThread = useSetAtom(threadActionsAtom);
+    const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
     const [selectedVoice, setSelectedVoice] = useAtom(defaultVoiceAtom);
     const [downloadingModels] = useAtom(downloadingModelsAtom);
-    const { colorScheme, toggleColorScheme } = useColorScheme();
-    const isDarkMode = colorScheme === 'dark';
     const { t } = useLocalization();
 
-    const toggleDark = useCallback(() => {
-      toggleColorScheme();
-    }, [toggleColorScheme]);
+    const toggleDark = () => {
+      setIsDarkMode(!isDarkMode);
+    };
+
+    
 
     return (
         <View className={`absolute top-0 left-0 right-0 min-w-[25%] w-fit mx-auto p-2 flex-row justify-between items-center border-b border-border bg-surface shadow-2xl rounded-xl mt-2 z-10 ${Platform.isMobile ? 'opacity-100' : 'opacity-60'} hover:opacity-100 transition-all duration-200`}>

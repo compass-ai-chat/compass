@@ -625,3 +625,8 @@ export const thinkingActiveAtom = atomWithAsyncStorage<boolean>(
   "thinkingActive",
   false,
 );
+
+export const isDarkModeAtom = atomWithAsyncStorage<boolean>(
+  "isDarkMode", 
+  false
+);
