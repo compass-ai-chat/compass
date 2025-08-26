@@ -189,7 +189,7 @@ export const firstMessageTransform: MessageTransform = {
 
       await ctx.metadata.dispatchThread({
         type: "update",
-        payload: { ...ctx.metadata.updatedThread, title: limitedTitle },
+        payload: { id:ctx.metadata.updatedThread.id, title: limitedTitle },
       });
     } catch (error: any) {
       toastService.danger({

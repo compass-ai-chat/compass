@@ -529,7 +529,7 @@ export function useChat() {
     }
 
     if (
-      currentThread.messages.length === 0 &&
+      // currentThread.messages.length === 0 &&
       threads.filter((t) => t.id === currentThread.id).length === 0
     ) {
       await dispatchThread({

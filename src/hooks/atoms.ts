@@ -78,10 +78,40 @@ export const polarisUserAtom = atomWithAsyncStorage<{
   avatarUrl: string;
 } | undefined>("polarisUser", undefined);
 
-export const currentThreadAtom = atomWithAsyncStorage<Thread>(
+export const currentThreadOldAtom = atomWithAsyncStorage<Thread>(
   "currentThread",
   createDefaultThread("Your first thread"),
 );
+
+export const currentThreadIdAtom = atomWithAsyncStorage<string>("currentThreadId", "");
+
+export const currentThreadAtom = atom(
+  async (get) => {
+    const currentThreadId = await get(currentThreadIdAtom);
+    const existingThread = (await get(threadsAtom)).find(x=>x.id == currentThreadId);
+    if(existingThread) return existingThread;
+    const newThread = await get(defaultThreadAtom);
+    return newThread;
+;    // insert into threads if doesn't exist
+    // const threads = await get(threadsAtom);
+    // const existingNewThread = threads.find(x=>x.id==newThread.id);
+
+    // if(!existingNewThread) set(threadsAtom, [...threads, newThread])
+    // return 
+  },
+  async (get, set, action: Thread) => {
+    const threads = await get(threadsAtom);
+    const existingThread = threads.find(x=>x.id == action.id);
+    if(!existingThread) set(threadsAtom, [...threads, action]);
+    else {
+        const updatedThreads = threads.map((t) =>
+        t.id === action.id ? action : t,
+      );
+      await set(threadsAtom, updatedThreads);
+    }
+    set(currentThreadIdAtom, action.id);
+  }
+)
 export const sidebarVisibleAtom = atomWithAsyncStorage<boolean>("sidebarVisible", true);
 
 // Derived atoms
@@ -123,8 +153,8 @@ export const threadActionsAtom = atom(
           t.id === action.payload.id ? action.payload : t,
         );
         await set(threadsAtom, updatedThreads);
-        if ((await get(currentThreadAtom)).id === action.payload.id) {
-          await set(currentThreadAtom, action.payload);
+        if (currentThread.id === action.payload.id) {
+          await set(currentThreadAtom, {...currentThread, ...action.payload});
         }
         break;
 
