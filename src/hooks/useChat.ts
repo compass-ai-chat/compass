@@ -139,7 +139,7 @@ export function useChat() {
     .addTransform(mentionedDocumentsTransform)
     .addTransform(webSearchTransform)
     .addTransform(threadUpdateTransform)
-    .addTransform(firstMessageTransform);
+    //.addTransform(firstMessageTransform);
     
 
   // ========== Stream Handling ==========
@@ -188,25 +188,31 @@ export function useChat() {
 
       let reasoning = "";
 
-      for await (const content of reasoningStream) {
-        if (!content) continue;
-        reasoning += content;
-        await updateLastAssistantMessage(
-          { role: 'assistant', reasoning },
-          thread,
-        );
-      }
+      const handleReasoning = async () => {
+        for await (const content of reasoningStream) {
+          if (!content) continue;
+          reasoning += content;
+          await updateLastAssistantMessage(
+            { role: 'assistant', reasoning },
+            thread,
+          );
+        }
+      };
 
-      for await (const content of textStream) {
-        chunkCount++;
-        assistantMessage += content;
-        await updateMessageContent(
-          content,
-          chunkCount,
-          assistantMessage,
-          thread,
-        );
-      }
+      const handleText = async () => {
+        for await (const content of textStream) {
+          chunkCount++;
+          assistantMessage += content;
+          await updateMessageContent(
+            content,
+            chunkCount,
+            assistantMessage,
+            thread,
+          );
+        }
+      };
+      
+      await Promise.allSettled([handleReasoning(), handleText()]);
 
       if (tts.isSupported) {
         await tts.streamText("");
