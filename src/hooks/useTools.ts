@@ -16,6 +16,7 @@ import { LengthConverterToolService } from '../tools/lengthconverter.tool';
 import { WeightConverterToolService } from '../tools/weightconverter.tool';
 import { DocumentSearchTool } from '../tools/documentSearch.tool';
 import { tool } from 'ai';
+import { ImageGenerationService } from '../tools/image-generation.tool';
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
   const [toolBlueprints, setToolBlueprints] = useAtom(toolBlueprintsAtom);
@@ -45,6 +46,7 @@ export function useTools() {
       Email: new EmailToolService(),
       Note: new NoteToolService(),
       WebSearch: new WebSearchService(),
+      ImageGeneration: new ImageGenerationService(),
       Calculator: new CalculatorToolService(),
       Weather: new WeatherToolService(),
       LengthConverter: new LengthConverterToolService(),
