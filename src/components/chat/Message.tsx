@@ -24,6 +24,7 @@ import { ThinkBlock } from "./ThinkBlock";
 import { ToolCall } from "@/src/services/chat/providers/VercelAIProvider";
 import { MentionedDocument } from "./MentionedDocument";
 import { format } from "date-fns";
+import { ImageInfo, ImagePreview, ImagePreviewProps } from "../image/ImagePreview";
 
 interface MessageProps {
   message: ChatMessage;
@@ -180,6 +181,17 @@ const MessageComponent: React.FC<MessageProps> = ({
   const isDark = colorScheme === "dark";
   const isFromUser = message.role === "user";
   const showThinking = Boolean(message.reasoning) && message.content.length === 0;
+
+  let imageInfo: ImageInfo | undefined;
+
+  const imageResult = message.toolCalls?.find(x=>!!x.result?.data?.imagePath)?.result;
+  if(imageResult){
+    imageInfo = {
+      date: imageResult?.data?.date??"Example date",
+      title: imageResult?.data?.prompt??"Example prompt",
+      path: imageResult?.data?.imagePath
+    }
+  }
 
   const markdownStyles = useMemo(
     () => ({
@@ -350,7 +362,7 @@ const MessageComponent: React.FC<MessageProps> = ({
             </View>
           )}
         </View>
-        {message.toolCalls?.find(x=>!!x?.result?.data?.imagePath) && (<ImageResult image={message.toolCalls?.find(x=>!!x.result?.data?.imagePath)?.result} />)}
+        {imageInfo && (<ImagePreview image={imageInfo!} className="w-[50%]" />)}
       </View>
     </View>
   );

@@ -2,8 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { toastService } from "@/src/services/toastService";
 
-interface ImagePreviewProps {
-  image:{title: string, path: string, date: string};
+export interface ImageInfo {
+  title: string;
+  path: string;
+  date: string;
+}
+
+export interface ImagePreviewProps {
+  image:ImageInfo;
   className?: string;
   onImagePressed?: () => void
 }
