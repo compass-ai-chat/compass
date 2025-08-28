@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { open, BaseDirectory, readFile } from "@tauri-apps/plugin-fs"
 import Modal from 'react-native-modal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ImagePreview } from './ImagePreview';
 function isTauri(){
   return typeof window !== 'undefined' && !!(window as any).__TAURI__;
 }
@@ -70,24 +71,11 @@ export function Gallery() {
             className="bg-surface rounded-lg overflow-hidden shadow-md"
             style={{ width: imageSize }}
           >
-            <TouchableOpacity onPress={() => {
-              setSelectedImage(image.imagePath);
-              setIsImageViewVisible(true);
-            }}>
-            <Image
-              source={{ uri: image.imagePath }}
-              className="w-full aspect-square"
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-            <View className="p-3">
-              <Text className="text-xs text-gray-500 mb-2">
-                {format(new Date(image.createdAt), 'MMM d, yyyy h:mm a')}
-              </Text>
-              <Text className="text-sm text-text" numberOfLines={3}>
-                {image.prompt}
-              </Text>
-            </View>
+              <ImagePreview onImagePressed={()=>{
+                setSelectedImage(image.imagePath);
+                setIsImageViewVisible(true);
+              }} image={{path: image.imagePath, title: image.prompt, date: image.createdAt}}></ImagePreview>
+            
           </View>
         ))}
       </View>
