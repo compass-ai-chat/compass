@@ -150,9 +150,7 @@ export function useTools() {
 
         toolSet[filteredTool.name.toLowerCase()] = tool({
           description: blueprint.description,
-          inputSchema: z.object({
-            query: z.string().describe('The query to search the web for'),
-          }),
+          inputSchema: simpleSchemaToZod(blueprint.paramsSchema),
           execute: async (params: any) => {
             console.log("Executing tool", filteredTool.name, params);
             return await blueprint.execute?.(params, filteredTool.configValues || {});

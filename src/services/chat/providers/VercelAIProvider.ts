@@ -44,10 +44,10 @@ export function useVercelAIProvider() {
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
-  const createProvider = (provider: any, modelId: string) : any => {
+  const createProvider = (provider: Provider, modelId: string) : any => {
     let aiModel;
 
-    switch (provider.name.toLowerCase()) {
+    switch (provider.name?.toLowerCase()) {
       case "ollama":
         console.log("ollama endpoint", provider.endpoint + "/api");
         aiModel = createOllama({

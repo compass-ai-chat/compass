@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Text,
   Clipboard,
+  Image
 } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { useColorScheme } from "nativewind";
@@ -123,6 +124,16 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark 
     </View>
   );
 };
+
+const ImageResult: React.FC<{image:any}> = ({image}) => {
+  return (
+    <Image
+      source={{ uri: image.imagePath }}
+      className="w-full aspect-square"
+        resizeMode="cover"
+      />
+  )
+}
 
 const MessageComponent: React.FC<MessageProps> = ({
   message,
@@ -312,6 +323,7 @@ const MessageComponent: React.FC<MessageProps> = ({
             </View>
           )}
         </View>
+        {message.toolCalls?.find(x=>x?.result?.imagePath) && (<ImageResult image={message.toolCalls?.find(x=>x.result?.imagePath)?.result} />)}
       </View>
     </View>
   );

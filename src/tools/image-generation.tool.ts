@@ -1,15 +1,21 @@
 import { ToolHandler } from './tool.interface';
 import { SimpleSchema } from '../utils/zodHelpers';
 import { experimental_generateImage as generateImage } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from "@ai-sdk/openai";
+import { getDefaultStore } from 'jotai';
+import { generatedImagesAtom } from '../hooks/atoms'; 
 
 export class ImageGenerationService implements ToolHandler {
-  async execute(params: { prompt: string }): Promise<{ success: boolean, message: string, data: string | null }> {
+  async execute(params: { prompt: string }, config: { apiKey:string }): Promise<{ success: boolean, message: string, data: {id: string, imagePath: string}|null }> {
 
     try {
 
+      // currently, to get started, we'll just grab apikey from OpenAI  
+        const open = createOpenAI({
+          apiKey: config.apiKey
+        });
         const { image } = await generateImage({
-          model: openai.image('dall-e-3'),
+          model: open.image('dall-e-3'),
           prompt: params.prompt,
           size: '1024x1024',
         });
@@ -25,12 +31,21 @@ export class ImageGenerationService implements ToolHandler {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
 
+        const defaultStore = getDefaultStore()
+        const images = await defaultStore.get(generatedImagesAtom);
+        const imageObj = { id: Date.now().toString(), imagePath: url, prompt: params.prompt, createdAt: new Date().toISOString() };
+
+        defaultStore.set(generatedImagesAtom, [...images, imageObj]);
+
+        //window.URL.revokeObjectURL(url);
         return {
           success: true,
           message: 'Image generation successful',
-          data: image.base64
+          data:{
+            id: imageObj.id,
+            imagePath: imageObj.imagePath
+          }
         };
 
     } catch (error: any) {
@@ -50,7 +65,7 @@ export class ImageGenerationService implements ToolHandler {
   }
 
   getConfigSchema(): SimpleSchema {
-    return {};
+    return { apiKey: {type:'string'}};
   }
 
   getIcon(): string {
@@ -58,7 +73,7 @@ export class ImageGenerationService implements ToolHandler {
   }
 
   getDescription(): string {
-    return 'Search the web for information';
+    return 'Generate an image from a prompt';
   }
   
 } 
