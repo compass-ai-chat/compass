@@ -128,7 +128,7 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark 
 const ImageResult: React.FC<{image:any}> = ({image}) => {
   return (
     <Image
-      source={{ uri: image.imagePath }}
+      source={{ uri: image?.data?.imagePath }}
       className="w-full aspect-square"
         resizeMode="cover"
       />
@@ -323,7 +323,7 @@ const MessageComponent: React.FC<MessageProps> = ({
             </View>
           )}
         </View>
-        {message.toolCalls?.find(x=>x?.result?.imagePath) && (<ImageResult image={message.toolCalls?.find(x=>x.result?.imagePath)?.result} />)}
+        {message.toolCalls?.find(x=>!!x?.result?.data?.imagePath) && (<ImageResult image={message.toolCalls?.find(x=>!!x.result?.data?.imagePath)?.result} />)}
       </View>
     </View>
   );

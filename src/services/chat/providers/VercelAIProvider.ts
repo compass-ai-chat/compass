@@ -190,7 +190,7 @@ export function useVercelAIProvider() {
               const tc: ToolCall = {
                 toolName: c.toolName,
                 toolCallId: c.toolCallId,
-                args: c.args,
+                args: c.input,
                 toolId: c.toolName,
                 pending: true,
                 icon: getIcon(c.toolName),
@@ -203,13 +203,14 @@ export function useVercelAIProvider() {
                 reasoningController.enqueue(c.textDelta);
               }
             } else if (c?.type === "tool-result") {
+              console.log("TOol result", c);
               const tc: ToolCall = {
                 toolName: c.toolName,
                 toolCallId: c.toolCallId,
-                args: c.args,
+                args: c.input,
                 toolId: c.toolName,
                 pending: false,
-                result: c.result,
+                result: c.output,
                 icon: getIcon(c.toolName),
                 status: getToolCallStatus(c.toolName, c.args, false),
               };
