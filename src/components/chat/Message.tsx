@@ -23,6 +23,7 @@ import { MessageActions } from "./MessageActions";
 import { ThinkBlock } from "./ThinkBlock";
 import { ToolCall } from "@/src/services/chat/providers/VercelAIProvider";
 import { MentionedDocument } from "./MentionedDocument";
+import { format } from "date-fns";
 
 interface MessageProps {
   message: ChatMessage;
@@ -126,12 +127,38 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark 
 };
 
 const ImageResult: React.FC<{image:any}> = ({image}) => {
+  const copyImageToClipboard = async () => {
+    if (image?.data?.imagePath) {
+      const response = await fetch(image.data.imagePath);
+      const blob = await response.blob();
+      navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    }
+  };
+
   return (
-    <Image
-      source={{ uri: image?.data?.imagePath }}
-      className="w-full aspect-square"
+    <div className="w-[50%] relative border border-white rounded-lg">
+      <Image
+        source={{ uri: image?.data?.imagePath }}
+        className="aspect-square rounded-lg"
         resizeMode="cover"
       />
+      <div className="p-3 absolute bottom-0 w-full flex flex-row bg-background opacity-[90%] rounded-lg">
+        <View>
+        <Text className="text-xs text-gray-500 mb-2">
+          {image?.data?.date??"Sometime today"}
+        </Text>
+        <Text className="text-sm text-text" numberOfLines={3}>
+          {image?.data?.title??"A happy clown swimming in a pond"}
+        </Text>
+        </View>
+        <button
+          onClick={copyImageToClipboard}
+          className="mt-2 px-4 py-2 bg-surface text-primary rounded ms-auto"
+        >
+          Copy
+        </button>
+      </div>
+    </div>
   )
 }
 
