@@ -11,7 +11,7 @@ import {
 import { fetchAvailableModelsV2 } from '@/src/hooks/useModels';
 
 export const useCharacterModelSelection = () => {
-  const [currentThread] = useAtom(currentThreadAtom);
+  const [currentThread, setCurrentThread] = useAtom(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const [providers] = useAtom(availableProvidersAtom);
   const [models, setModels] = useAtom(availableModelsAtom);
@@ -57,10 +57,15 @@ export const useCharacterModelSelection = () => {
   const setCharacterAndModel = (character: Character | undefined, model: Model | undefined) => {
     setSelectedCharacter(character);
     setSelectedModel(model);
-    dispatchThread({
-      type: 'update',
-      payload: { ...currentThread, character: character, selectedModel: model }
-    });
+
+    setCurrentThread({
+      ...currentThread, character: character, selectedModel: model
+    })
+
+    // dispatchThread({
+    //   type: 'update',
+    //   payload: { ...currentThread, character: character, selectedModel: model }
+    // });
   };
 
   const handleModelSelection = (model: Model) => {

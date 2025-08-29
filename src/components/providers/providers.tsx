@@ -131,7 +131,7 @@ export default function Providers({ className }: ProvidersProps) {
               (endpoint) =>
                 ({
                   endpoint,
-                  id: Date.now().toString() + endpoint,
+                  id: endpoint,
                   name: "Ollama",
                   capabilities: {
                     llm: true,
