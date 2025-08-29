@@ -10,6 +10,7 @@ interface ToolsHeaderProps {
   onRefresh: () => Promise<void>;
   onAddTool: () => void;
   onListBlueprints: () => void;
+  className?: string;
 }
 
 export function ToolsHeader({
@@ -18,6 +19,7 @@ export function ToolsHeader({
   onRefresh,
   onAddTool,
   onListBlueprints,
+  className
 }: ToolsHeaderProps) {
   const { getResponsiveSize, getResponsiveClass, getResponsiveValue } = useResponsiveStyles();
 
@@ -58,6 +60,7 @@ export function ToolsHeader({
         title="Tools"
         icon="construct"
         rightContent={rightContent}
+        className="mb-2"
       />
 
       <View className="flex-row mb-4">
