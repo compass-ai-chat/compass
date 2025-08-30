@@ -17,6 +17,13 @@ import { WeightConverterToolService } from '../tools/weightconverter.tool';
 import { DocumentSearchTool } from '../tools/documentSearch.tool';
 import { tool } from 'ai';
 import { ImageGenerationService } from '../tools/image-generation.tool';
+import { 
+  isToolSupportedForModel, 
+  getToolCategory as getToolCategoryFromConfig, 
+  getToolIcon as getToolIconFromConfig, 
+  getToolDescription as getToolDescriptionFromConfig 
+} from '../tools/toolConfig';
+
 export function useTools() {
   const [tools, setTools] = useAtom(userToolsAtom);
   const [toolBlueprints, setToolBlueprints] = useAtom(toolBlueprintsAtom);
@@ -75,8 +82,42 @@ export function useTools() {
 
   const getIcon = (toolId: string) => {
     const tool = toolBlueprints.find(t => t.id === toolId);
-    if (!tool) return 'code';
-    return tool.icon;
+    if (!tool) return getToolIconFromConfig(toolId);
+    return tool.icon || getToolIconFromConfig(toolId);
+  }
+
+  const isToolSupported = (toolId: string, model?: any) => {
+    return isToolSupportedForModel(toolId, model);
+  }
+
+  const getActiveToolsForMessage = (character?: any, hotTools?: string[]) => {
+    const activeTools: string[] = [];
+    
+    // Add character tools
+    if (character?.toolIds) {
+      activeTools.push(...character.toolIds);
+    }
+    
+    // Add hot tools (temporarily activated)
+    if (hotTools && hotTools.length > 0) {
+      activeTools.push(...hotTools);
+    }
+    
+    // Remove duplicates
+    return [...new Set(activeTools)];
+  }
+
+  const validateToolAccess = (toolId: string, character?: any, hotTools?: string[]) => {
+    const activeTools = getActiveToolsForMessage(character, hotTools);
+    return activeTools.includes(toolId);
+  }
+
+  const getToolCategory = (toolId: string) => {
+    return getToolCategoryFromConfig(toolId);
+  }
+
+  const getToolDescription = (toolId: string) => {
+    return getToolDescriptionFromConfig(toolId);
   }
 
   const createToolBlueprint = async (tool: ToolBlueprint) => {
@@ -242,7 +283,12 @@ export function useTools() {
     executeTool,
     addTool,
     getIcon,
-    getToolCallStatus
+    getToolCallStatus,
+    isToolSupported,
+    getActiveToolsForMessage,
+    validateToolAccess,
+    getToolCategory,
+    getToolDescription
   };
 }
 

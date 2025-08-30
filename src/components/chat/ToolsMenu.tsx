@@ -1,89 +1,100 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { View, Pressable, Text, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Switch } from "@/src/components/ui/Switch";
-import {
-  currentThreadAtom,
-  hotToolsAtom,
-  thinkingActiveAtom,
-} from "@/src/hooks/atoms";
-import { useAtom } from "jotai";
 import { FontAwesome6 } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { useAtom } from "jotai";
+import { useTools } from "@/src/hooks/useTools";
+import { useCharacterModelSelection } from "@/src/hooks/useCharacterModelSelection";
+import { hotToolsAtom, thinkingActiveAtom } from "@/src/hooks/atoms";
+import { Tool } from "@/src/types/tools";
 
-interface Tool {
-  id: string;
-  name: string;
-  icon: keyof typeof Ionicons.glyphMap | typeof FontAwesome6.glyphMap;
-  description: string;
+interface ToolsMenuProps {
+  onToolToggle?: (toolId: string, enabled: boolean) => void;
+  className?: string;
 }
 
-interface ToolsMenuProps {}
+interface ToolMenuItem {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  enabled: boolean;
+  category?: 'search' | 'utility' | 'thinking' | 'custom';
+}
 
-export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
-  const [currentThread, setCurrentThread] = useAtom(currentThreadAtom);
+export const ToolsMenu: React.FC<ToolsMenuProps> = ({ 
+  onToolToggle,
+  className = ""
+}) => {
   const [showToolsMenu, setShowToolsMenu] = React.useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout>();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
+  
+  const { selectedModel } = useCharacterModelSelection();
+  const { getTools, getIcon, isToolSupported, getToolCategory } = useTools();
 
-  // Add this helper function before the ToolCallIndicator component
-  const getIconComponent = (iconName: string, className: string) => {
-    // List of all available Ionicons names
+  // Get all available tools from the tool registry
+  const availableTools = useMemo(() => {
+    const tools = getTools();
+    const toolItems: ToolMenuItem[] = [];
+
+    // Filter tools by category and support
+    tools.forEach(tool => {
+      // Skip if tool is not supported for current model
+      if (!isToolSupported(tool.id, selectedModel)) {
+        return;
+      }
+
+      const category = getToolCategory(tool.id) as ToolMenuItem['category'];
+
+      toolItems.push({
+        id: tool.id,
+        name: tool.name,
+        icon: getIcon(tool.id),
+        description: tool.description,
+        enabled: hotTools.includes(tool.id),
+        category
+      });
+    });
+
+    return toolItems;
+  }, [getTools, getIcon, isToolSupported, getToolCategory, hotTools, selectedModel]);
+
+  // Icon component helper
+  const getIconComponent = useCallback((iconName: string, className: string) => {
     const ioniconsNames = Object.keys(Ionicons.glyphMap);
-
-    // Check if the icon exists in Ionicons
+    
     if (ioniconsNames.includes(iconName)) {
-      return (
-        <Ionicons name={iconName as any} size={20} className={className} />
-      );
+      return <Ionicons name={iconName as any} size={20} className={className} />;
     }
 
-    // Fallback to FontAwesome
-    // Convert kebab-case or snake_case to camelCase for FontAwesome
+    // Convert for FontAwesome
     const faName = iconName
       .replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase())
       .replace("-outline", "")
       .replace("-sharp", "");
 
-    return (
-      <FontAwesome6 name={faName as any} size={20} className={className} />
-    );
-  };
+    return <FontAwesome6 name={faName as any} size={20} className={className} />;
+  }, []);
 
-  const handleToggleTool = (toolId: string) => {
+  // Handle tool toggle
+  const handleToggleTool = useCallback((toolId: string) => {
     setHotTools(async (prev) => {
       const newSet = await prev;
-      if (newSet.includes(toolId)) {
-        return newSet.filter((id) => id !== toolId);
-      } else {
-        return [...newSet, toolId];
-      }
+      const isEnabled = newSet.includes(toolId);
+      const newHotTools = isEnabled 
+        ? newSet.filter((id) => id !== toolId)
+        : [...newSet, toolId];
+      
+      // Call optional callback
+      onToolToggle?.(toolId, !isEnabled);
+      
+      return newHotTools;
     });
-  };
+  }, [setHotTools, onToolToggle]);
 
-  let availableTools: Tool[] = [
-    {
-      id: "WebSearch",
-      name: "Search",
-      icon: "globe-outline",
-      description: "Enable real-time web search capabilities",
-    },
-  ];
-
-  // Only add thinking tool if the provider is ollama
-  if (
-    currentThread?.selectedModel?.provider.name === "Ollama" &&
-    currentThread?.selectedModel?.name.toLowerCase().includes("qwen3")
-  ) {
-    availableTools.push({
-      id: "Thinking",
-      name: "Think",
-      icon: "lightbulb",
-      description: "Enable thinking capabilities",
-    });
-  }
-
+  // Menu visibility handlers
   const handleShowMenu = useCallback(() => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
@@ -94,11 +105,11 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
   const handleHideMenu = useCallback(() => {
     closeTimeoutRef.current = setTimeout(() => {
       setShowToolsMenu(false);
-    }, 300); // 300ms delay before closing
+    }, 300);
   }, []);
 
   // Cleanup timeout on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
@@ -106,44 +117,95 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
     };
   }, []);
 
-  const toolToggles = (availableTools: Tool[]) => {
-    return availableTools.map((tool) => (
-      <Pressable
-        onPress={() => handleToggleTool(tool.id)}
-        key={tool.id}
-        className={`flex-row items-center p-2 border rounded-full hover:opacity-60 ${
-          hotTools?.includes(tool.id)
-            ? "!text-primary border-primary"
-            : "border-border"
+  // Render tool toggle button
+  const renderToolToggle = useCallback((tool: ToolMenuItem) => (
+    <Pressable
+      onPress={() => handleToggleTool(tool.id)}
+      key={tool.id}
+      className={`flex-row items-center p-2 border rounded-full hover:opacity-60 transition-colors ${
+        tool.enabled
+          ? "!text-primary border-primary bg-primary/10"
+          : "border-border hover:border-primary/50"
+      }`}
+    >
+      {getIconComponent(
+        tool.icon,
+        `${tool.enabled ? "!text-primary" : "!text-text"} mr-2`,
+      )}
+      <Text
+        className={`text-sm font-medium ${
+          tool.enabled ? "!text-primary" : "!text-text"
         }`}
       >
-        {getIconComponent(
-          tool.icon,
-          `${hotTools?.includes(tool.id) ? "!text-primary" : "!text-text"} mr-2`,
-        )}
-        <Text
-          className={`${hotTools?.includes(tool.id) ? "!text-primary" : "!text-text"}`}
-        >
+        {tool.name}
+      </Text>
+    </Pressable>
+  ), [handleToggleTool, getIconComponent]);
+
+  // Render tool menu item (for dropdown)
+  const renderToolMenuItem = useCallback((tool: ToolMenuItem) => (
+    <Pressable
+      key={tool.id}
+      onPress={() => handleToggleTool(tool.id)}
+      className={`flex-row items-center hover:opacity-60 transition-opacity p-3 rounded-md ${
+        tool.enabled 
+          ? "border border-primary" 
+          : ""
+      }`}
+    >
+      {getIconComponent(
+        tool.icon,
+        `${tool.enabled ? "!text-primary" : "!text-text"} mr-3`,
+      )}
+      <View className="flex-1">
+        <Text className={`font-medium ${tool.enabled ? "!text-primary" : "!text-text"}`}>
           {tool.name}
         </Text>
-      </Pressable>
-    ));
-  };
+        <Text className="text-xs text-text mt-1">
+          {tool.description}
+        </Text>
+      </View>
+    </Pressable>
+  ), [handleToggleTool, getIconComponent]);
 
-  if (Platform.OS === "web" && availableTools.length <= 2) {
+  // Group tools by category for better organization
+  const groupedTools = useMemo(() => {
+    const groups: Record<string, ToolMenuItem[]> = {};
+    availableTools.forEach(tool => {
+      const category = tool.category || 'custom';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(tool);
+    });
+    return groups;
+  }, [availableTools]);
+
+  // If no tools available, don't render anything
+  if (availableTools.length === 0) {
+    return null;
+  }
+
+  // For web with few tools, show inline toggles
+  if (Platform.OS === "web" && availableTools.length <= 3) {
     return (
-      <View className="flex-row items-center space-x-1 mr-auto">
-        {toolToggles(availableTools)}
+      <View className={`flex-row items-center space-x-2 ${className}`}>
+        {availableTools.map(renderToolToggle)}
       </View>
     );
   }
 
+  // For web with many tools, show dropdown menu
   if (Platform.OS === "web") {
     return (
-      <div onMouseEnter={handleShowMenu} onMouseLeave={handleHideMenu}>
+      <div 
+        className={className}
+        onMouseEnter={handleShowMenu} 
+        onMouseLeave={handleHideMenu}
+      >
         <Pressable
           onPress={() => setShowToolsMenu(!showToolsMenu)}
-          className="w-10 h-10 items-center justify-center"
+          className="w-10 h-10 items-center justify-center rounded-lg hover:bg-surface-hover transition-colors"
         >
           <Ionicons name="apps" size={24} className="!text-text" />
         </Pressable>
@@ -152,10 +214,19 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
           <div
             onMouseEnter={handleShowMenu}
             onMouseLeave={handleHideMenu}
-            className="absolute bottom-full left-0 mb-2"
+            className="absolute bottom-full left-0 mb-2 z-50"
           >
-            <View className="bg-surface border border-primary rounded-lg p-2 shadow-lg">
-              {toolToggles(availableTools)}
+            <View className="bg-surface border border-border rounded-lg p-3 shadow-lg min-w-64">
+              {Object.entries(groupedTools).map(([category, tools]) => (
+                <View key={category} className="mb-3 last:mb-0">
+                  {Object.keys(groupedTools).length > 1 && (
+                    <Text className="text-xs font-medium text-text mb-2 uppercase tracking-wide">
+                      {category}
+                    </Text>
+                  )}
+                  {tools.map(renderToolMenuItem)}
+                </View>
+              ))}
             </View>
           </div>
         )}
@@ -163,31 +234,30 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({}) => {
     );
   }
 
+  // For mobile, show dropdown menu
   return (
-    <>
+    <View className={className}>
       <Pressable
         onPress={() => setShowToolsMenu(!showToolsMenu)}
-        className="w-10 h-10 items-center justify-center"
+        className="w-10 h-10 items-center justify-center rounded-lg"
       >
         <Ionicons name="apps" size={24} className="!text-text" />
       </Pressable>
 
       {showToolsMenu && (
-        <View className="absolute bottom-full left-0 mb-2 bg-surface border border-primary rounded-lg p-2 shadow-lg">
-          {availableTools.map((tool) => (
-            <Pressable
-              key={tool.id}
-              onPress={() => handleToggleTool(tool.id)}
-              className={`flex-row items-center p-2 rounded-md ${
-                hotTools?.includes(tool.id) ? "bg-primary/20" : ""
-              }`}
-            >
-              <Ionicons name={tool.icon} size={20} />
-              <Text className="ml-2 text-text">{tool.name}</Text>
-            </Pressable>
+        <View className="absolute bottom-full left-0 mb-2 bg-surface border border-border rounded-lg p-3 shadow-lg min-w-64 z-50">
+          {Object.entries(groupedTools).map(([category, tools]) => (
+            <View key={category} className="mb-3 last:mb-0">
+              {Object.keys(groupedTools).length > 1 && (
+                <Text className="text-xs font-medium text-text-secondary mb-2 uppercase tracking-wide">
+                  {category}
+                </Text>
+              )}
+              {tools.map(renderToolMenuItem)}
+            </View>
           ))}
         </View>
       )}
-    </>
+    </View>
   );
 };

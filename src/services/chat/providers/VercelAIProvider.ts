@@ -40,7 +40,7 @@ export interface StreamResponse {
 }
 
 export function useVercelAIProvider() {
-  const { getVercelCompatibleToolSet, getIcon, getToolCallStatus } = useTools();
+  const { getVercelCompatibleToolSet, getIcon, getToolCallStatus, getActiveToolsForMessage } = useTools();
   const [hotTools, setHotTools] = useAtom(hotToolsAtom);
   const [thinkingActive, setThinkingActive] = useAtom(thinkingActiveAtom);
 
@@ -130,20 +130,14 @@ export function useVercelAIProvider() {
 
     let toolSchemas: ToolSet | undefined;
 
-    // Get the active tools from the last user message
+    // Get the active tools using the improved function
     const lastMessage = messages[messages.length - 1];
-    const activeTools = lastMessage.activeTools || [];
+    const activeTools = getActiveToolsForMessage(character, hotTools);
 
-    let toolIds = [];
-
-    if (character?.toolIds) toolIds.push(...character.toolIds);
-    if (Array.from(hotTools).length > 0) toolIds.push(...Array.from(hotTools));
-    //if(character?.documentIds?.length && character.documentIds.length > 0) toolIds.push("DocumentSearch");
-
-    if (toolIds.length > 0) {
-      console.log("fetching for tools", toolIds);
+    if (activeTools.length > 0) {
+      console.log("fetching for tools", activeTools);
       toolSchemas = await getVercelCompatibleToolSet(
-        toolIds.filter((x) => x != "DocumentSearch"),
+        activeTools.filter((x) => x != "DocumentSearch"),
       );
     }
 
