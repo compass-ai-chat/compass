@@ -131,7 +131,7 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark 
         )}
         <Text
           className={`text-text text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden ${
-            isHovered || toolCall?.pending ? "opacity-100 ml-2 max-w-48" : "opacity-0 max-w-0"
+            isHovered || toolCall?.pending ? "opacity-100 ml-2 max-w-64" : "opacity-0 max-w-0"
           }`}
           numberOfLines={1}
         >
