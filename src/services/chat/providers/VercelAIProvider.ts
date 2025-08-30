@@ -188,7 +188,7 @@ export function useVercelAIProvider() {
                 toolId: c.toolName,
                 pending: true,
                 icon: getIcon(c.toolName),
-                status: getToolCallStatus(c.toolName, c.args, true),
+                status: getToolCallStatus(c.toolName, c.input, true),
               };
               toolCallController.enqueue(tc);
             } else if (c?.type === "reasoning") {
@@ -206,7 +206,7 @@ export function useVercelAIProvider() {
                 pending: false,
                 result: c.output,
                 icon: getIcon(c.toolName),
-                status: getToolCallStatus(c.toolName, c.args, false),
+                status: getToolCallStatus(c.toolName, c.input, false),
               };
               toolCallController.enqueue(tc);
             } else {
@@ -284,6 +284,8 @@ export function useVercelAIProvider() {
                     args: toolCall.input,
                     pending: false,
                     toolId: toolCall.toolName,
+                    icon: getIcon(toolCall.toolName),
+                    status: getToolCallStatus(toolCall.toolName, toolCall.input, false),
                   });
                 }
               }

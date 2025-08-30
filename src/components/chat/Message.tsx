@@ -25,6 +25,8 @@ import { ToolCall } from "@/src/services/chat/providers/VercelAIProvider";
 import { MentionedDocument } from "./MentionedDocument";
 import { format } from "date-fns";
 import { ImageInfo, ImagePreview, ImagePreviewProps } from "../image/ImagePreview";
+import { useTools } from "@/src/hooks/useTools";
+import { IconComponent } from "@/src/components/common/iconHelpers";
 
 interface MessageProps {
   message: ChatMessage;
@@ -100,6 +102,10 @@ interface ToolCallIndicatorProps {
 const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark }) => {
   const [isHovered, setIsHovered] = useState(false);
   const statusText = toolCall?.status;
+  const { getIcon } = useTools();
+
+  // Get the proper icon for the tool
+  const toolIcon = toolCall?.toolName ? getIcon(toolCall.toolName) : 'code';
 
   return (
     <View
@@ -108,17 +114,26 @@ const ToolCallIndicator: React.FC<ToolCallIndicatorProps> = ({ toolCall, isDark 
       onPointerLeave={() => setIsHovered(false)}
     >
       <View
-        className={`bg-surface border border-border rounded-full px-2 py-2 flex-row items-center transition-all duration-300 ease-in-out ${toolCall?.pending ? "animate-pulse" : ""}`}
+        className={`bg-surface border border-border rounded-full px-3 py-2 flex-row items-center transition-all duration-300 ease-in-out shadow-sm ${
+          toolCall?.pending 
+            ? "animate-pulse border-primary/30" 
+            : "hover:border-primary/50 hover:shadow-md"
+        }`}
       >
         {toolCall?.pending ? (
           <ActivityIndicator size="small" color={isDark ? "#fff" : "#000"} />
         ) : (
-          <Ionicons name={toolCall.icon as any} size={16} className="!text-text opacity-70" />
+          <IconComponent
+            iconName={toolIcon}
+            className="!text-primary opacity-80"
+            size={16}
+          />
         )}
         <Text
-          className={`h-4 text-text text-sm transition-all duration-300 ease-in-out overflow-hidden ${
-            isHovered || toolCall?.pending ? "opacity-100 ml-2" : "opacity-0 max-w-0 h-0"
+          className={`text-text text-sm font-medium transition-all duration-300 ease-in-out overflow-hidden ${
+            isHovered || toolCall?.pending ? "opacity-100 ml-2 max-w-48" : "opacity-0 max-w-0"
           }`}
+          numberOfLines={1}
         >
           {statusText}
         </Text>

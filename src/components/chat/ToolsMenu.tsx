@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { View, Pressable, Text, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FontAwesome6 } from "@expo/vector-icons";
 import { useAtom } from "jotai";
 import { useTools } from "@/src/hooks/useTools";
 import { useCharacterModelSelection } from "@/src/hooks/useCharacterModelSelection";
 import { hotToolsAtom, thinkingActiveAtom } from "@/src/hooks/atoms";
 import { Tool } from "@/src/types/tools";
+import { IconComponent } from "@/src/components/common/iconHelpers";
 
 interface ToolsMenuProps {
   onToolToggle?: (toolId: string, enabled: boolean) => void;
@@ -61,22 +61,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
     return toolItems;
   }, [getTools, getIcon, isToolSupported, getToolCategory, hotTools, selectedModel]);
 
-  // Icon component helper
-  const getIconComponent = useCallback((iconName: string, className: string) => {
-    const ioniconsNames = Object.keys(Ionicons.glyphMap);
-    
-    if (ioniconsNames.includes(iconName)) {
-      return <Ionicons name={iconName as any} size={20} className={className} />;
-    }
 
-    // Convert for FontAwesome
-    const faName = iconName
-      .replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase())
-      .replace("-outline", "")
-      .replace("-sharp", "");
-
-    return <FontAwesome6 name={faName as any} size={20} className={className} />;
-  }, []);
 
   // Handle tool toggle
   const handleToggleTool = useCallback((toolId: string) => {
@@ -128,10 +113,11 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
           : "border-border hover:border-primary/50"
       }`}
     >
-      {getIconComponent(
-        tool.icon,
-        `${tool.enabled ? "!text-primary" : "!text-text"} mr-2`,
-      )}
+      <IconComponent
+        iconName={tool.icon}
+        className={`${tool.enabled ? "!text-primary" : "!text-text"} mr-2`}
+        size={20}
+      />
       <Text
         className={`text-sm font-medium ${
           tool.enabled ? "!text-primary" : "!text-text"
@@ -140,7 +126,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
         {tool.name}
       </Text>
     </Pressable>
-  ), [handleToggleTool, getIconComponent]);
+  ), [handleToggleTool, IconComponent]);
 
   // Render tool menu item (for dropdown)
   const renderToolMenuItem = useCallback((tool: ToolMenuItem) => (
@@ -153,10 +139,11 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
           : ""
       }`}
     >
-      {getIconComponent(
-        tool.icon,
-        `${tool.enabled ? "!text-primary" : "!text-text"} mr-3`,
-      )}
+      <IconComponent
+        iconName={tool.icon}
+        className={`${tool.enabled ? "!text-primary" : "!text-text"} mr-3`}
+        size={20}
+      />
       <View className="flex-1">
         <Text className={`font-medium ${tool.enabled ? "!text-primary" : "!text-text"}`}>
           {tool.name}
@@ -166,7 +153,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
         </Text>
       </View>
     </Pressable>
-  ), [handleToggleTool, getIconComponent]);
+  ), [handleToggleTool, IconComponent]);
 
   // Group tools by category for better organization
   const groupedTools = useMemo(() => {

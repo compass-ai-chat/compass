@@ -31,13 +31,13 @@ export function useTools() {
 
   useEffect(() => {
     const toolsWithoutConfig = toolBlueprints.filter(x=> 
-      !simpleSchemaHasConfigOptions(x.configSchema) && !tools.find(y=>y.name==x.id))
+      !simpleSchemaHasConfigOptions(x.configSchema) && !tools.find(y=>y.name==x.id.toLowerCase()))
     setTools([...tools, ...toolsWithoutConfig.map((tool: ToolBlueprint) => {
       return {
         ...tool,
         name: tool.id,
-        id: tool.id,
-        blueprintId: tool.id,
+        id: tool.id.toLowerCase(),
+        blueprintId: tool.id.toLowerCase(),
         enabled: true,
         configValues: {},
       }
@@ -65,7 +65,7 @@ export function useTools() {
     for (const [type, handler] of Object.entries(handlers)) {
       // First register the tool structure
       await registerToolBlueprint({
-        id: type,
+        id: type.toLowerCase(),
         description: handler.getDescription(),
         icon: handler.getIcon(),
         code: '', // Built-in tools don't need code
@@ -176,9 +176,10 @@ export function useTools() {
   const getVercelCompatibleToolSet = async (toolIds: string[]): Promise<ToolSet | undefined> => {
     if (!toolIds || toolIds.length === 0) return undefined;
     
-    const filteredTools = tools.filter(tool => tool.enabled && toolIds.includes(tool.id));
+    const filteredTools = tools.filter(tool => tool.enabled && toolIds.includes(tool.id.toLowerCase()));
 
     let toolSet: ToolSet = {};
+    console.log("filteredTools", filteredTools, toolIds);
 
     for (const filteredTool of filteredTools) {
       try {
@@ -214,11 +215,62 @@ export function useTools() {
   }
 
   const getToolCallStatus = (toolId: string, args: any, pending: boolean) => {
+    const action = pending ? "Using" : "Used";
     
-    if(toolId == "WebSearch"){
-      return pending ? `Searching the web for ${args.query}...` : `Searched the web for ${args.query}`;
+    switch (toolId) {
+      case "websearch":
+        return pending 
+          ? `Searching the web for "${args?.query || 'information'}..."` 
+          : `Searched the web for "${args?.query || 'information'}"`;
+      
+      case "calculator":
+        return pending 
+          ? `Calculating "${args?.expression || 'expression'}..."` 
+          : `Calculated "${args?.expression || 'expression'}"`;
+      
+      case "weather":
+        return pending 
+          ? `Getting weather for "${args?.location || 'location'}..."` 
+          : `Got weather for "${args?.location || 'location'}"`;
+      
+      case "lengthconverter":
+        return pending 
+          ? `Converting length units..."` 
+          : `Converted length units`;
+      
+      case "weightconverter":
+        return pending 
+          ? `Converting weight units..."` 
+          : `Converted weight units`;
+      
+      case "email":
+        return pending 
+          ? `Composing email..."` 
+          : `Composed email`;
+      
+      case "note":
+        return pending 
+          ? `Creating note..."` 
+          : `Created note`;
+      
+      case "documentsearch":
+        return pending 
+          ? `Searching documents..."` 
+          : `Searched documents`;
+      
+      case "imagegeneration":
+        return pending 
+          ? `Generating image..."` 
+          : `Generated image`;
+      
+      case "thinking":
+        return pending 
+          ? `Thinking..."` 
+          : `Finished thinking`;
+      
+      default:
+        return pending ? `Using ${toolId}...` : `Used ${toolId}`;
     }
-    return pending ? `Using ${toolId}...` : `Used ${toolId}`;
   }
 
   const registerToolBlueprint = (blueprint: ToolBlueprint) : ToolBlueprint => {
@@ -234,7 +286,7 @@ export function useTools() {
         
         const wrappedCode = `
           return {
-            id: "${blueprint.id}",
+            id: "${blueprint.id.toLowerCase()}",
             description: "${blueprint.description}",
             icon: "${blueprint.icon}",
             paramsSchema: ${JSON.stringify(blueprint.paramsSchema)},
