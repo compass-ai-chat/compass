@@ -28,10 +28,9 @@ Performance Optimization:
 - Avoid anonymous functions in `renderItem` or event handlers to prevent re-renders.
 
 UI and Styling:
-- Use consistent styling, either through `StyleSheet.create()` or Styled Components.
+- Use consistent styling, through Nativewind (such as bg-surface, text-primary etc.)
 - Ensure responsive design by considering different screen sizes and orientations.
 - Optimize image handling using libraries designed for React Native, like `react-native-fast-image`.
-- Use nativewind for styling, ensure dark mode is accounted for.
 
 Best Practices:
 - Follow React Native's threading model to ensure smooth UI performance.
