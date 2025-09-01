@@ -291,7 +291,7 @@ const MessageComponent: React.FC<MessageProps> = ({
           </View>
         )}
 
-        <View className="flex flex-row">
+        <View className="flex flex-row ms-auto">
           {message.mentionedDocumentIds && message.mentionedDocumentIds.length > 0 && (
             <View className="flex-row flex-wrap mt-1 mb-2">
               {message.mentionedDocumentIds.map(documentId => (
