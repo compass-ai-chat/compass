@@ -87,7 +87,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const { t } = useLocalization();
     const [urls, setUrls] = useState<string[]>([]);
 
-    const [uploadedDocuments, setUploadedDocuments] = useState<Document[]>([]);
+    const [mentionedDocuments, setMentionedDocuments] = useState<Document[]>([]);
     const userDocuments = useAtomValue(userDocumentsAtom);
     const [showDocumentPopup, setShowDocumentPopup] = useState(false);
     const [documentSelectedIndex, setDocumentSelectedIndex] = useState(0);
@@ -173,7 +173,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
         if (!confirmed) return;
       }
-      onSend(message.trim(), mentionedCharacters, uploadedDocuments);
+      onSend(message.trim(), mentionedCharacters, mentionedDocuments);
       setMentionedCharacters([]);
       setIsEditing(false);
 
@@ -235,9 +235,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           case "Enter": {
             const selected = docs[documentSelectedIndex];
             if (selected) {
-              const exists = uploadedDocuments.some((d) => d.id === selected.id);
+              const exists = mentionedDocuments.some((d) => d.id === selected.id);
               if (!exists) {
-                setUploadedDocuments([...uploadedDocuments, selected]);
+                setMentionedDocuments([...mentionedDocuments, selected]);
               }
               setShowDocumentPopup(false);
             }
@@ -294,14 +294,14 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setShowDocumentPopup(false);
     };
 
-    const handleDocumentUpload = (document: Document) => {
-      console.log("Document uploaded", document);
-      setUploadedDocuments([...uploadedDocuments, document]);
+    const handleDocumentMention = (document: Document) => {
+      console.log("Document mentioned", document);
+      setMentionedDocuments([...mentionedDocuments, document]);
     };
 
     const handleDocumentRemove = (document: Document) => {
       console.log("Document removed", document);
-      setUploadedDocuments(uploadedDocuments.filter((d) => d.id !== document.id));
+      setMentionedDocuments(mentionedDocuments.filter((d) => d.id !== document.id));
     };
 
     return (
@@ -320,7 +320,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             </Text>
           ))}
 
-          {uploadedDocuments.map((document) => (
+          {mentionedDocuments.map((document) => (
             <UploadedDocument document={document} onRemove={handleDocumentRemove} />
           ))}
         </View>
@@ -337,9 +337,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             documents={userDocuments}
             selectedIndex={documentSelectedIndex}
             onSelect={(doc) => {
-              const exists = uploadedDocuments.some((d) => d.id === doc.id);
+              const exists = mentionedDocuments.some((d) => d.id === doc.id);
               if (!exists) {
-                setUploadedDocuments([...uploadedDocuments, doc]);
+                setMentionedDocuments([...mentionedDocuments, doc]);
               }
               setShowDocumentPopup(false);
             }}
@@ -370,7 +370,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             }}
           />
           <View className="flex-row items-center mr-auto">
-            <DocumentUpload className="mr-1 h-10" onDocumentUpload={handleDocumentUpload} />
+            <DocumentUpload className="mr-1 h-10" onDocumentUpload={handleDocumentMention} />
             <ToolsMenu />
             <MicButton
               className="ml-2"
