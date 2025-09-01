@@ -13,6 +13,7 @@ import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
 import { Modal } from "@/src/components/ui/Modal";
 import { Platform } from "@/src/utils/platform";
 import { SearchBar } from "../ui/SearchBar";
+import { DocumentPreviewModal } from "./DocumentPreviewModal";
 
 interface DocumentManagerProps {
   documents: Document[];
@@ -231,12 +232,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
 
       {/* Desktop Split View */}
       {!isMobile && selectedDoc && (
-        <View className="w-1/2 pl-4">
-          <DocumentViewer
-            document={selectedDoc}
-            onClose={() => setSelectedDoc(null)}
-          />
-        </View>
+        <DocumentPreviewModal
+          isVisible={!!selectedDoc}
+          document={selectedDoc}
+          onClose={() => setSelectedDoc(null)}
+        />
       )}
     </View>
   );
