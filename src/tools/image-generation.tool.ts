@@ -69,7 +69,7 @@ export class ImageGenerationService implements ToolHandler {
   }
 
   getIcon(): string {
-    return 'search';
+    return 'image';
   }
 
   getDescription(): string {
