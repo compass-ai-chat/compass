@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   forwardRef,
   useCallback,
+  useEffect,
 } from "react";
 import {
   View,
@@ -47,6 +48,7 @@ interface ChatInputProps {
   onInterrupt?: () => void;
   className?: string;
   initialInputRows?: number;
+  initialMentionedDocuments?: Document[];
 }
 
 export interface ChatInputRef {
@@ -62,7 +64,7 @@ export interface MentionedCharacter {
 
 export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
   (
-    { onSend, isGenerating, onInterrupt, className = "", initialInputRows = 1 },
+    { onSend, isGenerating, onInterrupt, className = "", initialInputRows = 1, initialMentionedDocuments = [] },
     ref,
   ) => {
     const [message, setMessage] = useState("");
@@ -87,12 +89,17 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const { t } = useLocalization();
     const [urls, setUrls] = useState<string[]>([]);
 
-    const [mentionedDocuments, setMentionedDocuments] = useState<Document[]>([]);
+    const [mentionedDocuments, setMentionedDocuments] = useState<Document[]>(initialMentionedDocuments);
     const userDocuments = useAtomValue(userDocumentsAtom);
     const [showDocumentPopup, setShowDocumentPopup] = useState(false);
     const [documentSelectedIndex, setDocumentSelectedIndex] = useState(0);
 
     //const [activeTools, setActiveTools] = useState<Set<string>>(new Set());
+
+    // Update mentioned documents when prop changes
+    useEffect(() => {
+      setMentionedDocuments(initialMentionedDocuments);
+    }, [initialMentionedDocuments]);
 
     useImperativeHandle(ref, () => ({
       focus: () => {

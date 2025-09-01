@@ -520,6 +520,7 @@ export function useChat() {
     //   setSidebarVisible(false);
     // }
 
+    if(currentThread.metadata?.documentIds) currentThread.metadata.documentIds = [];
     let messages = [...currentThread.messages];
     const isEditing = editingMessageIndex !== -1;
 

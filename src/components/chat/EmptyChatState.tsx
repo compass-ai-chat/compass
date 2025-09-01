@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, Platform } from 'react-native';
 import { useLocalization } from '../../hooks/useLocalization';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
 import { useChat } from '@/src/hooks/useChat';
 import { Document } from '@/src/types/core';
+import { useAtomValue } from 'jotai';
+import { userDocumentsAtom } from '@/src/hooks/atoms';
 
 interface EmptyChatStateProps {
   characterName: string;
@@ -21,6 +23,13 @@ export const EmptyChatState: React.FC<EmptyChatStateProps> = ({
   const { t } = useLocalization();
   const chatInputRef = useRef<ChatInputRef>(null);
   const { currentThread} = useChat();
+  const userDocuments = useAtomValue(userDocumentsAtom);
+
+  // Get initial mentioned documents from thread metadata
+  const initialMentionedDocuments = useMemo(() => {
+    const documentIds = currentThread.metadata?.documentIds || [];
+    return userDocuments.filter(doc => documentIds.includes(doc.id));
+  }, [currentThread.metadata?.documentIds, userDocuments]);
 
   useEffect(()=>{
     chatInputRef.current?.focus();
@@ -44,6 +53,7 @@ export const EmptyChatState: React.FC<EmptyChatStateProps> = ({
           onInterrupt={onInterrupt}
           className="shadow-lg rounded-xl"
           initialInputRows={3}
+          initialMentionedDocuments={initialMentionedDocuments}
         />
       </View>
     </View>

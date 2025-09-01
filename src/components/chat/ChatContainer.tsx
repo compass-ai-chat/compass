@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { View, FlatList, Platform } from 'react-native';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
@@ -6,6 +6,8 @@ import { MessageList, MessageListRef } from './MessageList';
 import { ChatMessage } from '@/src/types/core';
 import { useChat } from '@/src/hooks/useChat';
 import { Document } from '@/src/types/core';
+import { useAtomValue } from 'jotai';
+import { userDocumentsAtom } from '@/src/hooks/atoms';
 
 interface ChatContainerProps {
   messages: ChatMessage[];
@@ -23,11 +25,18 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   onMessagePress
 }) => {
   const { currentThread } = useChat();
+  const userDocuments = useAtomValue(userDocumentsAtom);
   const messageListRef = useRef<MessageListRef>(null);
   const chatInputRef = useRef<ChatInputRef>(null);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const previousThreadId = useRef(currentThread.id);
+
+  // Get initial mentioned documents from thread metadata
+  const initialMentionedDocuments = useMemo(() => {
+    const documentIds = currentThread.metadata?.documentIds || [];
+    return userDocuments.filter(doc => documentIds.includes(doc.id));
+  }, [currentThread.metadata?.documentIds, userDocuments]);
 
   useEffect(() => {
     chatInputRef.current?.focus();
@@ -87,6 +96,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         onInterrupt={onInterrupt}
         className={`${Platform.OS == 'web' ? 'mb-8 rounded-xl' : ''}`}
         initialInputRows={Platform.OS == 'web' ? 3 : 1}
+        initialMentionedDocuments={initialMentionedDocuments}
       />
     </View>
   );
