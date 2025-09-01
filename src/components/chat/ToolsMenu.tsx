@@ -146,7 +146,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
       />
       <View className="flex-1">
         <Text className={`font-medium ${tool.enabled ? "!text-primary" : "!text-text"}`}>
-          {tool.name}
+          {tool.name.charAt(0).toUpperCase() + tool.name.slice(1)}
         </Text>
         <Text className="text-xs text-text mt-1">
           {tool.description}
@@ -203,7 +203,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
             onMouseLeave={handleHideMenu}
             className="absolute bottom-full left-0 mb-2 z-50"
           >
-            <View className="bg-surface border border-border rounded-lg p-3 shadow-lg min-w-64">
+            <View className="bg-surface border border-border rounded-lg p-3 shadow-lg min-w-64 max-h-80 overflow-y-auto">
               {Object.entries(groupedTools).map(([category, tools]) => (
                 <View key={category} className="mb-3 last:mb-0">
                   {Object.keys(groupedTools).length > 1 && (
@@ -232,7 +232,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
       </Pressable>
 
       {showToolsMenu && (
-        <View className="absolute bottom-full left-0 mb-2 bg-surface border border-border rounded-lg p-3 shadow-lg min-w-64 z-50">
+        <View className="absolute bottom-full left-0 mb-2 bg-surface border border-border rounded-lg p-3 shadow-lg min-w-64 max-h-80 overflow-y-auto z-50">
           {Object.entries(groupedTools).map(([category, tools]) => (
             <View key={category} className="mb-3 last:mb-0">
               {Object.keys(groupedTools).length > 1 && (
