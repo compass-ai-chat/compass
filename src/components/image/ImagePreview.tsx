@@ -3,9 +3,9 @@ import { View, Text, Image, ScrollView, TouchableOpacity, Dimensions, Platform }
 import { toastService } from "@/src/services/toastService";
 
 export interface ImageInfo {
-  title: string;
+  title?: string;
   path: string;
-  date: string;
+  date?: string;
 }
 
 export interface ImagePreviewProps {
@@ -33,13 +33,13 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({image, className="", 
         resizeMode="cover"
       />
       </TouchableOpacity>
-      <div className="p-3 absolute bottom-0 w-full flex flex-row bg-background opacity-[90%] rounded-lg">
+      <div className={`p-3 absolute bottom-0 w-full flex flex-row ${!image.title?'': 'bg-background opacity-[90%]'} rounded-lg`}>
         <View>
         <Text className="text-xs text-gray-500 mb-2">
-          {image?.date??"Sometime today"}
+          {image?.date??""}
         </Text>
         <Text className="text-sm text-text" numberOfLines={3}>
-          {image?.title??"A happy clown swimming in a pond"}
+          {image?.title??""}
         </Text>
         </View>
         <button

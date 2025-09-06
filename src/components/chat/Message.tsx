@@ -308,8 +308,7 @@ const MessageComponent: React.FC<MessageProps> = ({
           <View className="flex-row flex-wrap ms-auto mb-2 w-[50%]">
             {message.images.map((image, idx) => (
               // <Text>Hiii</Text>
-              <ImagePreview key={idx} image={{path: image, title: "", date:""}} className="ms-auto w-64" />
-              
+              <ImagePreview key={idx} image={{path: image}} className="ms-auto w-64" />
             ))}
           </View>
         )}
