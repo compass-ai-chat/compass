@@ -25,11 +25,6 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({image, className="", 
   };
 
   return (
-    // <Image
-    //   source={{ uri: image.path }}
-    //   className="w-32 h-32 rounded-lg mr-2 mb-2 border border-border"
-    //   resizeMode="cover"
-    // />
     <div className={`relative border border-white rounded-lg ${className}`}>
       <TouchableOpacity onPress={onImagePressed}>
       <Image
