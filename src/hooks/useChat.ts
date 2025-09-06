@@ -389,7 +389,7 @@ export function useChat() {
 
 
     const initialContext: MessageContext = {
-      message,
+      message: context.newMessage,
       provider: chatProvider,
       thread: {
         ...currentThread,

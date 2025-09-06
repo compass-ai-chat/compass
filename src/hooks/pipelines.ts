@@ -14,7 +14,7 @@ import { ChatProvider } from "../types/chat";
 export const urlContentTransform: MessageTransform = {
   name: "urlContent",
   transform: async (ctx: MessageContext): Promise<MessageContext> => {
-    const urls = ctx.message.match(/https?:\/\/[^\s]+/g);
+    const urls = ctx.message.content.match(/https?:\/\/[^\s]+/g);
     if (!urls?.length) return ctx;
 
     toastService.info({
@@ -89,7 +89,7 @@ export const relevantPassagesTransform: MessageTransform = {
     if (!webContent?.length) return ctx;
     if (!ctx.thread.selectedModel) return ctx;
 
-    const messageWithoutUrls = ctx.message.replace(urls.join("|") || "", "");
+    const messageWithoutUrls = ctx.message.content.replace(urls.join("|") || "", "");
     const relevantPassages = await searchRelevantPassages(
       messageWithoutUrls,
       webContent.join("\n"),
@@ -118,7 +118,7 @@ export const webSearchTransform: MessageTransform = {
     if (!ctx.metadata.searchEnabled) return ctx;
 
     const searchRequired = await isSearchRequired(
-      ctx.message,
+      ctx.message.content,
       ctx.provider,
       ctx.thread,
     );
@@ -153,10 +153,10 @@ export const threadUpdateTransform: MessageTransform = {
       ...ctx.thread,
       messages: [
         ...ctx.metadata.messages,
-        { content: ctx.message, role: 'user', mentionedDocumentIds: ctx.mentionedDocuments.map(x=>x.id) },
+        { content: ctx.message.content, role: 'user', mentionedDocumentIds: ctx.mentionedDocuments.map(x=>x.id), images: ctx.message.images },
         ctx.context.assistantPlaceholder,
       ],
-    };
+    } as Thread;
 
     await ctx.metadata.dispatchThread({
       type: "update",
@@ -179,7 +179,7 @@ export const firstMessageTransform: MessageTransform = {
 
     try {
       const title = await ctx.provider.sendSimpleMessage(
-        ctx.message,
+        ctx.message.content,
         ctx.thread.selectedModel,
         systemPrompt,
       );
@@ -242,7 +242,7 @@ export const documentContextTransform: MessageTransform = {
       .join("\n");
 
     const relevantPassages = await searchRelevantPassages(
-      ctx.message,
+      ctx.message.content,
       allText,
       ctx.provider,
       {
@@ -366,7 +366,7 @@ export class MessageTransformPipeline {
 }
 
 export interface MessageContext {
-  message: string;
+  message: ChatMessage;
   provider: ChatProvider;
   thread: Thread;
   mentionedCharacters: MentionedCharacter[];

@@ -303,6 +303,17 @@ const MessageComponent: React.FC<MessageProps> = ({
           )}
         </View>
 
+        {/* Display user images */}
+        {message.images && message.images.length > 0 && (
+          <View className="flex-row flex-wrap ms-auto mb-2 w-[50%]">
+            {message.images.map((image, idx) => (
+              // <Text>Hiii</Text>
+              <ImagePreview key={idx} image={{path: image, title: "", date:""}} className="ms-auto w-64" />
+              
+            ))}
+          </View>
+        )}
+
         <View className={`flex flex-row ${isFromUser ? "justify-end" : "justify-start"}`}>
           {!isFromUser && message.content.length === 0 && isGenerating && (
             <View className="relative">
@@ -353,26 +364,6 @@ const MessageComponent: React.FC<MessageProps> = ({
                     />
                   )}
 
-                  {/* Display user images */}
-                  {message.images && message.images.length > 0 && (
-                    <View className="mb-2">
-                      <View className="flex-row flex-wrap">
-                        {message.images.map((image, idx) => (
-                          <TouchableOpacity 
-                            key={idx}
-                            onPress={() => setSelectedImage(image)}
-                          >
-                            <Image
-                              source={{ uri: image }}
-                              className="w-32 h-32 rounded-lg mr-2 mb-2 border border-border"
-                              resizeMode="cover"
-                            />
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-
                   {message.content && (
                     <Markdown
                       style={markdownStyles}
@@ -400,44 +391,6 @@ const MessageComponent: React.FC<MessageProps> = ({
           )}
         </View>
         {imageInfo && (<ImagePreview image={imageInfo!} className="w-[50%]" />)}
-
-                {/* Image Modal for full view */}
-        {Platform.OS === 'web' ? (
-          selectedImage && (
-            <TouchableOpacity 
-              className="fixed inset-0 bg-black/80 items-center justify-center z-50"
-              onPress={() => setSelectedImage(null)}
-            >
-              <img
-                src={selectedImage}
-                alt="Full size"
-                className="max-w-[90%] max-h-[90%] object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </TouchableOpacity>
-          )
-        ) : (
-          selectedImage && (
-            <Modal
-              visible={!!selectedImage}
-              transparent={true}
-              onRequestClose={() => setSelectedImage(null)}
-            >
-              <TouchableOpacity 
-                className="flex-1 bg-black/80 items-center justify-center"
-                onPress={() => setSelectedImage(null)}
-              >
-                <TouchableOpacity activeOpacity={1}>
-                  <Image
-                    source={{ uri: selectedImage }}
-                    className="max-w-[90%] max-h-[90%]"
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              </TouchableOpacity>
-            </Modal>
-          )
-        )}
       </View>
     </View>
   );
