@@ -387,6 +387,7 @@ export function useChat() {
       ),
     );
 
+
     const initialContext: MessageContext = {
       message,
       provider: chatProvider,
@@ -408,10 +409,12 @@ export function useChat() {
       },
     };
 
-    console.log("initialContext", initialContext);
+
 
     try {
+
       const transformedContext = await pipeline.process(initialContext);
+
       transformedContext.context.messagesToSend.push({
         ...transformedContext.context.assistantPlaceholder,
         modelUsed: {

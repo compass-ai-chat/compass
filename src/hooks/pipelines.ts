@@ -148,6 +148,7 @@ export const webSearchTransform: MessageTransform = {
 export const threadUpdateTransform: MessageTransform = {
   name: "threadUpdate",
   transform: async (ctx: MessageContext): Promise<MessageContext> => {
+    console.log("Context mesage" ,ctx.message)
     const updatedThread = {
       ...ctx.thread,
       messages: [
@@ -166,6 +167,7 @@ export const threadUpdateTransform: MessageTransform = {
     return ctx;
   },
 };
+
 
 export const firstMessageTransform: MessageTransform = {
   name: "firstMessage",
