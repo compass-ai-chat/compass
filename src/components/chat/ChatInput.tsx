@@ -486,9 +486,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
                     const input = document.getElementById('image-upload') as HTMLInputElement;
                     input?.click();
                   }}
-                  className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center hover:bg-gray-300"
+                  className="w-10 h-10 rounded-full items-center justify-center hover:bg-gray-300"
                 >
-                  <Ionicons name="image" size={20} color="#666" />
+                  <Ionicons name="image" size={20} className="!text-text" />
                 </Pressable>
               </View>
             )}

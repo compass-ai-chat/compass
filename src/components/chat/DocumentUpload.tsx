@@ -84,10 +84,10 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({className, onDocu
   return (
     <Pressable
       onPress={() => handleUpload()}
-      className={`flex-row items-center p-2 rounded-md border border-border ${className} hover:opacity-60`}
+      className={`flex-row items-center p-2 rounded-md ${className} hover:bg-gray-300`}
             >
               <Ionicons name="document-text-outline" size={20} className="!text-text" />
-              <Text className="ml-2 text-text text-2xl">+</Text>
+              <Text className="ml-1 text-text text-2xl">+</Text>
       </Pressable>
   );
 };
