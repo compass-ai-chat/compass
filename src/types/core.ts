@@ -31,6 +31,7 @@ export interface ChatMessage {
   };
   reasoning?: string;
   documentIds?: string[];
+  images?: string[]; // Array of base64 encoded images
 }
 
 export interface Model {

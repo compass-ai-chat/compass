@@ -6,7 +6,8 @@ import {
   ActivityIndicator,
   Text,
   Clipboard,
-  Image
+  Image,
+  Modal
 } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { useColorScheme } from "nativewind";
@@ -247,6 +248,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [expandedCodeBlocks, setExpandedCodeBlocks] = useState<Set<string>>(new Set());
   const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleCopyMessage = useCallback(() => {
     Clipboard.setString(content);
@@ -314,7 +316,7 @@ const MessageComponent: React.FC<MessageProps> = ({
             </View>
           )}
 
-          {(message.content.length > 0 || showThinking) && (
+          {(message.content.length > 0 || showThinking || (message.images && message.images.length > 0)) && (
             <View
               className={`relative px-4 py-2 mb-4 rounded-2xl max-w-[100%] ${
                 isFromUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
@@ -351,6 +353,26 @@ const MessageComponent: React.FC<MessageProps> = ({
                     />
                   )}
 
+                  {/* Display user images */}
+                  {message.images && message.images.length > 0 && (
+                    <View className="mb-2">
+                      <View className="flex-row flex-wrap">
+                        {message.images.map((image, idx) => (
+                          <TouchableOpacity 
+                            key={idx}
+                            onPress={() => setSelectedImage(image)}
+                          >
+                            <Image
+                              source={{ uri: image }}
+                              className="w-32 h-32 rounded-lg mr-2 mb-2 border border-border"
+                              resizeMode="cover"
+                            />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+
                   {message.content && (
                     <Markdown
                       style={markdownStyles}
@@ -378,6 +400,44 @@ const MessageComponent: React.FC<MessageProps> = ({
           )}
         </View>
         {imageInfo && (<ImagePreview image={imageInfo!} className="w-[50%]" />)}
+
+                {/* Image Modal for full view */}
+        {Platform.OS === 'web' ? (
+          selectedImage && (
+            <TouchableOpacity 
+              className="fixed inset-0 bg-black/80 items-center justify-center z-50"
+              onPress={() => setSelectedImage(null)}
+            >
+              <img
+                src={selectedImage}
+                alt="Full size"
+                className="max-w-[90%] max-h-[90%] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </TouchableOpacity>
+          )
+        ) : (
+          selectedImage && (
+            <Modal
+              visible={!!selectedImage}
+              transparent={true}
+              onRequestClose={() => setSelectedImage(null)}
+            >
+              <TouchableOpacity 
+                className="flex-1 bg-black/80 items-center justify-center"
+                onPress={() => setSelectedImage(null)}
+              >
+                <TouchableOpacity activeOpacity={1}>
+                  <Image
+                    source={{ uri: selectedImage }}
+                    className="max-w-[90%] max-h-[90%]"
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </Modal>
+          )
+        )}
       </View>
     </View>
   );

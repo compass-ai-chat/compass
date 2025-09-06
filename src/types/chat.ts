@@ -22,7 +22,7 @@ export interface MessageStreamHandler {
 }
 
 export interface ChatContextManager {
-  prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]): {
+  prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[], images?: string[]): {
     messagesToSend: ChatMessage[];
     assistantPlaceholder: ChatMessage;
     characterToUse: Character | undefined;

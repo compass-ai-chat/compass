@@ -11,7 +11,7 @@ import { userDocumentsAtom } from '@/src/hooks/atoms';
 
 interface ChatContainerProps {
   messages: ChatMessage[];
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]) => void;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[], images?: string[]) => void;
   isGenerating: boolean;
   onInterrupt: () => void;
   onMessagePress: (index: number, message: ChatMessage) => void;

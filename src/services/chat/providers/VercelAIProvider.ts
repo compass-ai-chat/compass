@@ -119,14 +119,44 @@ export function useVercelAIProvider() {
     signal?: AbortSignal,
   ): Promise<StreamResponse> => {
     const newMessages = [
-      ...messages.map((message) => ({
-        role: getMessageRole(message),
-        content: message.content,
-      })),
+      ...messages.map((message) => {
+        const baseMessage = {
+          role: getMessageRole(message),
+          content: message.content,
+        };
+
+        // If message has images, format as multipart content
+        if (message.images && message.images.length > 0) {
+          const parts: any[] = [];
+          
+          // Add text content if present
+          if (message.content.trim()) {
+            parts.push({ type: "text", text: message.content });
+          }
+          
+          // Add image parts
+          message.images.forEach(image => {
+            parts.push({
+              type: "image",
+              image: image
+            });
+          });
+
+          return {
+            role: getMessageRole(message),
+            content: parts
+          };
+        }
+
+        return baseMessage;
+      }),
     ];
 
     // if latest message is empty
-    if (newMessages[newMessages.length - 1].content.trim() === "") {
+    const lastNewMessage = newMessages[newMessages.length - 1];
+    if (lastNewMessage && 
+        ((typeof lastNewMessage.content === 'string' && lastNewMessage.content.trim() === "") ||
+         (Array.isArray(lastNewMessage.content) && lastNewMessage.content.length === 0))) {
       newMessages.pop();
     }
 

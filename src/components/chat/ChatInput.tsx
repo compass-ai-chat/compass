@@ -34,6 +34,7 @@ import { Document } from '@/src/types/core';
 import { UploadedDocument } from "./UploadedDocument";
 import { DocumentMentionPopup } from "@/src/components/documents/DocumentMentionPopup";
 import { MicButton } from "./MicButton";
+import { fileToBase64, isImageFile, isValidImageSize, compressImage } from "@/src/utils/imageUtils";
 
 interface Tool {
   id: string;
@@ -43,7 +44,7 @@ interface Tool {
 }
 
 interface ChatInputProps {
-  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]) => void;
+  onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[], images?: string[]) => void;
   isGenerating?: boolean;
   onInterrupt?: () => void;
   className?: string;
@@ -88,6 +89,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     ); // Initial height
     const { t } = useLocalization();
     const [urls, setUrls] = useState<string[]>([]);
+    const [images, setImages] = useState<string[]>([]); // Base64 encoded images
 
     const [mentionedDocuments, setMentionedDocuments] = useState<Document[]>(initialMentionedDocuments);
     const userDocuments = useAtomValue(userDocumentsAtom);
@@ -100,6 +102,70 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     useEffect(() => {
       setMentionedDocuments(initialMentionedDocuments);
     }, [initialMentionedDocuments]);
+
+    // Handle image upload with validation and compression
+    const handleImageUpload = async (file: File) => {
+      try {
+        // Validate file type
+        if (!isImageFile(file)) {
+          console.warn('File is not an image:', file.type);
+          return;
+        }
+
+        // Validate file size
+        if (!isValidImageSize(file)) {
+          console.warn('Image file too large:', file.size);
+          return;
+        }
+
+        // Compress the image if it's large
+        let base64: string;
+        if (file.size > 2 * 1024 * 1024) { // 2MB threshold for compression
+          base64 = await compressImage(file);
+        } else {
+          base64 = await fileToBase64(file);
+        }
+        
+        setImages(prev => [...prev, base64]);
+      } catch (error) {
+        console.error('Error processing image:', error);
+      }
+    };
+
+    // Handle image removal
+    const handleImageRemove = (index: number) => {
+      setImages(prev => prev.filter((_, i) => i !== index));
+    };
+
+    // Handle paste events (for web)
+    const handlePaste = useCallback(async (event: any) => {
+      if (Platform.OS !== 'web') return;
+      
+      const clipboardData = event.clipboardData || event.originalEvent.clipboardData;
+      if (!clipboardData) return;
+
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            await handleImageUpload(file);
+          }
+        }
+      }
+    }, []);
+
+    // Add paste event listener for web
+    useEffect(() => {
+      if (Platform.OS === 'web' && inputRef.current) {
+        const input = inputRef.current as any;
+        input.addEventListener?.('paste', handlePaste);
+        return () => {
+          input.removeEventListener?.('paste', handlePaste);
+        };
+      }
+    }, [handlePaste]);
 
     useImperativeHandle(ref, () => ({
       focus: () => {
@@ -168,7 +234,7 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     };
 
     const handleSend = async () => {
-      if (!message.trim() || isGenerating) return;
+      if ((!message.trim() && images.length === 0) || isGenerating) return;
 
       const result = scanForSensitiveInfo(message.trim());
 
@@ -180,8 +246,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
         if (!confirmed) return;
       }
-      onSend(message.trim(), mentionedCharacters, mentionedDocuments);
+      onSend(message.trim(), mentionedCharacters, mentionedDocuments, images);
       setMentionedCharacters([]);
+      setImages([]); // Clear images after sending
       setIsEditing(false);
 
       // Also close document popup if open
@@ -330,6 +397,23 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           {mentionedDocuments.map((document) => (
             <UploadedDocument document={document} onRemove={handleDocumentRemove} />
           ))}
+
+          {/* Display uploaded images */}
+          {images.map((image, index) => (
+            <View key={index} className="relative mx-2 mb-2">
+              <img 
+                src={image} 
+                alt={`Uploaded ${index + 1}`}
+                className="w-16 h-16 object-cover rounded-lg border border-primary"
+              />
+              <Pressable
+                onPress={() => handleImageRemove(index)}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center"
+              >
+                <Ionicons name="close" size={12} color="white" />
+              </Pressable>
+            </View>
+          ))}
         </View>
         {showMentionPopup && (
           <CharacterMentionPopup
@@ -378,6 +462,37 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           />
           <View className="flex-row items-center mr-auto">
             <DocumentUpload className="mr-1 h-10" onDocumentUpload={handleDocumentMention} />
+            
+            {/* Image Upload Button (Web only) */}
+            {Platform.OS === 'web' && (
+              <View className="mr-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  id="image-upload"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    for (const file of files) {
+                      await handleImageUpload(file);
+                    }
+                    // Reset the input
+                    e.target.value = '';
+                  }}
+                />
+                <Pressable
+                  onPress={() => {
+                    const input = document.getElementById('image-upload') as HTMLInputElement;
+                    input?.click();
+                  }}
+                  className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center hover:bg-gray-300"
+                >
+                  <Ionicons name="image" size={20} color="#666" />
+                </Pressable>
+              </View>
+            )}
+            
             <ToolsMenu />
             <MicButton
               className="ml-2"

@@ -347,6 +347,7 @@ export function useChat() {
     message: string,
     mentionedCharacters: MentionedCharacter[] = [],
     mentionedDocuments: Document[] = [],
+    images: string[] = [],
   ) => {
     abortController.current = new AbortController();
     currentThread.messages = messages;
@@ -354,7 +355,8 @@ export function useChat() {
       message,
       currentThread,
       mentionedCharacters,
-      mentionedDocuments
+      mentionedDocuments,
+      images
     );
     let selectedModel = currentThread.selectedModel;
 
@@ -513,6 +515,7 @@ export function useChat() {
     message: string,
     mentionedCharacters: MentionedCharacter[],
     mentionedDocuments: Document[],
+    images: string[] = [],
   ) => {
     if (!providers.length) return;
 
@@ -541,7 +544,7 @@ export function useChat() {
 
     setIsGenerating(true);
     try {
-      await sendChatMessage(messages, message, mentionedCharacters, mentionedDocuments);
+      await sendChatMessage(messages, message, mentionedCharacters, mentionedDocuments, images);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {

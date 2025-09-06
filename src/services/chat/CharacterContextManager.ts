@@ -4,8 +4,12 @@ import { ChatMessage, Character, Document } from '@/src/types/core';
 import { Thread } from '@/src/types/core';
 
 export class CharacterContextManager implements ChatContextManager {
-  prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[]): { messagesToSend: ChatMessage[]; historyToSend: ChatMessage[]; assistantPlaceholder: ChatMessage; useMention: boolean; characterToUse: Character | undefined, mentionedDocuments: Document[] } {
-    const newMessage = { content: message, role: 'user' };
+  prepareContext(message: string, currentThread: Thread, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[], images: string[] = []): { messagesToSend: ChatMessage[]; historyToSend: ChatMessage[]; assistantPlaceholder: ChatMessage; useMention: boolean; characterToUse: Character | undefined, mentionedDocuments: Document[] } {
+    const newMessage: ChatMessage = { 
+      content: message, 
+      role: 'user',
+      ...(images.length > 0 && { images })
+    };
     let assistantPlaceholder: ChatMessage = { content: "", role: 'assistant' };
     let messagesToSend: ChatMessage[] = [];
 
