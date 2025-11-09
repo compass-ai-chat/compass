@@ -3,7 +3,7 @@ import { Platform, View, Text, ScrollView } from 'react-native';
 import { DocumentManager } from '@/src/components/documents/DocumentManager';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAtom, useAtomValue } from 'jotai';
-import { documentsAtom, charactersAtom, currentIndexAtom, defaultThreadAtom, threadActionsAtom, userDocumentsAtom } from '@/src/hooks/atoms';
+import { documentsAtom, charactersAtom, currentIndexAtom, defaultThreadAtom, threadActionsAtom } from '@/src/hooks/atoms';
 import { Document } from '@/src/types/core';
 import { toastService } from '@/src/services/toastService';
 import { router } from 'expo-router';
@@ -14,11 +14,10 @@ import { format } from 'date-fns';
 
 
 export default function DocumentsRoute() {
-  const [documents] = useAtom(userDocumentsAtom);
+  const [documents, setDocuments] = useAtom(documentsAtom);
   const [characters, setCharacters] = useAtom(charactersAtom);
   const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);
   const [, dispatchThread] = useAtom(threadActionsAtom);
-  const [userDocuments, setUserDocuments] = useAtom(userDocumentsAtom);
   const defaultThread = useAtomValue(defaultThreadAtom);
 
   const onDocumentDelete = async (document: Document) => {
@@ -41,8 +40,8 @@ export default function DocumentsRoute() {
       setCharacters(updatedCharacters);
     }
 
-    // finally, delete the document from the userDocuments array
-    setUserDocuments(userDocuments.filter(doc => doc.id !== document.id));
+    // finally, delete the document from the documents array
+    setDocuments(documents.filter(doc => doc.id !== document.id));
 
   };
 
@@ -70,7 +69,7 @@ export default function DocumentsRoute() {
     const parsedDoc = await PDFService.parsePDF(newDoc);
     newDoc.pages = parsedDoc.pages;
     newDoc.chunks = parsedDoc.chunks;
-    setUserDocuments([...userDocuments, newDoc]);
+    setDocuments([...documents, newDoc]);
 
     toastService.success({
       title: 'Document processed',

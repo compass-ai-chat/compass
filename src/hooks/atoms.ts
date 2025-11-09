@@ -547,8 +547,8 @@ export const documentsAtom = atom(
         }
       }
 
-      const updatedDocuments = await DocumentService.getDocuments();
-      set(polarisDocumentsAtom, updatedDocuments);
+      // Just set the documents directly instead of refetching
+      set(polarisDocumentsAtom, documents);
     } else {
       // Use the existing atomWithAsyncStorage implementation for local-only mode
       await set(userDocumentsAtom, documents);

@@ -76,9 +76,6 @@ export default function RootLayout() {
     initializeTools();
   }, []);
 
-  useEffect(() => {
-  }, [locale])
-
   const hasSeenOnboarding = useAtomValue(hasSeenOnboardingAtom);
 
   useEffect(() => {

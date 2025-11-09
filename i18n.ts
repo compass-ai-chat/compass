@@ -58,26 +58,28 @@ const setInitialLanguage = async () => {
     const supportedDeviceLocale = deviceLocale && ['en', 'it', 'da'].includes(deviceLocale) ? deviceLocale : 'en';
     await i18n.changeLanguage(supportedDeviceLocale);
     i18nJs.locale = supportedDeviceLocale;
+    // Set the atom without triggering loops
+    await getDefaultStore().set(localeAtom, supportedDeviceLocale);
   } catch (error) {
     console.error('Error setting initial language:', error);
     // Ensure we always have a working language
     await i18n.changeLanguage('en');
     i18nJs.locale = 'en';
+    await getDefaultStore().set(localeAtom, 'en');
   }
 };
 
 // Initialize the language
 setInitialLanguage();
 
-// Sync the language between i18next and i18n-js
-i18n.on('languageChanged', (lng) => {
-  i18nJs.locale = lng;
-  getDefaultStore().set(localeAtom, lng);
-});
+// Note: Removed languageChanged event listener to prevent infinite loops
+// Language synchronization is now handled explicitly in useLocalization hook
 
 // Add this function to change language programmatically
-export const changeLanguage = (language: string) => {
-  return i18n.changeLanguage(language);
+export const changeLanguage = async (language: string) => {
+  await i18n.changeLanguage(language);
+  i18nJs.locale = language; // Manually sync i18nJs
+  return i18n;
 };
 
 export { i18nJs };
