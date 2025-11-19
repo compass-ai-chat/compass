@@ -119,7 +119,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
 
   const handleThreadSelect = (thread: Thread) => {
     setPreviewCode(null);
-    if (!Platform.isMobile && window.innerWidth >= 768) {
+    if (!Platform.isMobile && typeof window !== 'undefined' && window.innerWidth >= 768) {
       dispatchThread({ type: 'setCurrent', payload: thread });
     } else {
       dispatchThread({ type: 'setCurrent', payload: thread });

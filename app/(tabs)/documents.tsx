@@ -92,7 +92,7 @@ export default function DocumentsRoute() {
       await dispatchThread({ type: 'setCurrent', payload: newThread });
 
       // Navigate to chat
-      if (Platform.OS === 'web' && window.innerWidth >= 768) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth >= 768) {
         // Set the current index to 0 (Chat tab) before navigation
         setCurrentIndex(0);
         router.replace('/');

@@ -14,7 +14,7 @@ export default function ThreadScreen() {
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
-    const isMobile = Platform.OS !== 'web' || window.innerWidth < 768;
+    const isMobile = Platform.OS !== 'web' || typeof window === 'undefined' || window.innerWidth < 768;
     navigation.setOptions({
       headerShown: !isMobile
     });

@@ -32,7 +32,7 @@ export const routes = [
 ];
 
 export default function TabLayout() {
-  const isDesktop = Platform.OS === 'web' && window.innerWidth >= 768;
+  const isDesktop = Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth >= 768;
   const layout = useWindowDimensions();
   const [index, setIndex] = useAtom(currentIndexAtom);
   const [_index, _setIndex] = useState(0);

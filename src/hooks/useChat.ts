@@ -309,7 +309,7 @@ export function useChat() {
         type: "setCurrent",
         payload: threads[threads.length - 1],
       });
-      if (Platform.OS != "web" || window.innerWidth < 768) {
+      if (Platform.OS != "web" || typeof window === 'undefined' || window.innerWidth < 768) {
         router.push(`/thread/${threads[threads.length - 1].id}`);
       }
       return;
@@ -324,7 +324,7 @@ export function useChat() {
 
     dispatchThread({ type: "add", payload: newThread });
 
-    if (Platform.OS != "web" || window.innerWidth < 768) {
+    if (Platform.OS != "web" || typeof window === 'undefined' || window.innerWidth < 768) {
       // wait 100 ms before pushing to allow for thread to be added to state
       setTimeout(() => {
         router.push(`/thread/${newThread.id}`);
