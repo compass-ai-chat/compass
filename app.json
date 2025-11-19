@@ -8,11 +8,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "fonts": {
-      "Caveat-Regular": "./assets/fonts/Caveat-Regular.ttf",
-      "Caveat-Medium": "./assets/fonts/Caveat-Medium.ttf",
-      "Caveat-Bold": "./assets/fonts/Caveat-Bold.ttf"
-    },
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -28,11 +23,6 @@
       }
     },
     "android": {
-      "manifest": {
-        "application": {
-          "android:usesCleartextTraffic": true
-        }
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -45,15 +35,7 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.NEARBY_WIFI_DEVICES"
       ],
-      "package": "com.nordwestt.compass",
-      "networkSecurityConfig": {
-        "fileReplacements": [
-          {
-            "file": "network_security_config.xml",
-            "src": "./network_security_config.xml"
-          }
-        ]
-      }
+      "package": "com.nordwestt.compass"
     },
     "web": {
       "bundler": "metro",

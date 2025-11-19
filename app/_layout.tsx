@@ -40,12 +40,16 @@ export default function RootLayout() {
   const { initializeTools } = useTools();
   useKeyboardShortcuts();
 
+  // Fix React 19 compatibility: move side effect out of useMemo
+  useEffect(() => {
+    setColorScheme(isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode, setColorScheme]);
+
   const theme = React.useMemo(() => {
-    setColorScheme(isDarkMode?'dark': 'light')
     if (!rawThemes[themePreset]) {
-      return rawThemes['default'][isDarkMode?'dark':'light'];
+      return rawThemes['default'][isDarkMode ? 'dark' : 'light'];
     }
-    return rawThemes[themePreset][isDarkMode?'dark':'light'];
+    return rawThemes[themePreset][isDarkMode ? 'dark' : 'light'];
   }, [themePreset, isDarkMode]);
 
 
