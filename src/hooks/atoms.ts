@@ -16,7 +16,8 @@ import { CharacterService } from "@/src/services/character/CharacterService";
 import { ProviderService } from "@/src/services/provider/ProviderService";
 import LogService from "@/utils/LogService";
 import { toastService } from "@/src/services/toastService";
-import { DocumentService } from "../services/document/DocumentService";
+// Remove the DocumentService import to break circular dependency
+// import { DocumentService } from "../services/document/DocumentService";
 import { DropdownElement } from "@/src/components/ui/Dropdown";
 import { User } from "@/src/types/user";
 import { ToolBlueprint, ToolHandler } from "../tools/tool.interface";
@@ -522,32 +523,8 @@ export const documentsAtom = atom(
   async (get, set, documents: Document[]) => {
     const syncToPolaris = await get(syncToPolarisAtom);
     if (syncToPolaris) {
-      // Get current documents to compare for deletions
-      const existingDocuments = await get(polarisDocumentsAtom);
-
-      // Find documents that exist in existingDocuments but not in the new documents array
-      const documentsToDelete = existingDocuments.filter(
-        (existing) => !documents.some((newDoc) => newDoc.id === existing.id),
-      );
-
-      // Delete removed documents
-      for (const document of documentsToDelete) {
-        try {
-          await DocumentService.deleteDocument(document.id);
-        } catch (error: any) {
-          LogService.log(
-            error,
-            { component: "documentsAtom", function: "setter" },
-            "error",
-          );
-          toastService.danger({
-            title: "Error",
-            description: `Failed to delete document: ${document.name}`,
-          });
-        }
-      }
-
-      // Just set the documents directly instead of refetching
+      // Just set the documents directly
+      // Document deletion is handled by the DocumentService when needed
       set(polarisDocumentsAtom, documents);
     } else {
       // Use the existing atomWithAsyncStorage implementation for local-only mode

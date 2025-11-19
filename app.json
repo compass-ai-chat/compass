@@ -77,7 +77,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Compass to use your location."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
