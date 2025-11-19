@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+// import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { useAtomValue } from 'jotai';
 import { availableProvidersAtom } from '@/src/hooks/atoms';
@@ -16,7 +16,7 @@ interface MicButtonProps {
 
 export const MicButton: React.FC<MicButtonProps> = ({ onPartial, onFinal, className = '' }) => {
   const providers = useAtomValue(availableProvidersAtom);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  // const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -80,18 +80,18 @@ export const MicButton: React.FC<MicButtonProps> = ({ onPartial, onFinal, classN
 
   const startNativeRecording = async () => {
     try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        toastService.warning({ title: 'Microphone permission denied' });
-        return;
-      }
+      // const { status } = await Audio.requestPermissionsAsync();
+      // if (status !== 'granted') {
+      //   toastService.warning({ title: 'Microphone permission denied' });
+      //   return;
+      // }
 
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(recording);
-      setIsListening(true);
+      // await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      // const { recording } = await Audio.Recording.createAsync(
+      //   Audio.RecordingOptionsPresets.HIGH_QUALITY
+      // );
+      // setRecording(recording);
+      // setIsListening(true);
     } catch (e) {
       toastService.danger({ title: 'Recording error', description: String(e) });
     }
@@ -99,21 +99,22 @@ export const MicButton: React.FC<MicButtonProps> = ({ onPartial, onFinal, classN
 
   const stopNativeRecording = async () => {
     try {
-      if (!recording) return;
-      await recording.stopAndUnloadAsync();
-      setIsListening(false);
+      // TODO: get this updated to expo 54 Audio API
+      // if (!recording) return;
+      // await recording.stopAndUnloadAsync();
+      // setIsListening(false);
 
-      const uri = recording.getURI();
-      setRecording(null);
-      if (!uri) return;
+      // const uri = recording.getURI();
+      // setRecording(null);
+      // if (!uri) return;
 
-      toastService.info({ title: 'Transcribing…' });
-      const text = await transcribeAudio({ fileUri: uri, providers });
-      if (text && onFinal) onFinal(text);
-      toastService.success({ title: 'Transcribed', description: text.slice(0, 120) + (text.length > 120 ? '…' : '') });
+      // toastService.info({ title: 'Transcribing…' });
+      // const text = await transcribeAudio({ fileUri: uri, providers });
+      // if (text && onFinal) onFinal(text);
+      // toastService.success({ title: 'Transcribed', description: text.slice(0, 120) + (text.length > 120 ? '…' : '') });
 
-      // Cleanup temporary file
-      try { await FileSystem.deleteAsync(uri, { idempotent: true }); } catch {}
+      // // Cleanup temporary file
+      // try { await FileSystem.deleteAsync(uri, { idempotent: true }); } catch {}
     } catch (e) {
       setIsListening(false);
       toastService.danger({ title: 'Transcription error', description: String(e) });

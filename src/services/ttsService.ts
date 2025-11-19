@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { Audio, AVPlaybackSource } from 'expo-av';
+// import { Audio, AVPlaybackSource } from 'expo-av';
 
 export interface TTSOptions {
   apiKey: string;
@@ -46,51 +46,51 @@ class TTSService {
     this.hasScheduledNextAudio = false;
 
     //console.log('Loading Sound');
-    if(this.isWeb){
+    // if(this.isWeb){
 
-        
-        const soundArray = this.audioQueue.shift()!;
-        // create a blob url from the audio chunk
-        const audioBlob = new Blob([soundArray], { type: 'audio/mpeg' });
-        const url = URL.createObjectURL(audioBlob);
+    // TODO: get this updated to expo 54 Audio API
+    //     const soundArray = this.audioQueue.shift()!;
+    //     // create a blob url from the audio chunk
+    //     const audioBlob = new Blob([soundArray], { type: 'audio/mpeg' });
+    //     const url = URL.createObjectURL(audioBlob);
 
-        // create AVPlaybackSource from the url
-        const source: AVPlaybackSource = { uri: url };
-        const { sound } = await Audio.Sound.createAsync(source);
+    //     // create AVPlaybackSource from the url
+    //     const source: AVPlaybackSource = { uri: url };
+    //     const { sound } = await Audio.Sound.createAsync(source);
         
-        // Set up playback status handler
-        sound.setOnPlaybackStatusUpdate((status) => {
-            if(status.isLoaded && status.isPlaying){
-                if(status.durationMillis && status.positionMillis && !this.hasScheduledNextAudio){
-                    this.hasScheduledNextAudio = true;
-                    const futureTime = (status.durationMillis) - 130;
-                    //console.log('futureTime', futureTime, 'for', status.durationMillis, status.positionMillis);
-                    //console.log('current time', new Date().getTime());
-                    setTimeout(() => {
-                        if (this.audioQueue.length > 0 ) {
-                            this.isProcessingQueue = false;
-                            this.processNextAudio(true);
-                        }
-                    }, futureTime);  // Start next chunk 100ms before current ends
-                } 
-            }
+    //     // Set up playback status handler
+    //     sound.setOnPlaybackStatusUpdate((status) => {
+    //         if(status.isLoaded && status.isPlaying){
+    //             if(status.durationMillis && status.positionMillis && !this.hasScheduledNextAudio){
+    //                 this.hasScheduledNextAudio = true;
+    //                 const futureTime = (status.durationMillis) - 130;
+    //                 //console.log('futureTime', futureTime, 'for', status.durationMillis, status.positionMillis);
+    //                 //console.log('current time', new Date().getTime());
+    //                 setTimeout(() => {
+    //                     if (this.audioQueue.length > 0 ) {
+    //                         this.isProcessingQueue = false;
+    //                         this.processNextAudio(true);
+    //                     }
+    //                 }, futureTime);  // Start next chunk 100ms before current ends
+    //             } 
+    //         }
             
-            if (status.isLoaded &&status.didJustFinish) {
-                sound.unloadAsync(); // Clean up
-                URL.revokeObjectURL(url); // Clean up blob URL
-                // Process next audio in queue if available
-                this.isProcessingQueue = false;
-                if (this.audioQueue.length === 0) {
-                    this.isProcessingQueue = false;
-                    this.currentHandler?.onFinish?.();
-                }
-        }
-        });
+    //         if (status.isLoaded &&status.didJustFinish) {
+    //             sound.unloadAsync(); // Clean up
+    //             URL.revokeObjectURL(url); // Clean up blob URL
+    //             // Process next audio in queue if available
+    //             this.isProcessingQueue = false;
+    //             if (this.audioQueue.length === 0) {
+    //                 this.isProcessingQueue = false;
+    //                 this.currentHandler?.onFinish?.();
+    //             }
+    //     }
+    //     });
 
-        console.log('Playing Sound');
-        await sound.playAsync();
-    }
-    else{
+    //     console.log('Playing Sound');
+    //     await sound.playAsync();
+    // }
+    if(true){
       throw new Error('TTS is not supported on this platform');
         // const soundArray = this.audioQueue.shift()!;
         // const base64Data = Buffer.from(soundArray).toString('base64');
