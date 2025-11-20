@@ -13,7 +13,8 @@ import {
 import { Tool } from "@/src/types/tools";
 import { PREDEFINED_PROMPTS } from "@/constants/characters";
 import { CharacterService } from "@/src/services/character/CharacterService";
-import { ProviderService } from "@/src/services/provider/ProviderService";
+// TODO: find a way to use ProviderService without circular dependency
+// import { ProviderService } from "@/src/services/provider/ProviderService";
 import LogService from "@/utils/LogService";
 import { toastService } from "@/src/services/toastService";
 // Remove the DocumentService import to break circular dependency
@@ -351,7 +352,7 @@ export const availableProvidersAtom = atom(
       // Delete removed providers
       for (const provider of providersToDelete) {
         try {
-          await ProviderService.deleteProvider(provider.id);
+          // await ProviderService.deleteProvider(provider.id);
         } catch (error: any) {
           LogService.log(
             error,
@@ -366,12 +367,12 @@ export const availableProvidersAtom = atom(
       }
 
       // Save each provider using the service
-      for (const provider of providers) {
-        await ProviderService.saveProvider(provider);
-      }
+      // for (const provider of providers) {
+      //   await ProviderService.saveProvider(provider);
+      // }
 
-      const updatedProviders = await ProviderService.getProviders();
-      set(polarisProvidersAtom, updatedProviders);
+      // const updatedProviders = await ProviderService.getProviders();
+      // set(polarisProvidersAtom, updatedProviders);
     } else {
       // Use the existing atomWithAsyncStorage implementation for local-only mode
       await set(userProvidersAtom, providers);
