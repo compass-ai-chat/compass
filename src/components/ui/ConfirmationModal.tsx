@@ -87,7 +87,7 @@ export const ConfirmationModal = () => {
   if (Platform.OS === 'web') {
     if (!modalState.isVisible) return null;
     return (
-      <View className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <View className="fixed inset-0 bg-black z-50 flex items-center justify-center">
         <Content />
       </View>
     );
@@ -99,7 +99,7 @@ export const ConfirmationModal = () => {
       transparent={true}
       animationType="fade"
     >
-      <View className="flex-1 bg-black bg-opacity-50 justify-center items-center">
+      <View className="flex-1 bg-black justify-center items-center">
         <Content />
       </View>
     </Modal>
