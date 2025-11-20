@@ -2,6 +2,7 @@
   "expo": {
     "owner": "nordwestt",
     "name": "compass",
+    "newArchEnabled": false,
     "slug": "compass",
     "version": "1.0.0",
     "orientation": "portrait",

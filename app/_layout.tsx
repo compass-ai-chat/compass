@@ -9,7 +9,7 @@ import { ConfirmationModal } from '@/src/components/ui/ConfirmationModal';
 import { rawThemes } from '@/constants/themes';
 import { useColorScheme } from 'nativewind';
 import { Toast } from "@/src/components/ui/Toast";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import { WebSidebar } from "@/src/components/navigation/WebSidebar";
 import { routes } from "./(tabs)/_layout";
 import { Command } from "@tauri-apps/plugin-shell";
@@ -41,9 +41,9 @@ export default function RootLayout() {
   useKeyboardShortcuts();
 
   // Fix React 19 compatibility: move side effect out of useMemo
-  useEffect(() => {
-    setColorScheme(isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode, setColorScheme]);
+  // useEffect(() => {
+  //   setColorScheme(isDarkMode ? 'dark' : 'light');
+  // }, [isDarkMode]);
 
   const theme = React.useMemo(() => {
     if (!rawThemes[themePreset]) {

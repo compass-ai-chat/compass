@@ -32,6 +32,7 @@
     "@ai-sdk/mistral": "^1.1.12",
     "@ai-sdk/openai": "^2.0.15",
     "@ai-sdk/xai": "^1.1.11",
+    "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@expo/metro-config": "^54.0.0",
     "@expo/metro-runtime": "^6.1.2",
     "@expo/vector-icons": "^15.0.3",
