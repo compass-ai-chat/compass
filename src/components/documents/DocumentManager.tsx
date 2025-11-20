@@ -132,7 +132,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
         ]}
       >
         {/* Card Header */}
-        <View className="bg-gradient-to-r from-primary/5 to-primary/10 p-4 border-b border-border">
+        <View className="bg-linear-to-r from-primary/5 to-primary/10 p-4 border-b border-border">
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center flex-1">
               <View className="bg-primary/10 rounded-xl p-3 mr-3">
@@ -183,7 +183,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
               className="flex-1 max-w-[120px] bg-primary rounded-xl px-4 py-3 flex-row items-center justify-center active:scale-95 hover:bg-primary/90"
               onPress={() => startDocumentChat(doc)}
             >
-              <Ionicons name="chatbubble" size={getResponsiveSize(16, 18)} className="!text-white mr-2" />
+              <Ionicons name="chatbubble" size={getResponsiveSize(16, 18)} className="text-white! mr-2" />
               <Text className="text-white font-medium text-sm">Chat</Text>
             </TouchableOpacity>
             
@@ -192,7 +192,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
                 className="bg-red-50 border border-red-200 rounded-xl px-3 py-3 active:scale-95 hover:bg-red-100"
                 onPress={() => handleDeleteDocument(doc)}
               >
-                <Ionicons name="trash" size={getResponsiveSize(16, 18)} className="!text-red-500" />
+                <Ionicons name="trash" size={getResponsiveSize(16, 18)} className="text-red-500!" />
               </TouchableOpacity>
             )}
           </View>
@@ -203,7 +203,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
               className="mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex-row items-center justify-center active:scale-95"
               onPress={() => handleDeleteDocument(doc)}
             >
-              <Ionicons name="trash" size={getResponsiveSize(16, 18)} className="!text-red-500 mr-2" />
+              <Ionicons name="trash" size={getResponsiveSize(16, 18)} className="text-red-500! mr-2" />
               <Text className="text-red-500 font-medium text-sm">Delete</Text>
             </TouchableOpacity>
           )}

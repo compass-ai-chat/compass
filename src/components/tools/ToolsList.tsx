@@ -36,7 +36,7 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
         onPress={() => handleTestTool(tool)}
         className="p-2 bg-blue-100 rounded-lg"
       >
-        <Ionicons name="play" size={16} className="!text-blue-800" />
+        <Ionicons name="play" size={16} className="text-blue-800!" />
       </TouchableOpacity>
       
       <TouchableOpacity 
@@ -50,7 +50,7 @@ export function ToolsList({ tools, onEditTool, onDeleteTool }: ToolsListProps) {
         onPress={() => onDeleteTool(tool)}
         className="p-2 bg-red-100 rounded-lg"
       >
-        <Ionicons name="trash" size={16} className="!text-red-800" />
+        <Ionicons name="trash" size={16} className="text-red-800!" />
       </TouchableOpacity>
     </>
   );

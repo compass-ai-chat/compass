@@ -94,7 +94,7 @@ export function ModelPreferenceSelector({
                       onPress={() => onRemovePreference(preference)}
                       className="p-2 bg-red-100 dark:bg-red-900 rounded-full"
                     >
-                      <Ionicons name="close" size={16} className="!text-red-500 dark:!text-red-300" />
+                      <Ionicons name="close" size={16} className="text-red-500! dark:text-red-300!" />
                     </TouchableOpacity>
                   </View>
                 </View>

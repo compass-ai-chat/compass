@@ -115,7 +115,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 <Ionicons 
                   name="document-text" 
                   size={24} 
-                  className={`${!showRaw ? '!text-white' : '!text-text'}`} 
+                  className={`${!showRaw ? 'text-white!' : 'text-text!'}`} 
                 />
               </TouchableOpacity>
               <TouchableOpacity 
@@ -125,7 +125,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 <Ionicons 
                   name="code-slash" 
                   size={24} 
-                  className={`${showRaw ? '!text-white' : '!text-text'}`} 
+                  className={`${showRaw ? 'text-white!' : 'text-text!'}`} 
                 />
               </TouchableOpacity>
             </View>

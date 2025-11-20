@@ -65,7 +65,7 @@ export function ImagePickerButton({ currentImage, onImageSelected }: ImagePicker
       <View className="relative">
         <Image 
           source={typeof currentImage === 'string' ? { uri: currentImage } : currentImage}
-          className="!h-[80px] !w-[80px] rounded-full mb-4"
+          className="h-[80px]! w-[80px]! rounded-full mb-4"
         />
         <View className="absolute bottom-4 right-0 bg-primary rounded-full p-1">
           <Ionicons name="camera" size={16} color="white" />

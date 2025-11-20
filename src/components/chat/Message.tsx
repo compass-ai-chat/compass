@@ -159,7 +159,7 @@ const ImageResult: React.FC<{image:any}> = ({image}) => {
         className="aspect-square rounded-lg"
         resizeMode="cover"
       />
-      <div className="p-3 absolute bottom-0 w-full flex flex-row bg-background opacity-[90%] rounded-lg">
+      <div className="p-3 absolute bottom-0 w-full flex flex-row bg-background opacity-90 rounded-lg">
         <View>
         <Text className="text-xs text-gray-500 mb-2">
           {image?.data?.date??"Sometime today"}
@@ -320,7 +320,7 @@ const MessageComponent: React.FC<MessageProps> = ({
                 <Ionicons
                   name="compass"
                   size={24}
-                  className={`${Platform.OS === "web" ? "animate-spin duration-[2000ms]" : ""} !text-primary`}
+                  className={`${Platform.OS === "web" ? "animate-spin duration-2000" : ""} !text-primary`}
                 />
               </View>
             </View>
@@ -328,7 +328,7 @@ const MessageComponent: React.FC<MessageProps> = ({
 
           {(message.content.length > 0 || showThinking || (message.images && message.images.length > 0)) && (
             <View
-              className={`relative px-4 py-2 mb-4 rounded-2xl max-w-[100%] ${
+              className={`relative px-4 py-2 mb-4 rounded-2xl max-w-full ${
                 isFromUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
               } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
               onPointerEnter={() => setIsHovered(true)}

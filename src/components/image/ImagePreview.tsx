@@ -33,7 +33,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({image, className="", 
         resizeMode="cover"
       />
       </TouchableOpacity>
-      <div className={`p-3 absolute bottom-0 w-full flex flex-row ${!image.title?'': 'bg-background opacity-[90%]'} rounded-lg`}>
+      <div className={`p-3 absolute bottom-0 w-full flex flex-row ${!image.title?'': 'bg-background opacity-90'} rounded-lg`}>
         <View>
         <Text className="text-xs text-gray-500 mb-2">
           {image?.date??""}

@@ -87,7 +87,7 @@ export function WelcomeIntroduction() {
             size={64} 
             className={`!text-primary mb-4 ${
               Platform.OS === 'web' && currentPage === 0
-                ? 'hover:rotate-180 transition-transform duration-[2000ms] ease-in-out animate-spin-once'
+                ? 'hover:rotate-180 transition-transform duration-2000 ease-in-out animate-spin-once'
                 : Platform.OS === 'web' && currentPage === ONBOARDING_PAGES.length - 1
                 ? 'animate-[hover_2000ms_ease-in-out_1_forwards] motion-reduce:animate-none'
                 : ''
@@ -133,7 +133,7 @@ export function WelcomeIntroduction() {
               <Text className="text-white font-medium mr-2">
                 {currentPage === ONBOARDING_PAGES.length - 1 ? t('onboarding.get_started') : t('onboarding.next')}
               </Text>
-              <Ionicons name="arrow-forward" size={20} className='!text-white' />
+              <Ionicons name="arrow-forward" size={20} className='text-white!' />
             </TouchableOpacity>
           </View>
         </View>

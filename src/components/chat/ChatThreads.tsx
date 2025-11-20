@@ -142,7 +142,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
 
   const sidebarToggle = () => (
     <TouchableOpacity onPress={()=>setIsSidebarVisible?.(isSidebarVisible??true)} className='mb-2 p-2'>
-          <FontAwesome name="columns" size={20} className='!text-gray-500' />
+          <FontAwesome name="columns" size={20} className='text-gray-500!' />
         </TouchableOpacity>
   )
 
@@ -192,7 +192,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
               <Ionicons 
                 name="trash-outline" 
                 size={20} 
-                className="!text-red-500"
+                className="text-red-500!"
               />
             </TouchableOpacity>
             
@@ -236,7 +236,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
             <Ionicons 
               name="trash-outline" 
               size={24}
-              className="!text-red-500"
+              className="text-red-500!"
             />
             <Text className='text-text mt-1 ml-1'>{t('chats.clear_all')} </Text>
           </TouchableOpacity>

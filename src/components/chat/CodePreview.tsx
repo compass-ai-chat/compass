@@ -139,7 +139,7 @@ ${javascript}`;
         isVisible={isFullscreen} 
         onClose={() => setIsFullscreen(false)}
         maxHeight="100%"
-        className="flex-1 m-2 rounded-lg max-h-[100%]"
+        className="flex-1 m-2 rounded-lg max-h-full"
       >
         <View className="flex-1 rounded-lg">
           <Header 

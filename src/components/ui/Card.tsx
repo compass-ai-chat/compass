@@ -40,7 +40,7 @@ export function Card({
               <Ionicons 
                 name={icon as any} 
                 size={16} 
-                className="!text-white" 
+                className="text-white!" 
               />
             </View>
           )}

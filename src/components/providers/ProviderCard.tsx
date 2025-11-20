@@ -50,7 +50,7 @@ export function ProviderCard({
             <Ionicons
               name="trash"
               size={20}
-              className="!text-red-500 dark:!text-red-300"
+              className="text-red-500! dark:text-red-300!"
             />
           </TouchableOpacity>
         </View>

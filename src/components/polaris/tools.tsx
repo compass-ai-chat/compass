@@ -252,7 +252,7 @@ export default function Tools() {
                         onPress={() => handleDeleteTool(tool)}
                         className="p-2 bg-red-100 rounded-lg"
                       >
-                        <Ionicons name="trash" size={16} className="!text-red-800" />
+                        <Ionicons name="trash" size={16} className="text-red-800!" />
                       </TouchableOpacity>
                     </View>
                   </View>

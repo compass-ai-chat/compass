@@ -167,7 +167,7 @@ Your purpose is to assist with clarity, precision, and grounded perspective. You
       </View>)}
 
       {/* Right side - Text Input */}
-      <View className={`${Platform.isMobile ? 'w-full' : 'flex-grow ml-2 mb-2'}`}>
+      <View className={`${Platform.isMobile ? 'w-full' : 'grow ml-2 mb-2'}`}>
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-row items-center">
             <FontAwesome6 name="pen-fancy" size={22} className="!text-primary mr-2" />

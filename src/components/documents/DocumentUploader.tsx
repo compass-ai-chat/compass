@@ -71,7 +71,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
       <Ionicons 
         name={isUploading ? 'cloud-upload' : 'add'} 
         size={24} 
-        className="!text-white" 
+        className="text-white!" 
       />
       <Text className="text-white">{t('documents.upload')} </Text>
     </TouchableOpacity>

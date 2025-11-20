@@ -26,9 +26,9 @@ export function CharacterFooter({
           <Ionicons
             name="trash-outline"
             size={20}
-            className="mr-2 !text-red-500 dark:!text-red-300"
+            className="mr-2 text-red-500! dark:text-red-300!"
           />
-          <Text className="!text-red-500 dark:!text-red-300 font-medium">
+          <Text className="text-red-500! dark:text-red-300! font-medium">
             {t('common.delete')}
           </Text>
         </TouchableOpacity>

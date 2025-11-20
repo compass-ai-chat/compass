@@ -26,7 +26,7 @@ export const MentionedDocument: React.FC<MentionedDocumentProps> = ({
   if (!document) {
     return (
       <View className="flex flex-row mb-2 items-center bg-red-50 border border-red-200 rounded-lg p-2 mr-2">
-        <Ionicons name="alert-circle-outline" size={16} className="!text-red-500 mr-2" />
+        <Ionicons name="alert-circle-outline" size={16} className="text-red-500! mr-2" />
         <Text className="text-red-600 text-sm">Document not found</Text>
       </View>
     );

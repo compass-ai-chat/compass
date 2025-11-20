@@ -75,7 +75,7 @@ export default function CharactersList({
                       <Ionicons 
                         name={character.icon as any} 
                         size={20} 
-                        className={`!text-white`} 
+                        className={`text-white!`} 
                       />
                     </View>
                     <View className="flex-1 ml-2">
@@ -101,7 +101,7 @@ export default function CharactersList({
               onPress={onAddCharacter}
               className={`border-2 border-border px-4 py-4 rounded-lg flex-row items-center hover:opacity-80 h-20 w-full ${getResponsiveClass("h-10", "h-20")} ${selectedCharacter && !selectedCharacter.id ? "border-2 border-primary" : "border-dashed"}`}
             >
-              <Ionicons name="add" size={20} className="!text-gray-500" />
+              <Ionicons name="add" size={20} className="text-gray-500!" />
               <Text className="text-gray-500 ml-2 font-medium">{t('characters.new_character')}</Text>
             </TouchableOpacity>
           )}

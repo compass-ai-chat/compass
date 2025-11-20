@@ -37,7 +37,7 @@ export const ChatLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           {isDesktop && isSidebarVisible &&
             <ChatThreads className="border-r-2 border-border overflow-hidden" isSidebarVisible={isSidebarVisible} setIsSidebarVisible={handleSidebarToggle} />}
 
-          {isDesktop && !isSidebarVisible && <View className='group absolute left-0 my-auto z-[1] flex flex-col'>
+          {isDesktop && !isSidebarVisible && <View className='group absolute left-0 my-auto z-1 flex flex-col'>
             {sidebarToggle()}
             <ChatThreads className="transition-all duration-200 bg-surface rounded-xl group-hover:w-64 group-hover:h-[70%] h-0 border-r-2 border-border overflow-hidden" isSidebarVisible={isSidebarVisible} setIsSidebarVisible={handleSidebarToggle} />
             </View>}

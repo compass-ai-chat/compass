@@ -233,7 +233,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                     <Ionicons 
                       name="document-text" 
                       size={20} 
-                      className={`${!showRaw ? '!text-white' : '!text-text'}`} 
+                      className={`${!showRaw ? 'text-white!' : 'text-text!'}`} 
                     />
                   </TouchableOpacity>
                   <TouchableOpacity 
@@ -245,7 +245,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                     <Ionicons 
                       name="code-slash" 
                       size={20} 
-                      className={`${showRaw ? '!text-white' : '!text-text'}`} 
+                      className={`${showRaw ? 'text-white!' : '!text-text'}`} 
                     />
                   </TouchableOpacity>
                 </View>
@@ -296,7 +296,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                     <Ionicons 
                       name={action.icon as any} 
                       size={16} 
-                      className="!text-white mr-2" 
+                      className="text-white! mr-2" 
                     />
                     <Text className="text-white text-sm font-medium">
                       {action.label}

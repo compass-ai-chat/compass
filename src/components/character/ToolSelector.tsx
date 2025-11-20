@@ -62,7 +62,7 @@ export function ToolSelector({
                   <Ionicons
                     name={item.icon as any}
                     size={20}
-                    className={`${isSelected ? "!text-white" : "!text-text"}`}
+                    className={`${isSelected ? "text-white!" : "!text-text"}`}
                   />
                 </View>
                 <View className="flex-1">

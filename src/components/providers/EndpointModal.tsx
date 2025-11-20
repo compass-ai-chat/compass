@@ -92,7 +92,7 @@ export function EndpointModal({
           {formData.logo && (
             <Image
               source={{ uri: formData.logo }}
-              className="!w-[48px] !h-[48px] rounded-full mr-3"
+              className="w-[48px]! h-[48px]! rounded-full mr-3"
             />
           )}
           <Text className="text-xl font-bold text-text">

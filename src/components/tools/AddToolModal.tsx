@@ -69,7 +69,7 @@ export function AddToolModal({
                     <Ionicons
                       name={blueprint.icon as any}
                       size={20}
-                      className={`${formData.blueprintId === blueprint.id ? '!text-white' : '!text-primary'} mr-2`}
+                      className={`${formData.blueprintId === blueprint.id ? 'text-white!' : '!text-primary'} mr-2`}
                     />
                     <Text className={`${formData.blueprintId === blueprint.id ? 'text-white' : 'text-primary'}`}>
                       {blueprint.id}

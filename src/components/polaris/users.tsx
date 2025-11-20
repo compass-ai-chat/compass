@@ -280,14 +280,14 @@ export default function Users() {
                           onPress={() => handleDeactivateUser(user)}
                           className="p-2 bg-orange-100 rounded-lg"
                         >
-                          <Ionicons name="pause" size={16} className="!text-orange-800" />
+                          <Ionicons name="pause" size={16} className="text-orange-800!" />
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity 
                           onPress={() => handleActivateUser(user)}
                           className="p-2 bg-green-100 rounded-lg"
                         >
-                          <Ionicons name="play" size={16} className="!text-green-800" />
+                          <Ionicons name="play" size={16} className="text-green-800!" />
                         </TouchableOpacity>
                       )}
                       
@@ -295,7 +295,7 @@ export default function Users() {
                         onPress={() => handleDeleteUser(user)}
                         className="p-2 bg-red-100 rounded-lg"
                       >
-                        <Ionicons name="trash" size={16} className="!text-red-800" />
+                        <Ionicons name="trash" size={16} className="text-red-800!" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -453,7 +453,7 @@ export default function Users() {
                     }}
                     className="bg-orange-100 px-3 py-2 rounded-lg flex-row items-center"
                   >
-                    <Ionicons name="pause" size={16} className="!text-orange-800 mr-1" />
+                    <Ionicons name="pause" size={16} className="text-orange-800! mr-1" />
                     <Text className="text-orange-800 text-sm">Deactivate</Text>
                   </TouchableOpacity>
                 ) : (
@@ -464,7 +464,7 @@ export default function Users() {
                     }}
                     className="bg-green-100 px-3 py-2 rounded-lg flex-row items-center"
                   >
-                    <Ionicons name="play" size={16} className="!text-green-800 mr-1" />
+                    <Ionicons name="play" size={16} className="text-green-800! mr-1" />
                     <Text className="text-green-800 text-sm">Activate</Text>
                   </TouchableOpacity>
                 )}
@@ -477,7 +477,7 @@ export default function Users() {
                     }}
                     className="bg-blue-100 px-3 py-2 rounded-lg flex-row items-center"
                   >
-                    <Ionicons name="arrow-down" size={16} className="!text-blue-800 mr-1" />
+                    <Ionicons name="arrow-down" size={16} className="text-blue-800! mr-1" />
                     <Text className="text-blue-800 text-sm">Demote</Text>
                   </TouchableOpacity>
                 ) : (
@@ -488,7 +488,7 @@ export default function Users() {
                     }}
                     className="bg-purple-100 px-3 py-2 rounded-lg flex-row items-center"
                   >
-                    <Ionicons name="arrow-up" size={16} className="!text-purple-800 mr-1" />
+                    <Ionicons name="arrow-up" size={16} className="text-purple-800! mr-1" />
                     <Text className="text-purple-800 text-sm">Promote</Text>
                   </TouchableOpacity>
                 )}
