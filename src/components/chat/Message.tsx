@@ -329,7 +329,7 @@ const MessageComponent: React.FC<MessageProps> = ({
           {(message.content.length > 0 || showThinking || (message.images && message.images.length > 0)) && (
             <View
               className={`relative px-4 py-2 mb-4 rounded-2xl max-w-full ${
-                isFromUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
+                isFromUser ? "bg-primary rounded-tr-none" : "bg-secondary rounded-tl-none"
               } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
               onPointerEnter={() => setIsHovered(true)}
               onPointerLeave={() => setIsHovered(false)}
