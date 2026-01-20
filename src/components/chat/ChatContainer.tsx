@@ -69,6 +69,14 @@ const ChatContainerComponent: React.FC<ChatContainerProps> = ({
     setShowScrollButton(hasScrolledUp);
   }, []);
 
+  const handleScrollBeginDrag = useCallback(() => setUserHasScrolled(true), []);
+  
+  const handleContentSizeChange = useCallback(() => {
+    if (messages.length > 0 && !userHasScrolled) {
+      debouncedScrollToEnd();
+    }
+  }, [messages.length, userHasScrolled, debouncedScrollToEnd]);
+
   return (
     <View className={`mx-auto flex-1 ${Platform.OS == 'web' ? 'w-[80%]' : 'w-full'}`}>
       <MessageList
@@ -76,12 +84,8 @@ const ChatContainerComponent: React.FC<ChatContainerProps> = ({
         messages={messages}
         onMessagePress={onMessagePress}
         onScroll={handleScroll}
-        onScrollBeginDrag={() => setUserHasScrolled(true)}
-        onContentSizeChange={() => {
-          if (messages.length > 0 && !userHasScrolled) {
-            debouncedScrollToEnd();
-          }
-        }}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onContentSizeChange={handleContentSizeChange}
       />
       
       <ScrollToBottomButton

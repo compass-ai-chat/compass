@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, SectionList } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { threadsAtom, currentThreadAtom, threadActionsAtom, previewCodeAtom, defaultThreadAtom } from '@/src/hooks/atoms';
+import { threadsAtom, currentThreadLoadableAtom, threadActionsAtom, previewCodeAtom, defaultThreadAtom } from '@/src/hooks/atoms';
 import { modalService } from '@/src/services/modalService';
 import { Thread } from '@/src/types/core';
 import { router } from 'expo-router';
@@ -27,7 +27,11 @@ interface ChatThreadsProps {
 
 const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, setIsSidebarVisible  }) => {
   const [threads] = useAtom(threadsAtom);
-  const [currentThread] = useAtom(currentThreadAtom);
+  const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
+  const defaultThread = useAtomValue(defaultThreadAtom);
+  const currentThread = currentThreadLoadable.state === 'hasData' 
+    ? currentThreadLoadable.data 
+    : defaultThread;
   const dispatchThread = useSetAtom(threadActionsAtom);
   const setPreviewCode = useSetAtom(previewCodeAtom);
   const scrollViewRef = useRef<SectionList>(null);

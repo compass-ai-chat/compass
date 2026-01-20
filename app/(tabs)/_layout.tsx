@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { TabBarIcon } from '@/src/components/navigation/TabBarIcon';
-import { Platform, View } from 'react-native';
+import { Platform, View, ActivityIndicator } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { useThemePreset } from '@/src/components/ui/ThemeProvider';
 import { rawThemes } from '@/constants/themes';
 import { Slot, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+
+const TabLoadingFallback = () => (
+  <View className="flex-1 bg-background items-center justify-center">
+    <ActivityIndicator size="large" />
+  </View>
+);
+
 export default function TabLayout() {
   const { t } = useTranslation();
   const isDesktop = Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth >= 768;
@@ -22,20 +29,25 @@ export default function TabLayout() {
 
   if (isDesktop) {
     // Use Slot for proper routing on desktop
-    return <View className="flex-1"><Slot /></View>;
+    return (
+      <Suspense fallback={<TabLoadingFallback />}>
+        <View className="flex-1"><Slot /></View>
+      </Suspense>
+    );
   }
   
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: theme.secondary,
-        tabBarStyle: {
-          backgroundColor: theme.background,
-          borderTopColor: theme.border,
-        },
-        headerShown: false,
-      }}
+    <Suspense fallback={<TabLoadingFallback />}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: theme.primary,
+          tabBarInactiveTintColor: theme.secondary,
+          tabBarStyle: {
+            backgroundColor: theme.background,
+            borderTopColor: theme.border,
+          },
+          headerShown: false,
+        }}
     >
       <Tabs.Screen
         name="index"
@@ -82,6 +94,7 @@ export default function TabLayout() {
           ),
         }}
       />
-    </Tabs>
+      </Tabs>
+    </Suspense>
   );
 }

@@ -16,7 +16,7 @@ import { MentionedCharacter } from "@/src/components/chat/ChatInput";
 
 // Atoms
 import {
-  currentThreadAtom,
+  currentThreadLoadableAtom,
   threadActionsAtom,
   searchEnabledAtom,
   documentsAtom,
@@ -107,7 +107,8 @@ function selectModelBasedOnRouting(
 
 export function useChat() {
   // ========== State Management ==========
-  const currentThread = useAtomValue(currentThreadAtom);
+  // Use loadable version to avoid Suspense triggers
+  const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const documents = useAtomValue(documentsAtom);
   const [threads] = useAtom(threadsAtom);
@@ -119,8 +120,14 @@ export function useChat() {
   const [editingMessageIndex, setEditingMessageIndex] = useAtom(
     editingMessageIndexAtom,
   );
-  const [streamingMessage, setStreamingMessage] = useAtom(streamingMessageAtom);
+  // Use useSetAtom to avoid re-renders on streaming updates
+  const setStreamingMessage = useSetAtom(streamingMessageAtom);
   const defaultThread = useAtomValue(defaultThreadAtom);
+  
+  // Extract currentThread from loadable, with fallback to defaultThread
+  const currentThread = currentThreadLoadable.state === 'hasData' 
+    ? currentThreadLoadable.data 
+    : defaultThread;
 
   // ========== Refs and External Hooks ==========
   const abortController = useRef<AbortController | null>(null);
@@ -128,18 +135,38 @@ export function useChat() {
   // Ref to hold latest thread value for use in callbacks without re-creating them
   const currentThreadRef = useRef(currentThread);
   // Ref to hold latest streaming end message for flush function
-  const streamingMessageRef = useRef(streamingMessage);
+  const streamingMessageRef = useRef<{
+    threadId: string;
+    index: number;
+    content: string;
+    reasoning?: string;
+    toolCalls?: any[];
+  } | null>(null);
+  // Ref to hold latest threads array for use in callbacks
+  const threadsRef = useRef(threads);
   // Debounce timer for persisting to storage
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Wrapper for setStreamingMessage that also updates the ref
+  const updateStreamingMessage = useCallback((value: typeof streamingMessageRef.current | ((prev: typeof streamingMessageRef.current) => typeof streamingMessageRef.current)) => {
+    if (typeof value === 'function') {
+      const newValue = value(streamingMessageRef.current);
+      streamingMessageRef.current = newValue;
+      setStreamingMessage(newValue);
+    } else {
+      streamingMessageRef.current = value;
+      setStreamingMessage(value);
+    }
+  }, [setStreamingMessage]);
   
   // Keep refs in sync with state
   useEffect(() => {
     currentThreadRef.current = currentThread;
   }, [currentThread]);
-  
+
   useEffect(() => {
-    streamingMessageRef.current = streamingMessage;
-  }, [streamingMessage]);
+    threadsRef.current = threads;
+  }, [threads]);
 
   const { search } = useSearch();
   const tts = useTTS();
@@ -276,40 +303,15 @@ export function useChat() {
     const lastMessage = thread.messages[messageIndex];
     
     if (lastMessage && lastMessage.role != 'user') {
-      // Update the in-memory streaming atom for instant UI updates
-      setStreamingMessage(prev => ({
+      // Update the in-memory streaming atom for instant UI updates ONLY
+      // No persistence during streaming - only persist when streaming ends via flushStreamingMessage
+      updateStreamingMessage(prev => ({
         threadId: thread.id,
         index: messageIndex,
         content: message.content ?? prev?.content ?? '',
         reasoning: message.reasoning ?? prev?.reasoning,
         toolCalls: message.toolCalls ?? prev?.toolCalls,
       }));
-
-      // Debounce the actual persistence to storage
-      if (persistTimerRef.current) {
-        clearTimeout(persistTimerRef.current);
-      }
-      
-      persistTimerRef.current = setTimeout(async () => {
-        // Use the ref to get the latest streaming content at persist time
-        const currentStreaming = streamingMessageRef.current;
-        if (currentStreaming && currentStreaming.threadId === thread.id) {
-          const merged = { 
-            ...lastMessage, 
-            content: currentStreaming.content,
-            reasoning: currentStreaming.reasoning,
-            toolCalls: currentStreaming.toolCalls,
-          } as ChatMessage;
-          await dispatchThread({
-            type: "updateMessage",
-            payload: {
-              threadId: thread.id,
-              message: merged,
-              index: messageIndex,
-            },
-          });
-        }
-      }, 500); // Persist every 500ms at most
     }
   };
 
@@ -331,13 +333,13 @@ export function useChat() {
     // Ensure the message exists at the expected index
     if (messageIndex < 0 || messageIndex >= thread.messages.length) {
       console.warn('flushStreamingMessage: Invalid message index', messageIndex, 'thread has', thread.messages.length, 'messages');
-      setStreamingMessage(null);
+      updateStreamingMessage(null);
       return;
     }
     
     const lastMessage = thread.messages[messageIndex];
     if (!lastMessage) {
-      setStreamingMessage(null);
+      updateStreamingMessage(null);
       return;
     }
     
@@ -359,8 +361,8 @@ export function useChat() {
     });
     
     // Only clear streaming message after persistence is confirmed
-    setStreamingMessage(null);
-  }, [dispatchThread, setStreamingMessage]);
+    updateStreamingMessage(null);
+  }, [dispatchThread, updateStreamingMessage]);
 
   const updateMessageContent = async (
     content: string,
@@ -383,18 +385,19 @@ export function useChat() {
   // ========== Thread Management ==========
   const addNewThread = async () => {
     console.log("selected model", selectedModel);
+    const currentThreads = threadsRef.current;
 
     // if latest thread has zero messages, do not add new thread but instead set the current thread to the latest thread
     if (
-      threads.length > 0 &&
-      threads[threads.length - 1].messages.length === 0
+      currentThreads.length > 0 &&
+      currentThreads[currentThreads.length - 1].messages.length === 0
     ) {
       dispatchThread({
         type: "setCurrent",
-        payload: threads[threads.length - 1],
+        payload: currentThreads[currentThreads.length - 1],
       });
       if (Platform.OS != "web" || typeof window === 'undefined' || window.innerWidth < 768) {
-        router.push(`/thread/${threads[threads.length - 1].id}`);
+        router.push(`/thread/${currentThreads[currentThreads.length - 1].id}`);
       }
       return;
     }
@@ -624,6 +627,7 @@ export function useChat() {
     if (!providers.length) return;
 
     const thread = currentThreadRef.current;
+    const currentThreads = threadsRef.current;
 
     if(thread.metadata?.documentIds) thread.metadata.documentIds = [];
     let messages = [...thread.messages];
@@ -635,7 +639,7 @@ export function useChat() {
     }
 
     if (
-      threads.filter((t) => t.id === thread.id).length === 0
+      currentThreads.filter((t) => t.id === thread.id).length === 0
     ) {
       await dispatchThread({
         type: "add",
@@ -651,7 +655,7 @@ export function useChat() {
     } finally {
       setIsGenerating(false);
     }
-  }, [providers.length, threads, editingMessageIndex, dispatchThread, setEditingMessageIndex, setIsGenerating, sendChatMessage]);
+  }, [providers.length, editingMessageIndex, dispatchThread, setEditingMessageIndex, setIsGenerating, sendChatMessage]);
 
   const handleMessagePress = useCallback((index: number, message: ChatMessage) => {
     if (message.role == 'user') {

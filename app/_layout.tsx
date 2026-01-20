@@ -2,14 +2,14 @@ import "@/global.css";
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import 'react-native-reanimated';
 import { ThemeProvider, useThemePreset } from '@/src/components/ui/ThemeProvider';
 import { ConfirmationModal } from '@/src/components/ui/ConfirmationModal';
 import { rawThemes } from '@/constants/themes';
 import { useColorScheme } from 'nativewind';
 import { Toast } from "@/src/components/ui/Toast";
-import { View, Text } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { WebSidebar } from "@/src/components/navigation/WebSidebar";
 import { Command } from "@tauri-apps/plugin-shell";
 import { CustomHeader } from "@/src/components/navigation/CustomHeader";
@@ -28,6 +28,13 @@ import { useTools } from '@/src/hooks/useTools';
 import '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
+
+// Loading fallback that doesn't trigger "Bundling..." appearance
+const LoadingFallback = () => (
+  <View className="flex-1 bg-background items-center justify-center">
+    <ActivityIndicator size="large" />
+  </View>
+);
 
 export default function RootLayout() {
   const { themePreset, theme } = useThemePreset();
@@ -105,27 +112,29 @@ export default function RootLayout() {
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <ThemeProvider>
         <ProxyUrlSync />
-        <View className={`flex-row flex-1 bg-background`}>
-          {isDesktop && <WebSidebar className="" />}
-          <Stack screenOptions={{
-            headerStyle: {
-              backgroundColor: theme.surface
-            },
-            headerTintColor: theme.text,
-            headerShadowVisible: false,
-            header: () => <CustomHeader />,
-            contentStyle: {
-              backgroundColor: theme.background
-            }
-          }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="edit-character" options={{ 
-              presentation: 'card',
-              animation: 'slide_from_right'
-            }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </View>
+        <Suspense fallback={<LoadingFallback />}>
+          <View className={`flex-row flex-1 bg-background`}>
+            {isDesktop && <WebSidebar className="" />}
+            <Stack screenOptions={{
+              headerStyle: {
+                backgroundColor: theme.surface
+              },
+              headerTintColor: theme.text,
+              headerShadowVisible: false,
+              header: () => <CustomHeader />,
+              contentStyle: {
+                backgroundColor: theme.background
+              }
+            }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="edit-character" options={{ 
+                presentation: 'card',
+                animation: 'slide_from_right'
+              }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </View>
+        </Suspense>
         <ConfirmationModal />
         <Toast />
         {!hasSeenOnboarding && <WelcomeIntroduction />}

@@ -1,4 +1,4 @@
-import React, { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle, useCallback, memo } from 'react';
 import { FlatList, ListRenderItemInfo } from 'react-native';
 import { useAtom, useAtomValue } from 'jotai';
 import { previewCodeAtom, isGeneratingAtom, editingMessageIndexAtom } from '@/src/hooks/atoms';
@@ -18,7 +18,7 @@ interface MessageListProps {
   onContentSizeChange: () => void;
 }
 
-export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
+export const MessageListInner = forwardRef<MessageListRef, MessageListProps>(({
   messages,
   onMessagePress,
   onScroll,
@@ -83,4 +83,6 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
       windowSize={10}
     />
   );
-}); 
+});
+
+export const MessageList = memo(MessageListInner); 

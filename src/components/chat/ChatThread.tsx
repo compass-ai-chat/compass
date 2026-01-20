@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo, memo } from 'react';
 import { ChatInput, ChatInputRef } from './ChatInput';
 import { useChat } from '@/src/hooks/useChat';
 import { useCharacterModelSelection } from '@/src/hooks/useCharacterModelSelection';
@@ -11,7 +11,7 @@ import { useModelDownloadStatus } from '@/src/hooks/useModelDownloadStatus';
 import { useAtomValue } from 'jotai';
 import { streamingMessageAtom } from '@/src/hooks/atoms';
 
-export const ChatThread: React.FC = () => {
+const ChatThreadInner: React.FC = () => {
   const {
     currentThread,
     isGenerating,
@@ -138,6 +138,6 @@ export const ChatThread: React.FC = () => {
       )}
     </ChatLayout>
   );
-}; 
+};
 
-
+export const ChatThread = memo(ChatThreadInner);

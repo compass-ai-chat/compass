@@ -4,16 +4,18 @@ import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from 'expo-document-picker';
 
 import {
-  currentThreadAtom,
+  currentThreadLoadableAtom,
+  defaultThreadAtom,
   hotToolsAtom,
   thinkingActiveAtom,
   userDocumentsAtom,
 } from "@/src/hooks/atoms";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { toastService } from "@/src/services/toastService";
 import { PDFService } from "@/src/services/PDFService";
 import { Document } from '@/src/types/core';
+import { threadActionsAtom } from "@/src/hooks/atoms";
 
 interface DocumentUploadProps {
   className?: string;
@@ -21,7 +23,12 @@ interface DocumentUploadProps {
 }
 
 export const DocumentUpload: React.FC<DocumentUploadProps> = ({className, onDocumentUpload}) => {
-  const [currentThread, setCurrentThread] = useAtom(currentThreadAtom);
+  const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
+  const defaultThread = useAtomValue(defaultThreadAtom);
+  const currentThread = currentThreadLoadable.state === 'hasData' 
+    ? currentThreadLoadable.data 
+    : defaultThread;
+  const dispatchThread = useSetAtom(threadActionsAtom);
   const [isUploading, setIsUploading] = useState(false);
   const [userDocuments, setUserDocuments] = useAtom(userDocumentsAtom);
 

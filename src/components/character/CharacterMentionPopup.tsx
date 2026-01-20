@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Character } from '@/src/types/core';
 import { useAtomValue } from 'jotai';
-import { currentThreadAtom } from '@/src/hooks/atoms';
+import { currentThreadLoadableAtom, defaultThreadAtom } from '@/src/hooks/atoms';
 
 interface CharacterMentionPopupProps {
   characters: Character[];
@@ -17,7 +17,11 @@ export const CharacterMentionPopup: React.FC<CharacterMentionPopupProps> = ({
   searchText,
   selectedIndex
 }) => {
-  const currentThread = useAtomValue(currentThreadAtom);
+  const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
+  const defaultThread = useAtomValue(defaultThreadAtom);
+  const currentThread = currentThreadLoadable.state === 'hasData' 
+    ? currentThreadLoadable.data 
+    : defaultThread;
 
   const filteredCharacters = characters.filter(char => 
     char.name.toLowerCase().includes(searchText.toLowerCase()) && 

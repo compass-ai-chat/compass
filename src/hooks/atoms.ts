@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { loadable } from "jotai/utils";
 import { atomWithAsyncStorage } from "./storage";
 import {
   Model,
@@ -87,19 +88,14 @@ export const currentThreadOldAtom = atomWithAsyncStorage<Thread>(
 
 export const currentThreadIdAtom = atomWithAsyncStorage<string>("currentThreadId", "");
 
-export const currentThreadAtom = atom(
+// Internal async atom for currentThread
+const currentThreadAsyncAtom = atom(
   async (get) => {
     const currentThreadId = await get(currentThreadIdAtom);
     const existingThread = (await get(threadsAtom)).find(x=>x.id == currentThreadId);
     if(existingThread) return existingThread;
     const newThread = await get(defaultThreadAtom);
     return newThread;
-;    // insert into threads if doesn't exist
-    // const threads = await get(threadsAtom);
-    // const existingNewThread = threads.find(x=>x.id==newThread.id);
-
-    // if(!existingNewThread) set(threadsAtom, [...threads, newThread])
-    // return 
   },
   async (get, set, action: Thread) => {
     const threads = await get(threadsAtom);
@@ -113,7 +109,14 @@ export const currentThreadAtom = atom(
     }
     set(currentThreadIdAtom, action.id);
   }
-)
+);
+
+// Loadable version that doesn't trigger Suspense
+export const currentThreadLoadableAtom = loadable(currentThreadAsyncAtom);
+
+// For backward compatibility - this is the async version (may trigger Suspense)
+export const currentThreadAtom = currentThreadAsyncAtom;
+
 export const sidebarVisibleAtom = atomWithAsyncStorage<boolean>("sidebarVisible", true);
 
 // Derived atoms
