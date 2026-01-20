@@ -29,8 +29,7 @@ export function WebSidebar({ className }: { className?: string }) {
   const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const { themePreset, setThemePreset, availableThemes } = useThemePreset();
-  const theme = rawThemes[themePreset][colorScheme ?? 'light'];
+  const { themePreset, setThemePreset, availableThemes, theme } = useThemePreset();
   const { t } = useLocalization();
 
   const handleNavigation = (route: any, index: number) => {

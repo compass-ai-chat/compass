@@ -30,7 +30,7 @@ import '@/i18n';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { themePreset } = useThemePreset();
+  const { themePreset, theme } = useThemePreset();
   const { colorScheme, setColorScheme } = useColorScheme();
   const [syncToPolaris] = useAtom(syncToPolarisAtom);
   const locale = useAtomValue(localeAtom);
@@ -43,14 +43,6 @@ export default function RootLayout() {
   // useEffect(() => {
   //   setColorScheme(isDarkMode ? 'dark' : 'light');
   // }, [isDarkMode]);
-
-  const theme = React.useMemo(() => {
-    if (!rawThemes[themePreset]) {
-      return rawThemes['default'][isDarkMode ? 'dark' : 'light'];
-    }
-    return rawThemes[themePreset][isDarkMode ? 'dark' : 'light'];
-  }, [themePreset, isDarkMode]);
-
 
   const isDesktop = Platform.isDesktop && window.innerWidth >= 768;
 
