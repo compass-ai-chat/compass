@@ -5,12 +5,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: 'var(--primary)',
-        secondary: 'var(--secondary)',
-        background: 'var(--background)',
-        surface: 'var(--surface)',
-        text: 'var(--text)',
-        border: 'var(--border)',
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        background: 'var(--color-background)',
+        surface: 'var(--color-surface)',
+        text: 'var(--color-text)',
+        border: 'var(--color-border)',
       },
       rotate: {
         '180': '180deg',

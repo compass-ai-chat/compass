@@ -1,6 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { View, useColorScheme } from 'react-native';
-import { vars } from 'nativewind';
 import { rawThemes } from '@/constants/themes';
 import { useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
@@ -11,23 +10,31 @@ import { isDarkModeAtom } from '@/src/hooks/atoms';
 const themePresetAtom = atomWithStorage<ThemePresetRaw>('theme-preset', 'default');
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const [themePreset, setThemePreset] = useAtom(themePresetAtom);
+  const [themePreset] = useAtom(themePresetAtom);
+  const [isDarkMode] = useAtom(isDarkModeAtom);
   const colorScheme = useColorScheme();
-
-  let actualTheme = {};
-  if(!rawThemes[themePreset]) {
-    actualTheme = vars(rawThemes['default'][colorScheme ??'light']);
-    setThemePreset('default');
-  }
-  else{
-    actualTheme = vars(rawThemes[themePreset][colorScheme ?? 'light']);
-  }
-
   
+  // Determine if we should use dark mode
+  const shouldUseDark = isDarkMode ?? (colorScheme === 'dark');
+  
+  // Create style object with CSS variables for the current theme
+  const themeVars = React.useMemo(() => {
+    const currentTheme = rawThemes[themePreset] || rawThemes.default;
+    const colors = currentTheme[shouldUseDark ? 'dark' : 'light'];
+    
+    return {
+      '--color-primary': colors.primary,
+      '--color-secondary': colors.secondary,
+      '--color-background': colors.background,
+      '--color-surface': colors.surface,
+      '--color-text': colors.text,
+      '--color-border': colors.border,
+    };
+  }, [themePreset, shouldUseDark]);
   
   return (
-    <View style={actualTheme} className="flex-1">
-      <View className={`flex-1 ${colorScheme === 'dark' ? 'dark' : ''}`}>
+    <View style={themeVars} className="flex-1">
+      <View className={`flex-1 ${shouldUseDark ? 'dark' : ''}`}>
         {children}
       </View>
     </View>
@@ -36,15 +43,14 @@ export function ThemeProvider({ children }: PropsWithChildren) {
 
 export function useThemePreset() {
   const [themePreset, setThemePreset] = useAtom(themePresetAtom);
-    const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
-  
+  const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
 
   const theme = React.useMemo(() => {
-      if (!rawThemes[themePreset]) {
-        return rawThemes['default'][isDarkMode ? 'dark' : 'light'];
-      }
-      return rawThemes[themePreset][isDarkMode ? 'dark' : 'light'];
-    }, [themePreset, isDarkMode]);
+    if (!rawThemes[themePreset]) {
+      return rawThemes['default'][isDarkMode ? 'dark' : 'light'];
+    }
+    return rawThemes[themePreset][isDarkMode ? 'dark' : 'light'];
+  }, [themePreset, isDarkMode]);
     
   return {
     themePreset,

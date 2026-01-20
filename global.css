@@ -1,5 +1,136 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css";
- 
+
 @import "nativewind/theme";
+
+@theme {
+  /* Default theme - light */
+  --color-primary: #5eb58c;
+  --color-secondary: #8B95A3;
+  --color-background: #efefef;
+  --color-surface: #f9fafb;
+  --color-text: #111827;
+  --color-border: #e5e7eb;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-primary: #5eb58c;
+    --color-secondary: #8B95A3;
+    --color-background: #232323;
+    --color-surface: #303030;
+    --color-text: #F3F4F6;
+    --color-border: #374137;
+  }
+}
+
+/* Theme data attributes for manual theme switching */
+[data-theme="default"] {
+  --color-primary: #5eb58c;
+  --color-secondary: #8B95A3;
+  --color-background: #efefef;
+  --color-surface: #f9fafb;
+  --color-text: #111827;
+  --color-border: #e5e7eb;
+}
+
+[data-theme="default"].dark {
+  --color-primary: #5eb58c;
+  --color-secondary: #8B95A3;
+  --color-background: #232323;
+  --color-surface: #303030;
+  --color-text: #F3F4F6;
+  --color-border: #374137;
+}
+
+[data-theme="mossy"] {
+  --color-primary: #2d5a27;
+  --color-secondary: #4a5c47;
+  --color-background: #f5f7f4;
+  --color-surface: #e8ede7;
+  --color-text: #1a2419;
+  --color-border: #d1ddd0;
+}
+
+[data-theme="mossy"].dark {
+  --color-primary: #7ca677;
+  --color-secondary: #9ab497;
+  --color-background: #1a2419;
+  --color-surface: #243122;
+  --color-text: #e8ede7;
+  --color-border: #384936;
+}
+
+[data-theme="seaside"] {
+  --color-primary: #00aaff;
+  --color-secondary: #005f73;
+  --color-background: #e0f7fa;
+  --color-surface: #b2ebf2;
+  --color-text: #004d40;
+  --color-border: #80deea;
+}
+
+[data-theme="seaside"].dark {
+  --color-primary: #30a7e6;
+  --color-secondary: #326eba;
+  --color-background: #03045e;
+  --color-surface: #002776;
+  --color-text: #caf0f8;
+  --color-border: #90e0ef;
+}
+
+[data-theme="pinkBubbleGum"] {
+  --color-primary: #ff69b4;
+  --color-secondary: #ff1493;
+  --color-background: #ffe4e1;
+  --color-surface: #ffb6c1;
+  --color-text: #8b008b;
+  --color-border: #ff69b4;
+}
+
+[data-theme="pinkBubbleGum"].dark {
+  --color-primary: #c71585;
+  --color-secondary: #db80a3;
+  --color-background: #2c001e;
+  --color-surface: #4b004b;
+  --color-text: #ffb6c1;
+  --color-border: #ff69b4;
+}
+
+[data-theme="commodore64"] {
+  --color-primary: #d8a657;
+  --color-secondary: #a9b665;
+  --color-background: #fbf1c7;
+  --color-surface: #ebdbb2;
+  --color-text: #3c3836;
+  --color-border: #d5c4a1;
+}
+
+[data-theme="commodore64"].dark {
+  --color-primary: #fabd2f;
+  --color-secondary: #b8bb26;
+  --color-background: #282828;
+  --color-surface: #3c3836;
+  --color-text: #ebdbb2;
+  --color-border: #504945;
+}
+
+[data-theme="polaris"] {
+  --color-primary: #0066cc;
+  --color-secondary: #005299;
+  --color-background: #f5f7fa;
+  --color-surface: #e9ecf1;
+  --color-text: #1a1f36;
+  --color-border: #d1d5db;
+}
+
+[data-theme="polaris"].dark {
+  --color-primary: #2684ff;
+  --color-secondary: #1c64f2;
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-text: #f3f4f6;
+  --color-border: #374151;
+}
