@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
       '--color-surface': colors.surface,
       '--color-text': colors.text,
       '--color-border': colors.border,
-    };
+    } as any; // TypeScript workaround for CSS custom properties
   }, [themePreset, shouldUseDark]);
   
   return (
