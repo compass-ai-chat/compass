@@ -1,10 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect, useMemo, memo } from 'react';
-import { View, FlatList, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
 import { MessageList, MessageListRef } from './MessageList';
-import { ChatMessage } from '@/src/types/core';
-import { Document } from '@/src/types/core';
+import { ChatMessage, Document } from '@/src/types/core';
 import { useAtomValue } from 'jotai';
 import { userDocumentsAtom } from '@/src/hooks/atoms';
 

@@ -1,7 +1,7 @@
-import React, { useRef, forwardRef, useImperativeHandle, useCallback, memo } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { FlatList, ListRenderItemInfo } from 'react-native';
-import { useAtom } from 'jotai';
-import { previewCodeAtom } from '@/src/hooks/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { previewCodeAtom, isGeneratingAtom, editingMessageIndexAtom } from '@/src/hooks/atoms';
 import { parseCodeBlocks } from '@/src/utils/codeParser';
 import { Message } from './Message';
 import { ChatMessage } from '@/src/types/core';
@@ -27,6 +27,8 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
 }, ref) => {
   const flatListRef = useRef<FlatList<any>>(null);
   const [previewCode, setPreviewCode] = useAtom(previewCodeAtom);
+  const isGenerating = useAtomValue(isGeneratingAtom);
+  const editingMessageIndex = useAtomValue(editingMessageIndexAtom);
 
   useImperativeHandle(ref, () => ({
     scrollToEnd: () => {
@@ -36,6 +38,10 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
 
   const renderItem = useCallback(({ item: message, index }: ListRenderItemInfo<ChatMessage>) => {
     const parsedCode = message.role == 'assistant' ? parseCodeBlocks(message.content) : null;
+    // Only pass isGenerating to the last message if it's an assistant message
+    const isLastMessage = index === messages.length - 1;
+    const showGenerating = isLastMessage && message.role === 'assistant' && isGenerating;
+    const isEditing = editingMessageIndex === index;
 
     return (
       <Message
@@ -43,16 +49,18 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
         content={message.content}
         character={message.character}
         index={index}
+        isGenerating={showGenerating}
+        isEditing={isEditing}
         onEdit={() => onMessagePress(index, message)}
         onPreviewCode={() => parsedCode && setPreviewCode(parsedCode)}
         hasPreviewableCode={!!parsedCode}
       />
     );
-  }, [onMessagePress, setPreviewCode]);
+  }, [onMessagePress, setPreviewCode, messages.length, isGenerating, editingMessageIndex]);
 
-  // Stable key extractor using message id or fallback to index
-  const keyExtractor = useCallback((item: ChatMessage, index: number) => 
-    item.id ?? `msg-${index}`, []);
+  // Stable key extractor using index
+  const keyExtractor = useCallback((_item: ChatMessage, index: number) => 
+    `msg-${index}`, []);
 
   return (
     <FlatList

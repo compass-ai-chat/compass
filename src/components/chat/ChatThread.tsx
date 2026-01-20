@@ -57,7 +57,10 @@ export const ChatThread: React.FC = () => {
     
     // Clone messages and update the streaming message with latest content
     const merged = [...baseMessages];
-    if (merged[streamingMessage.index]) {
+    
+    // Only merge if the index exists in the base messages
+    // This handles the race condition where streaming starts before the thread updates
+    if (streamingMessage.index >= 0 && streamingMessage.index < merged.length && merged[streamingMessage.index]) {
       merged[streamingMessage.index] = {
         ...merged[streamingMessage.index],
         content: streamingMessage.content,

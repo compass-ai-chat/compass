@@ -13,9 +13,7 @@ import Markdown from "react-native-markdown-display";
 import { useColorScheme } from "nativewind";
 import { Character, ChatMessage } from "@/src/types/core";
 import {
-  editingMessageIndexAtom,
   fontPreferencesAtom,
-  isGeneratingAtom,
 } from "@/src/hooks/atoms";
 import { useAtomValue } from "jotai";
 import { toastService } from "@/src/services/toastService";
@@ -34,6 +32,8 @@ interface MessageProps {
   content: string;
   character?: Character;
   index: number;
+  isGenerating?: boolean;
+  isEditing?: boolean;
   onEdit?: (index: number) => void;
   onPreviewCode?: () => void;
   hasPreviewableCode?: boolean;
@@ -184,6 +184,8 @@ const MessageComponent: React.FC<MessageProps> = ({
   content,
   character,
   index,
+  isGenerating = false,
+  isEditing = false,
   onEdit,
   onPreviewCode,
   hasPreviewableCode,
@@ -191,8 +193,6 @@ const MessageComponent: React.FC<MessageProps> = ({
 }) => {
   const { colorScheme } = useColorScheme();
   const preferences = useAtomValue(fontPreferencesAtom);
-  const editingMessageIndex = useAtomValue(editingMessageIndexAtom);
-  const isGenerating = useAtomValue(isGeneratingAtom);
 
   const isDark = colorScheme === "dark";
   const isFromUser = message.role === "user";
@@ -330,11 +330,11 @@ const MessageComponent: React.FC<MessageProps> = ({
             <View
               className={`relative px-4 py-2 mb-4 rounded-2xl max-w-full ${
                 isFromUser ? "bg-primary rounded-tr-none" : "bg-secondary rounded-tl-none"
-              } ${editingMessageIndex === index ? "bg-yellow-500" : ""}`}
+              } ${isEditing ? "bg-yellow-500" : ""}`}
               onPointerEnter={() => setIsHovered(true)}
               onPointerLeave={() => setIsHovered(false)}
             >
-              {editingMessageIndex === index && (
+              {isEditing && (
                 <Text className="text-yellow-400 text-xs mb-1">Editing...</Text>
               )}
 
@@ -342,7 +342,7 @@ const MessageComponent: React.FC<MessageProps> = ({
                 <Text className="text-xs opacity-50 mb-1 text-text">via {modelUsed.id}</Text>
               )}
 
-              {editingMessageIndex !== index && (
+              {!isEditing && (
                 <View>
                   {message.reasoning && (
                     <ThinkBlock
@@ -401,6 +401,8 @@ const arePropsEqual = (prevProps: MessageProps, nextProps: MessageProps): boolea
   if (prevProps.content !== nextProps.content) return false;
   if (prevProps.index !== nextProps.index) return false;
   if (prevProps.hasPreviewableCode !== nextProps.hasPreviewableCode) return false;
+  if (prevProps.isGenerating !== nextProps.isGenerating) return false;
+  if (prevProps.isEditing !== nextProps.isEditing) return false;
   
   // Compare message properties that matter
   if (prevProps.message.role !== nextProps.message.role) return false;

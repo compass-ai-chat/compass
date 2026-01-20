@@ -125,10 +125,10 @@ export function useChat() {
   // ========== Refs and External Hooks ==========
   const abortController = useRef<AbortController | null>(null);
   const previousThreadId = useRef(currentThread.id);
-  // Ref to hold latest values without causing re-renders when accessed in callbacks
+  // Ref to hold latest thread value for use in callbacks without re-creating them
   const currentThreadRef = useRef(currentThread);
-  const threadsRef = useRef(threads);
-  const editingMessageIndexRef = useRef(editingMessageIndex);
+  // Ref to hold latest streaming end message for flush function
+  const streamingMessageRef = useRef(streamingMessage);
   // Debounce timer for persisting to storage
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
@@ -138,12 +138,8 @@ export function useChat() {
   }, [currentThread]);
   
   useEffect(() => {
-    threadsRef.current = threads;
-  }, [threads]);
-  
-  useEffect(() => {
-    editingMessageIndexRef.current = editingMessageIndex;
-  }, [editingMessageIndex]);
+    streamingMessageRef.current = streamingMessage;
+  }, [streamingMessage]);
 
   const { search } = useSearch();
   const tts = useTTS();
@@ -295,15 +291,24 @@ export function useChat() {
       }
       
       persistTimerRef.current = setTimeout(async () => {
-        const merged = { ...lastMessage, ...message } as ChatMessage;
-        await dispatchThread({
-          type: "updateMessage",
-          payload: {
-            threadId: thread.id,
-            message: merged,
-            index: messageIndex,
-          },
-        });
+        // Use the ref to get the latest streaming content at persist time
+        const currentStreaming = streamingMessageRef.current;
+        if (currentStreaming && currentStreaming.threadId === thread.id) {
+          const merged = { 
+            ...lastMessage, 
+            content: currentStreaming.content,
+            reasoning: currentStreaming.reasoning,
+            toolCalls: currentStreaming.toolCalls,
+          } as ChatMessage;
+          await dispatchThread({
+            type: "updateMessage",
+            payload: {
+              threadId: thread.id,
+              message: merged,
+              index: messageIndex,
+            },
+          });
+        }
       }, 500); // Persist every 500ms at most
     }
   };
@@ -315,30 +320,47 @@ export function useChat() {
       persistTimerRef.current = null;
     }
     
-    const streaming = streamingMessage;
-    if (streaming && streaming.threadId === thread.id) {
-      const messageIndex = streaming.index;
-      const lastMessage = thread.messages[messageIndex];
-      if (lastMessage) {
-        const merged = { 
-          ...lastMessage, 
-          content: streaming.content,
-          reasoning: streaming.reasoning,
-          toolCalls: streaming.toolCalls,
-        } as ChatMessage;
-        
-        await dispatchThread({
-          type: "updateMessage",
-          payload: {
-            threadId: thread.id,
-            message: merged,
-            index: messageIndex,
-          },
-        });
-      }
-      setStreamingMessage(null);
+    // Use ref to get the latest streaming message value
+    const streaming = streamingMessageRef.current;
+    if (!streaming || streaming.threadId !== thread.id) {
+      return;
     }
-  }, [streamingMessage, dispatchThread, setStreamingMessage]);
+    
+    const messageIndex = streaming.index;
+    
+    // Ensure the message exists at the expected index
+    if (messageIndex < 0 || messageIndex >= thread.messages.length) {
+      console.warn('flushStreamingMessage: Invalid message index', messageIndex, 'thread has', thread.messages.length, 'messages');
+      setStreamingMessage(null);
+      return;
+    }
+    
+    const lastMessage = thread.messages[messageIndex];
+    if (!lastMessage) {
+      setStreamingMessage(null);
+      return;
+    }
+    
+    const merged = { 
+      ...lastMessage, 
+      content: streaming.content,
+      reasoning: streaming.reasoning,
+      toolCalls: streaming.toolCalls,
+    } as ChatMessage;
+    
+    // Wait for persistence to complete before clearing streaming state
+    await dispatchThread({
+      type: "updateMessage",
+      payload: {
+        threadId: thread.id,
+        message: merged,
+        index: messageIndex,
+      },
+    });
+    
+    // Only clear streaming message after persistence is confirmed
+    setStreamingMessage(null);
+  }, [dispatchThread, setStreamingMessage]);
 
   const updateMessageContent = async (
     content: string,
@@ -480,11 +502,13 @@ export function useChat() {
       },
     };
 
-
+    // Track the thread we're working with for error handling
+    let workingThread = initialContext.thread;
 
     try {
 
       const transformedContext = await pipeline.process(initialContext);
+      workingThread = transformedContext.metadata.updatedThread;
 
       transformedContext.context.messagesToSend.push({
         ...transformedContext.context.assistantPlaceholder,
@@ -532,6 +556,9 @@ export function useChat() {
       firstMessageTransform.transform(initialContext);
     } catch (error: any) {
       console.log("Error sending message:", error);
+      
+      // Flush any partial streaming content on error
+      await flushStreamingMessage(workingThread);
 
       if (isAbortError(error)) {
         // user-initiated cancel; no toast
@@ -597,20 +624,18 @@ export function useChat() {
     if (!providers.length) return;
 
     const thread = currentThreadRef.current;
-    const currentEditingIndex = editingMessageIndexRef.current;
-    const currentThreads = threadsRef.current;
 
     if(thread.metadata?.documentIds) thread.metadata.documentIds = [];
     let messages = [...thread.messages];
-    const isEditing = currentEditingIndex !== -1;
+    const isEditing = editingMessageIndex !== -1;
 
     if (isEditing) {
-      messages.splice(currentEditingIndex);
+      messages.splice(editingMessageIndex);
       setEditingMessageIndex(-1);
     }
 
     if (
-      currentThreads.filter((t) => t.id === thread.id).length === 0
+      threads.filter((t) => t.id === thread.id).length === 0
     ) {
       await dispatchThread({
         type: "add",
@@ -626,7 +651,7 @@ export function useChat() {
     } finally {
       setIsGenerating(false);
     }
-  }, [providers.length, dispatchThread, setEditingMessageIndex, setIsGenerating, sendChatMessage]);
+  }, [providers.length, threads, editingMessageIndex, dispatchThread, setEditingMessageIndex, setIsGenerating, sendChatMessage]);
 
   const handleMessagePress = useCallback((index: number, message: ChatMessage) => {
     if (message.role == 'user') {
