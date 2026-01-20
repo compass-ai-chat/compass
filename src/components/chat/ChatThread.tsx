@@ -8,6 +8,8 @@ import { ChatLayout } from './ChatLayout';
 import { EmptyChatState } from './EmptyChatState';
 import { ChatContainer } from './ChatContainer';
 import { useModelDownloadStatus } from '@/src/hooks/useModelDownloadStatus';
+import { useAtomValue } from 'jotai';
+import { streamingMessageAtom } from '@/src/hooks/atoms';
 
 export const ChatThread: React.FC = () => {
   const {
@@ -18,6 +20,8 @@ export const ChatThread: React.FC = () => {
     handleInterrupt,
     setIsGenerating
   } = useChat();
+
+  const streamingMessage = useAtomValue(streamingMessageAtom);
 
   const {
     selectedModel,
@@ -43,7 +47,27 @@ export const ChatThread: React.FC = () => {
     }
   }, [currentThread.id]);
 
-  const messages = currentThread?.messages || [];
+  const baseMessages = currentThread?.messages || [];
+  
+  // Merge streaming message content with base messages for real-time updates
+  const messages = useMemo(() => {
+    if (!streamingMessage || streamingMessage.threadId !== currentThread?.id) {
+      return baseMessages;
+    }
+    
+    // Clone messages and update the streaming message with latest content
+    const merged = [...baseMessages];
+    if (merged[streamingMessage.index]) {
+      merged[streamingMessage.index] = {
+        ...merged[streamingMessage.index],
+        content: streamingMessage.content,
+        reasoning: streamingMessage.reasoning,
+        toolCalls: streamingMessage.toolCalls,
+      };
+    }
+    return merged;
+  }, [baseMessages, streamingMessage, currentThread?.id]);
+  
   const isEmpty = messages.length === 0;
 
   // Create dropdown elements directly
@@ -101,6 +125,8 @@ export const ChatThread: React.FC = () => {
       ) : (
         <ChatContainer
           messages={messages}
+          threadId={currentThread.id}
+          threadDocumentIds={currentThread.metadata?.documentIds}
           onSend={wrappedHandleSend}
           isGenerating={isGenerating}
           onInterrupt={handleInterrupt}

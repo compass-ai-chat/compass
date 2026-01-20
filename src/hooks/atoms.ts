@@ -232,6 +232,15 @@ export const threadActionsAtom = atom(
 // For managing generation state
 export const isGeneratingAtom = atom(false);
 
+// In-memory atom for streaming message content - not persisted to avoid localStorage thrashing
+export const streamingMessageAtom = atom<{
+  threadId: string;
+  index: number;
+  content: string;
+  reasoning?: string;
+  toolCalls?: any[];
+} | null>(null);
+
 export const currentIndexAtom = atom(0);
 
 // For managing models

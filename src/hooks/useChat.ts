@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Platform } from "react-native";
 import { router } from "expo-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -27,6 +27,7 @@ import {
   isGeneratingAtom,
   editingMessageIndexAtom,
   threadsAtom,
+  streamingMessageAtom,
 } from "./atoms";
 
 // Hooks
@@ -118,11 +119,32 @@ export function useChat() {
   const [editingMessageIndex, setEditingMessageIndex] = useAtom(
     editingMessageIndexAtom,
   );
+  const [streamingMessage, setStreamingMessage] = useAtom(streamingMessageAtom);
   const defaultThread = useAtomValue(defaultThreadAtom);
 
   // ========== Refs and External Hooks ==========
   const abortController = useRef<AbortController | null>(null);
   const previousThreadId = useRef(currentThread.id);
+  // Ref to hold latest values without causing re-renders when accessed in callbacks
+  const currentThreadRef = useRef(currentThread);
+  const threadsRef = useRef(threads);
+  const editingMessageIndexRef = useRef(editingMessageIndex);
+  // Debounce timer for persisting to storage
+  const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    currentThreadRef.current = currentThread;
+  }, [currentThread]);
+  
+  useEffect(() => {
+    threadsRef.current = threads;
+  }, [threads]);
+  
+  useEffect(() => {
+    editingMessageIndexRef.current = editingMessageIndex;
+  }, [editingMessageIndex]);
+
   const { search } = useSearch();
   const tts = useTTS();
   const { selectedModel, selectedCharacter } = useCharacterModelSelection();
@@ -254,29 +276,69 @@ export function useChat() {
     message: Partial<ChatMessage>,
     thread: Thread,
   ) => {
-    const updatedMessages = [...thread.messages];
-    let lastMessage = updatedMessages[updatedMessages.length - 1];
+    const messageIndex = thread.messages.length - 1;
+    const lastMessage = thread.messages[messageIndex];
+    
     if (lastMessage && lastMessage.role != 'user') {
-      const merged = { ...lastMessage, ...message } as ChatMessage;
-      updatedMessages[updatedMessages.length - 1] = merged;
-      const updatedThread = await dispatchThread({
-        type: "updateMessage",
-        payload: {
-          threadId: thread.id,
-          message: updatedMessages[updatedMessages.length - 1],
-          index: updatedMessages.length - 1,
-        },
-      });
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      if (
-        Object.prototype.hasOwnProperty.call(message, "content") &&
-        updatedThread?.messages[updatedThread.messages.length - 1]?.content !==
-          message.content
-      ) {
-        throw new Error("Message update failed to persist");
+      // Update the in-memory streaming atom for instant UI updates
+      setStreamingMessage(prev => ({
+        threadId: thread.id,
+        index: messageIndex,
+        content: message.content ?? prev?.content ?? '',
+        reasoning: message.reasoning ?? prev?.reasoning,
+        toolCalls: message.toolCalls ?? prev?.toolCalls,
+      }));
+
+      // Debounce the actual persistence to storage
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
       }
+      
+      persistTimerRef.current = setTimeout(async () => {
+        const merged = { ...lastMessage, ...message } as ChatMessage;
+        await dispatchThread({
+          type: "updateMessage",
+          payload: {
+            threadId: thread.id,
+            message: merged,
+            index: messageIndex,
+          },
+        });
+      }, 500); // Persist every 500ms at most
     }
   };
+
+  // Function to flush any pending updates to storage (call when streaming ends)
+  const flushStreamingMessage = useCallback(async (thread: Thread) => {
+    if (persistTimerRef.current) {
+      clearTimeout(persistTimerRef.current);
+      persistTimerRef.current = null;
+    }
+    
+    const streaming = streamingMessage;
+    if (streaming && streaming.threadId === thread.id) {
+      const messageIndex = streaming.index;
+      const lastMessage = thread.messages[messageIndex];
+      if (lastMessage) {
+        const merged = { 
+          ...lastMessage, 
+          content: streaming.content,
+          reasoning: streaming.reasoning,
+          toolCalls: streaming.toolCalls,
+        } as ChatMessage;
+        
+        await dispatchThread({
+          type: "updateMessage",
+          payload: {
+            threadId: thread.id,
+            message: merged,
+            index: messageIndex,
+          },
+        });
+      }
+      setStreamingMessage(null);
+    }
+  }, [streamingMessage, dispatchThread, setStreamingMessage]);
 
   const updateMessageContent = async (
     content: string,
@@ -332,38 +394,47 @@ export function useChat() {
     }
   };
 
-  const handleInterrupt = () => {
+  const handleInterrupt = useCallback(() => {
     if (abortController.current) {
       abortController.current.abort();
       abortController.current = null;
     }
+    // Clear any pending persist timer
+    if (persistTimerRef.current) {
+      clearTimeout(persistTimerRef.current);
+      persistTimerRef.current = null;
+    }
+    // Flush the current streaming message to storage before stopping
+    const thread = currentThreadRef.current;
+    flushStreamingMessage(thread);
     tts.stopStreaming();
     setIsGenerating(false);
-  };
+  }, [tts, setIsGenerating, flushStreamingMessage]);
 
   // ========== Message Handling ==========
-  const sendChatMessage = async (
+  const sendChatMessage = useCallback(async (
     messages: ChatMessage[],
     message: string,
     mentionedCharacters: MentionedCharacter[] = [],
     mentionedDocuments: Document[] = [],
     images: string[] = [],
   ) => {
+    const thread = currentThreadRef.current;
     abortController.current = new AbortController();
-    currentThread.messages = messages;
+    thread.messages = messages;
     let context = contextManager.prepareContext(
       message,
-      currentThread,
+      thread,
       mentionedCharacters,
       mentionedDocuments,
       images
     );
-    let selectedModel = currentThread.selectedModel;
+    let selectedModel = thread.selectedModel;
 
-    if(currentThread.character || !selectedModel){
+    if(thread.character || !selectedModel){
       // Select model based on routing configuration
       selectedModel = selectModelBasedOnRouting(
-        currentThread.character,
+        thread.character,
         models,
       );
     }
@@ -378,12 +449,12 @@ export function useChat() {
 
     let relevantDocuments = documents.filter(
       (doc: Document) =>
-        currentThread.character?.documentIds?.includes(doc.id) ?? false,
+        thread.character?.documentIds?.includes(doc.id) ?? false,
     );
     relevantDocuments.push(
       ...documents.filter(
         (doc: Document) =>
-          currentThread.metadata?.documentIds?.includes(doc.id) ?? [],
+          thread.metadata?.documentIds?.includes(doc.id) ?? [],
       ),
     );
 
@@ -392,13 +463,13 @@ export function useChat() {
       message: context.newMessage,
       provider: chatProvider,
       thread: {
-        ...currentThread,
+        ...thread,
         selectedModel, // Update the thread's selected model
       },
       allDocuments: documents,
       mentionedCharacters,
       mentionedDocuments,
-      systemPrompt: currentThread.character?.content ?? "",
+      systemPrompt: thread.character?.content ?? "",
       context,
       metadata: {
         messages,
@@ -455,6 +526,9 @@ export function useChat() {
         transformedContext.metadata.updatedThread,
       );
 
+      // Flush any pending streaming updates to storage
+      await flushStreamingMessage(transformedContext.metadata.updatedThread);
+
       firstMessageTransform.transform(initialContext);
     } catch (error: any) {
       console.log("Error sending message:", error);
@@ -491,7 +565,7 @@ export function useChat() {
     } finally {
       abortController.current = null;
     }
-  };
+  }, [models, documents, searchEnabled, search, dispatchThread, contextManager, pipeline, sendMessage, handleToolCalls, handleStream, setModels, flushStreamingMessage]);
 
   const streamMessage = async (messages: ChatMessage[]) => {
     const model = models.find((x) => true);
@@ -514,7 +588,7 @@ export function useChat() {
     return await generateJSON(prompt, schema, model);
   };
 
-  const handleSend = async (
+  const handleSend = useCallback(async (
     message: string,
     mentionedCharacters: MentionedCharacter[],
     mentionedDocuments: Document[],
@@ -522,26 +596,25 @@ export function useChat() {
   ) => {
     if (!providers.length) return;
 
-    // if (Platform.OS == 'web') {
-    //   setSidebarVisible(false);
-    // }
+    const thread = currentThreadRef.current;
+    const currentEditingIndex = editingMessageIndexRef.current;
+    const currentThreads = threadsRef.current;
 
-    if(currentThread.metadata?.documentIds) currentThread.metadata.documentIds = [];
-    let messages = [...currentThread.messages];
-    const isEditing = editingMessageIndex !== -1;
+    if(thread.metadata?.documentIds) thread.metadata.documentIds = [];
+    let messages = [...thread.messages];
+    const isEditing = currentEditingIndex !== -1;
 
     if (isEditing) {
-      messages.splice(editingMessageIndex);
+      messages.splice(currentEditingIndex);
       setEditingMessageIndex(-1);
     }
 
     if (
-      // currentThread.messages.length === 0 &&
-      threads.filter((t) => t.id === currentThread.id).length === 0
+      currentThreads.filter((t) => t.id === thread.id).length === 0
     ) {
       await dispatchThread({
         type: "add",
-        payload: currentThread,
+        payload: thread,
       });
     }
 
@@ -553,13 +626,13 @@ export function useChat() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [providers.length, dispatchThread, setEditingMessageIndex, setIsGenerating, sendChatMessage]);
 
-  const handleMessagePress = (index: number, message: ChatMessage) => {
+  const handleMessagePress = useCallback((index: number, message: ChatMessage) => {
     if (message.role == 'user') {
       setEditingMessageIndex(index);
     }
-  };
+  }, [setEditingMessageIndex]);
 
   const isModelAvailable = () => {
     return models.length > 0;

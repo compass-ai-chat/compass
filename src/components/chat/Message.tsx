@@ -395,4 +395,38 @@ const MessageComponent: React.FC<MessageProps> = ({
   );
 };
 
-export const Message = memo(MessageComponent);
+// Custom comparison function to prevent re-renders when only function references change
+const arePropsEqual = (prevProps: MessageProps, nextProps: MessageProps): boolean => {
+  // Always re-render if content changes
+  if (prevProps.content !== nextProps.content) return false;
+  if (prevProps.index !== nextProps.index) return false;
+  if (prevProps.hasPreviewableCode !== nextProps.hasPreviewableCode) return false;
+  
+  // Compare message properties that matter
+  if (prevProps.message.role !== nextProps.message.role) return false;
+  if (prevProps.message.reasoning !== nextProps.message.reasoning) return false;
+  if (prevProps.message.toolCalls?.length !== nextProps.message.toolCalls?.length) return false;
+  if (prevProps.message.images?.length !== nextProps.message.images?.length) return false;
+  if (prevProps.message.mentionedDocumentIds?.length !== nextProps.message.mentionedDocumentIds?.length) return false;
+  
+  // Check toolCalls content if they exist
+  if (prevProps.message.toolCalls && nextProps.message.toolCalls) {
+    for (let i = 0; i < prevProps.message.toolCalls.length; i++) {
+      const prevTool = prevProps.message.toolCalls[i];
+      const nextTool = nextProps.message.toolCalls[i];
+      if (prevTool.status !== nextTool.status || prevTool.pending !== nextTool.pending) {
+        return false;
+      }
+    }
+  }
+  
+  // Compare character
+  if (prevProps.character?.id !== nextProps.character?.id) return false;
+  
+  // Compare modelUsed
+  if (prevProps.modelUsed?.id !== nextProps.modelUsed?.id) return false;
+  
+  return true;
+};
+
+export const Message = memo(MessageComponent, arePropsEqual);

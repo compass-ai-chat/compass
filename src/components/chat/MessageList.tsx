@@ -1,5 +1,5 @@
-import React, { useRef, forwardRef, useImperativeHandle } from 'react';
-import { FlatList } from 'react-native';
+import React, { useRef, forwardRef, useImperativeHandle, useCallback, memo } from 'react';
+import { FlatList, ListRenderItemInfo } from 'react-native';
 import { useAtom } from 'jotai';
 import { previewCodeAtom } from '@/src/hooks/atoms';
 import { parseCodeBlocks } from '@/src/utils/codeParser';
@@ -34,7 +34,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
     }
   }));
 
-  const renderItem = ({ item: message, index }: { item: any; index: number }) => {
+  const renderItem = useCallback(({ item: message, index }: ListRenderItemInfo<ChatMessage>) => {
     const parsedCode = message.role == 'assistant' ? parseCodeBlocks(message.content) : null;
 
     return (
@@ -48,7 +48,11 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
         hasPreviewableCode={!!parsedCode}
       />
     );
-  };
+  }, [onMessagePress, setPreviewCode]);
+
+  // Stable key extractor using message id or fallback to index
+  const keyExtractor = useCallback((item: ChatMessage, index: number) => 
+    item.id ?? `msg-${index}`, []);
 
   return (
     <FlatList
@@ -56,7 +60,8 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
       data={messages}
       renderItem={renderItem}
       onContentSizeChange={onContentSizeChange}
-      keyExtractor={(_, index) => index.toString()}
+      keyExtractor={keyExtractor}
+      extraData={messages.length}
       maintainVisibleContentPosition={{
         minIndexForVisible: 0,
         autoscrollToTopThreshold: 10
@@ -65,6 +70,9 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(({
       contentContainerStyle={{ padding: 16, paddingBottom: 50, paddingTop: 100 }}
       onScroll={onScroll}
       onScrollBeginDrag={onScrollBeginDrag}
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      windowSize={10}
     />
   );
 }); 

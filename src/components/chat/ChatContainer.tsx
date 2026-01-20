@@ -1,46 +1,47 @@
-import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { View, FlatList, Platform } from 'react-native';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { ChatInput, ChatInputRef, MentionedCharacter } from './ChatInput';
 import { MessageList, MessageListRef } from './MessageList';
 import { ChatMessage } from '@/src/types/core';
-import { useChat } from '@/src/hooks/useChat';
 import { Document } from '@/src/types/core';
 import { useAtomValue } from 'jotai';
 import { userDocumentsAtom } from '@/src/hooks/atoms';
 
 interface ChatContainerProps {
   messages: ChatMessage[];
+  threadId: string;
+  threadDocumentIds?: string[];
   onSend: (message: string, mentionedCharacters: MentionedCharacter[], mentionedDocuments: Document[], images?: string[]) => void;
   isGenerating: boolean;
   onInterrupt: () => void;
   onMessagePress: (index: number, message: ChatMessage) => void;
 }
 
-export const ChatContainer: React.FC<ChatContainerProps> = ({
+const ChatContainerComponent: React.FC<ChatContainerProps> = ({
   messages,
+  threadId,
+  threadDocumentIds,
   onSend,
   isGenerating,
   onInterrupt,
   onMessagePress
 }) => {
-  const { currentThread } = useChat();
   const userDocuments = useAtomValue(userDocumentsAtom);
   const messageListRef = useRef<MessageListRef>(null);
   const chatInputRef = useRef<ChatInputRef>(null);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const previousThreadId = useRef(currentThread.id);
 
   // Get initial mentioned documents from thread metadata
   const initialMentionedDocuments = useMemo(() => {
-    const documentIds = currentThread.metadata?.documentIds || [];
+    const documentIds = threadDocumentIds || [];
     return userDocuments.filter(doc => documentIds.includes(doc.id));
-  }, [currentThread.metadata?.documentIds, userDocuments]);
+  }, [threadDocumentIds, userDocuments]);
 
   useEffect(() => {
     chatInputRef.current?.focus();
-  }, [currentThread.id])
+  }, [threadId])
 
   // All scroll-related logic here...
   const scrollToEnd = useCallback(() => {
@@ -51,7 +52,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
   const debouncedScrollToEnd = useCallback(
     (() => {
-      let timeoutId: NodeJS.Timeout;
+      let timeoutId: ReturnType<typeof setTimeout>;
       return () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(scrollToEnd, 300);
@@ -100,4 +101,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       />
     </View>
   );
-}; 
+};
+
+export const ChatContainer = memo(ChatContainerComponent); 

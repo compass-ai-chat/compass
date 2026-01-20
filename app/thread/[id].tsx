@@ -2,21 +2,26 @@ import { useLocalSearchParams } from 'expo-router';
 import { ChatThread } from '@/src/components/chat/ChatThread';
 import { TouchableOpacity, View, Platform } from 'react-native';
 import { useAtomValue } from 'jotai';
-import { threadsAtom } from '@/src/hooks/atoms';
-import { useEffect } from 'react';
+import { currentThreadIdAtom } from '@/src/hooks/atoms';
+import { useEffect, useRef } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const threads = useAtomValue(threadsAtom);
-  const currentThread = threads.find(t => t.id === id);
+  const currentThreadId = useAtomValue(currentThreadIdAtom);
+  const initialCheckDone = useRef(false);
 
   useEffect(() => {
-    if (!currentThread) {
-      router.replace('/');
+    // Only redirect if the thread id doesn't match on initial mount
+    // Don't re-check on every render to avoid flicker
+    if (!initialCheckDone.current) {
+      initialCheckDone.current = true;
+      if (!id) {
+        router.replace('/');
+      }
     }
-  }, [id, currentThread]);
+  }, [id]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
