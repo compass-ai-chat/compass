@@ -11,7 +11,6 @@ import { useColorScheme } from 'nativewind';
 import { Toast } from "@/src/components/ui/Toast";
 import { View, Text } from "react-native";
 import { WebSidebar } from "@/src/components/navigation/WebSidebar";
-import { routes } from "./(tabs)/_layout";
 import { Command } from "@tauri-apps/plugin-shell";
 import { CustomHeader } from "@/src/components/navigation/CustomHeader";
 import { useKeyboardShortcuts } from "@/src/hooks/useKeyboardShortcuts";

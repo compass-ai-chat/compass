@@ -1,41 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TabBarIcon } from '@/src/components/navigation/TabBarIcon';
-import { Platform, useWindowDimensions, View } from 'react-native';
-import { useColorScheme, vars } from 'nativewind';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-import IndexRoute from './index';
-import CharactersRoute from './characters';
-import SettingsRoute from './settings';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform, View } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { useThemePreset } from '@/src/components/ui/ThemeProvider';
 import { rawThemes } from '@/constants/themes';
-import { currentIndexAtom } from '@/src/hooks/atoms';
-import { useAtom } from 'jotai';
-import ImagesRoute from './images';
-import DocumentsRoute from './documents';
-import { Slot } from 'expo-router';
-const renderScene = SceneMap({
-  index: IndexRoute,
-  characters: CharactersRoute,
-  images: ImagesRoute,
-  settings: SettingsRoute,
-  documents: DocumentsRoute,
-});
-
-export const routes = [
-  { key: 'index', title: 'chats.chats', icon: 'chatbubble' },
-  { key: 'characters', title: 'characters.characters', icon: 'people' },
-  { key: 'images', title: 'images.images', icon: 'image' },
-  { key: 'documents', title: 'documents.documents', icon: 'document-text' },
-  { key: 'settings', title: 'settings.settings', icon: 'cog' },
-  
-];
-
+import { Slot, Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 export default function TabLayout() {
+  const { t } = useTranslation();
   const isDesktop = Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth >= 768;
-  const layout = useWindowDimensions();
-  const [index, setIndex] = useAtom(currentIndexAtom);
-  const [_index, _setIndex] = useState(0);
 
   const { colorScheme } = useColorScheme();
   const { themePreset } = useThemePreset();
@@ -46,25 +19,6 @@ export default function TabLayout() {
   else{
     theme = rawThemes[themePreset][colorScheme ?? 'light'];
   }
-  
-  const renderTabBar = (props: any) => (
-    <TabBar
-      {...props}
-      style={{ 
-        backgroundColor: theme.background,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.border,
-      }}
-      indicatorStyle={{
-        backgroundColor: theme.primary,
-      }}
-      activeColor={theme.primary}
-      inactiveColor={theme.secondary}
-      labelStyle={{
-        textTransform: 'none',
-      }}
-    />
-  );
 
   if (isDesktop) {
     // Use Slot for proper routing on desktop
@@ -72,21 +26,62 @@ export default function TabLayout() {
   }
   
   return (
-    <SafeAreaView className="flex-1">
-      <TabView
-        tabBarPosition='bottom'
-        navigationState={{ index: _index, routes }}
-        renderScene={renderScene}
-        onIndexChange={_setIndex}
-        initialLayout={{ width: layout.width }}
-        renderTabBar={renderTabBar}
-        commonOptions={{
-          labelText:"",
-          icon: ({ route, focused, color }) => {
-            return <TabBarIcon name={route.icon as any} size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`}/>;
-          },
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.secondary,
+        tabBarStyle: {
+          backgroundColor: theme.background,
+          borderTopColor: theme.border,
+        },
+        headerShown: false,
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('chats.chats'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="chatbubble" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+          ),
         }}
       />
-    </SafeAreaView>
+      <Tabs.Screen
+        name="characters"
+        options={{
+          title: t('characters.characters'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="people" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="images"
+        options={{
+          title: t('images.images'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="image" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="documents"
+        options={{
+          title: t('documents.documents'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="document-text" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: t('settings.settings'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="cog" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

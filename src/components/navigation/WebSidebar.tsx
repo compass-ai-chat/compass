@@ -4,7 +4,6 @@ import { TabBarIcon } from './TabBarIcon';
 import { useThemePreset } from '@/src/components/ui/ThemeProvider';
 import { rawThemes } from '@/constants/themes';
 import { useColorScheme } from 'nativewind';
-import { routes } from '@/app/(tabs)/_layout';
 import { currentIndexAtom, syncToPolarisAtom } from '@/src/hooks/atoms';
 import { useAtom, useAtomValue } from 'jotai';
 import { useRouter } from 'expo-router';
@@ -18,6 +17,14 @@ interface Route {
   title: string;
   icon: string;
 }
+
+const routes = [
+  { key: 'index', title: 'chats.chats', icon: 'chatbubble' },
+  { key: 'characters', title: 'characters.characters', icon: 'people' },
+  { key: 'images', title: 'images.images', icon: 'image' },
+  { key: 'documents', title: 'documents.documents', icon: 'document-text' },
+  { key: 'settings', title: 'settings.settings', icon: 'cog' },
+];
 
 export function WebSidebar({ className }: { className?: string }) {
   const [currentIndex, setCurrentIndex] = useAtom(currentIndexAtom);

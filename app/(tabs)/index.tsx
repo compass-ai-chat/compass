@@ -3,8 +3,7 @@ import { ChatThread } from '@/src/components/chat/ChatThread';
 import { ChatThreads } from '@/src/components/chat/ChatThreads';
 import { useWindowDimensions, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { useLayoutEffect } from 'react';
+import { useRouter } from 'expo-router';
 
 const MIN_DESKTOP_WIDTH = 768;
 
@@ -12,13 +11,7 @@ export default function HomeScreen() {
   
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === 'web' && width >= MIN_DESKTOP_WIDTH;
-  const navigation = useNavigation();
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+  const router = useRouter();
 
   if (isDesktop) {
     return (
