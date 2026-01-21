@@ -8,6 +8,8 @@ import { CerebrasProvider } from './providers/CerebrasProvider';
 import { MistralProvider } from './providers/MistralProvider';
 import { XAIProvider } from './providers/XAIProvider';
 import { PolarisProvider } from './providers/PolarisProvider';
+import { OpenRouterProvider } from './providers/OpenRouterProvider';
+
 export class ChatProviderFactory {
   static getProvider(provider: Provider): ChatProvider {
     switch (provider.name) {
@@ -27,6 +29,8 @@ export class ChatProviderFactory {
         return new XAIProvider(provider);
       case 'Polaris':
         return new PolarisProvider(provider);
+      case 'OpenRouter':
+        return new OpenRouterProvider(provider);
       default:
         throw new Error(`Unsupported provider: ${provider.name}`);
     }

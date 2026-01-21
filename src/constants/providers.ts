@@ -136,4 +136,17 @@ export const PREDEFINED_PROVIDERS = {
     keyRequired: true,
     signupUrl: "https://console.mistral.ai/",
   } as Provider,
+  openrouter: {
+    name: "OpenRouter",
+    endpoint: "https://openrouter.ai/api/v1",
+    capabilities: {
+      llm: true,
+      tts: false,
+      stt: false,
+      image: true,
+    },
+    logo: "https://openrouter.ai/favicon.ico",
+    keyRequired: true,
+    signupUrl: "https://openrouter.ai/",
+  } as Provider,
 } as const;

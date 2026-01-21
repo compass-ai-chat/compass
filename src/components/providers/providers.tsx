@@ -27,6 +27,8 @@ import { EditOllama } from "./EditOllama";
 import { router } from "expo-router";
 import { getProxyUrl } from "@/src/utils/proxy";
 import { MicrosoftAuthModal } from "./MicrosoftAuthModal";
+import { SignInButton } from "@/src/components/auth/SignInButton";
+import { isSSOEnabled } from "@/src/config/sso";
 
 interface ProvidersProps {
   className?: string;
@@ -203,6 +205,20 @@ export default function Providers({ className }: ProvidersProps) {
             {t("settings.providers.detailed_description")}
           </Text>
         </View>
+
+        {/* SSO Sign-In Section */}
+        {isSSOEnabled() && (
+          <View className="bg-surface rounded-xl p-4 mb-4 border border-border">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="key-outline" size={20} className="!text-primary mr-2" />
+              <Text className="text-text font-medium">Quick Sign In</Text>
+            </View>
+            <Text className="text-secondary text-sm mb-3">
+              Sign in to automatically configure your AI provider
+            </Text>
+            <SignInButton />
+          </View>
+        )}
 
         <View className="md:gap-4 gap-2 mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {providers.map((provider, index) => (

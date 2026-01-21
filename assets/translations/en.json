@@ -265,5 +265,15 @@
         "no_compatible_model_description": "This character requires a specific model that is not available.",
         "scan_for_ollama": "Scan for Ollama",
         "manage_providers": "Manage providers"
+    },
+    "auth": {
+        "sign_in_with": "Sign in with",
+        "signed_out": "Signed out",
+        "signed_out_description": "You have been signed out successfully",
+        "login_failed": "Login failed",
+        "unknown_error": "An unknown error occurred",
+        "connected_to": "Connected to",
+        "signing_in": "Signing in...",
+        "completing_sign_in": "Completing sign in..."
     }
 }

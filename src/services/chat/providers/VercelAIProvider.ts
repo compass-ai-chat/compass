@@ -17,6 +17,7 @@ import { createOllama } from "ollama-ai-provider-v2";
 import { createGroq } from "@ai-sdk/groq";
 import { createXai } from "@ai-sdk/xai";
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { useTools } from "@/src/hooks/useTools";
 import { z } from "zod";
 import { SimpleSchema, simpleSchemaToZod } from "@/src/utils/zodHelpers";
@@ -84,6 +85,11 @@ export function useVercelAIProvider() {
         aiModel = createOpenAI({
           apiKey: provider.apiKey,
           baseURL: provider.endpoint + "/api/v1",
+        })(modelId);
+        break;
+      case "openrouter":
+        aiModel = createOpenRouter({
+          apiKey: provider.apiKey,
         })(modelId);
         break;
       default:

@@ -253,5 +253,15 @@
         "no_compatible_model_description": "Denne karakter kræver en specifik model, der ikke er tilgængelig.",
         "scan_for_ollama": "Scan efter Ollama",
         "manage_providers": "Administrer udbydere"
+    },
+    "auth": {
+        "sign_in_with": "Log ind med",
+        "signed_out": "Logget ud",
+        "signed_out_description": "Du er blevet logget ud",
+        "login_failed": "Login mislykkedes",
+        "unknown_error": "Der opstod en ukendt fejl",
+        "connected_to": "Forbundet til",
+        "signing_in": "Logger ind...",
+        "completing_sign_in": "Fuldfører login..."
     }
 }
