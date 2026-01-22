@@ -2397,6 +2397,33 @@
   dependencies:
     "@tauri-apps/api" "^2.0.0"
 
+"@tokenlens/core@1.3.0", "@tokenlens/core@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@tokenlens/core/-/core-1.3.0.tgz#b3c06b01b87688cbdba309f25254892039f4a1d6"
+  integrity sha512-d8YNHNC+q10bVpi95fELJwJyPVf1HfvBEI18eFQxRSZTdByXrP+f/ZtlhSzkx0Jl0aEmYVeBA5tPeeYRioLViQ==
+
+"@tokenlens/fetch@1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@tokenlens/fetch/-/fetch-1.3.0.tgz#1e0f6e33ced792b89fc74f6a041cb0797d53577f"
+  integrity sha512-RONDRmETYly9xO8XMKblmrZjKSwCva4s5ebJwQNfNlChZoA5kplPoCgnWceHnn1J1iRjLVlrCNB43ichfmGBKQ==
+  dependencies:
+    "@tokenlens/core" "1.3.0"
+
+"@tokenlens/helpers@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@tokenlens/helpers/-/helpers-1.3.1.tgz#4ac3374cf9dde7f52110fe76f73fc5f311d6c92c"
+  integrity sha512-t6yL8N6ES8337E6eVSeH4hCKnPdWkZRFpupy9w5E66Q9IeqQ9IO7XQ6gh12JKjvWiRHuyyJ8MBP5I549Cr41EQ==
+  dependencies:
+    "@tokenlens/core" "1.3.0"
+    "@tokenlens/fetch" "1.3.0"
+
+"@tokenlens/models@1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@tokenlens/models/-/models-1.3.0.tgz#f39ee9086bbd20b15661cda71fedd5c966d6448a"
+  integrity sha512-9mx7ZGeewW4ndXAiD7AT1bbCk4OpJeortbjHHyNkgap+pMPPn1chY6R5zqe1ggXIUzZ2l8VOAKfPqOvpcrisJw==
+  dependencies:
+    "@tokenlens/core" "1.3.0"
+
 "@tybys/wasm-util@^0.10.1":
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.1.tgz#ecddd3205cf1e2d5274649ff0eedd2991ed7f414"
@@ -7014,6 +7041,16 @@ toidentifier@1.0.1:
   resolved "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz"
   integrity sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==
 
+tokenlens@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/tokenlens/-/tokenlens-1.3.1.tgz#65b12e4144f14292e9c36bcce3577a04ce8e614c"
+  integrity sha512-7oxmsS5PNCX3z+b+z07hL5vCzlgHKkCGrEQjQmWl5l+v5cUrtL7S1cuST4XThaL1XyjbTX8J5hfP0cjDJRkaLA==
+  dependencies:
+    "@tokenlens/core" "1.3.0"
+    "@tokenlens/fetch" "1.3.0"
+    "@tokenlens/helpers" "1.3.1"
+    "@tokenlens/models" "1.3.0"
+
 tr46@~0.0.3:
   version "0.0.3"
   resolved "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz"
@@ -7305,7 +7342,7 @@ wrap-ansi@^7.0.0:
 
 wrap-ansi@^8.0.1:
   version "8.1.0"
-  resolved "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-8.1.0.tgz"
+  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-8.1.0.tgz#56dc22368ee570face1b49819975d9b9a5ead214"
   integrity sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==
   dependencies:
     ansi-styles "^6.1.0"

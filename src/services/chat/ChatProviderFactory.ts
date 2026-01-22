@@ -13,18 +13,6 @@ export class ChatProviderFactory {
     switch (provider.name) {
       case 'Ollama':
         return new OllamaProvider(provider);
-      case 'OpenAI':
-        return new OpenAIProvider(provider);
-      case 'Anthropic':
-        return new AnthropicProvider(provider);
-      case 'Groq':
-        return new GroqProvider(provider);
-      case 'Cerebras':
-        return new CerebrasProvider(provider);
-      case 'Mistral':
-        return new MistralProvider(provider);
-      case 'XAI':
-        return new XAIProvider(provider);
       case 'Polaris':
         return new PolarisProvider(provider);
       default:

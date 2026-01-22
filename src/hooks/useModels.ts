@@ -1,14 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Model, Provider } from "@/src/types/core";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  availableProvidersAtom,
-  availableModelsAtom,
-  logsAtom,
-} from "@/src/hooks/atoms";
-import { useEffect, useCallback, useRef, useMemo } from "react";
 import LogService from "@/utils/LogService";
 import { ChatProviderFactory } from "../services/chat/ChatProviderFactory";
+import {
+  fetchModels,
+  FetchModelsError
+} from 'tokenlens';
 
 export const loadDefaultModel = async (): Promise<Model | null> => {
   try {
@@ -52,32 +49,69 @@ export function useModels() {
 let isLoadingModels = false;
 
 export const fetchAvailableModelsV2 = async (
-  endpoints: Provider[],
+  providers: Provider[],
 ): Promise<Model[]> => {
   isLoadingModels = true;
   try {
-    if (!endpoints?.length) {
+    if (!providers?.length) {
       return [];
     }
 
     const models: Model[] = [];
 
-    for (const provider of endpoints) {
+    for (const provider of providers) {
       try {
-        const providerInstance = ChatProviderFactory.getProvider(provider);
+        // const providerInstance = ChatProviderFactory.getProvider(provider);
 
-        const availableModels = await providerInstance.getAvailableModels();
+        const res = await fetchModels({provider: provider.name?.toLowerCase()??""});
+        if(res!=undefined) {
+          Object.keys(res.models).forEach((key) => {
+            const model = res.models[key];
+            models.push({
+              id: model.id,
+              name: model.name,
+              provider: provider,
+              providerId: provider.id,
+              pricePerMillionInputTokens: model.cost?.input??-1,
+              pricePerMillionOutputTokens: model.cost?.output??-1,
+            });
+          });
+        }
+        else if(provider.name?.toLowerCase() == "ollama"){
+          console.log(`Ollama provider detected`, provider);
+          const providerInstance = ChatProviderFactory.getProvider(provider);
+          const availableModels = await providerInstance.getAvailableModels();
+          if (availableModels) {
+            availableModels.forEach((model: string) => {
+              models.push({
+                id: model,
+                name: model,
+                provider: provider,
+                providerId: provider.id,
+                pricePerMillionInputTokens: 0,
+                pricePerMillionOutputTokens: 0,
+              });
+            });
+          }
+        }
+        else{
+          console.log(`No models found for provider ${provider.name}`, provider);
+        }
+        //(res as ProviderModel)
+        
 
-        models.push(
-          ...availableModels.map((model: string) => ({
-            id: model,
-            name: model,
-            provider: provider,
-            providerId: provider.id,
-            pricePerMillionInputTokens: 0,
-            pricePerMillionOutputTokens: 0,
-          })),
-        );
+        // const availableModels = await providerInstance.getAvailableModels();
+
+        // models.push(
+        //   ...availableModels.map((model: string) => ({
+        //     id: model,
+        //     name: model,
+        //     provider: provider,
+        //     providerId: provider.id,
+        //     pricePerMillionInputTokens: 0,
+        //     pricePerMillionOutputTokens: 0,
+        //   })),
+        // );
       } catch (error: any) {
         LogService.log(
           error,
