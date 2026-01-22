@@ -2,14 +2,12 @@ import { Character, Provider } from "@/src/types/core";
 import { ChatMessage, Model } from "@/src/types/core";
 import LogService from "@/utils/LogService";
 import {
-  CoreMessage,
-  generateId,
-  generateObject,
   generateText,
   ModelMessage,
   stepCountIs,
   streamText,
   ToolSet,
+  Output
 } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { Platform } from "@/src/utils/platform";
@@ -40,6 +38,50 @@ export interface StreamResponse {
   toolCallStream: AsyncIterable<ToolCall>;
   reasoningStream: AsyncIterable<string>;
 }
+
+const createAsyncGenerator = <T>() => {
+    const queue: T[] = [];
+    const waiters: Array<(value: IteratorResult<T>) => void> = [];
+    let finished = false;
+
+    const push = (value: T) => {
+      if (waiters.length > 0) {
+        const waiter = waiters.shift()!;
+        waiter({ value, done: false });
+      } else {
+        queue.push(value);
+      }
+    };
+
+    const finish = () => {
+      finished = true;
+      while (waiters.length > 0) {
+        const waiter = waiters.shift()!;
+        waiter({ value: undefined as any, done: true });
+      }
+    };
+
+    const asyncIterable: AsyncIterable<T> = {
+      async *[Symbol.asyncIterator]() {
+        while (!finished || queue.length > 0) {
+          if (queue.length > 0) {
+            yield queue.shift()!;
+          } else if (!finished) {
+            yield await new Promise<T>((resolve) => {
+              waiters.push((result) => {
+                if (result.done) {
+                  return;
+                }
+                resolve(result.value);
+              });
+            });
+          }
+        }
+      }
+    };
+
+    return { push, finish, asyncIterable };
+  };
 
 export function useVercelAIProvider() {
   const { getVercelCompatibleToolSet, getIcon, getToolCallStatus, getActiveToolsForMessage } = useTools();
@@ -103,13 +145,15 @@ export function useVercelAIProvider() {
     model: Model,
   ): Promise<any> => {
     const provider = createProvider(model.provider, model.id);
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model: provider,
       prompt: prompt,
-      schema: simpleSchemaToZod(schema),
+      output: Output.object({
+        schema: simpleSchemaToZod(schema)
+      })
     });
 
-    return object;
+    return output;
   };
 
   const sendMessage = async (
@@ -183,7 +227,7 @@ export function useVercelAIProvider() {
         let toolCallController!: ReadableStreamDefaultController<ToolCall>;
         let reasoningController!: ReadableStreamDefaultController<string>;
 
-        const textStream = new ReadableStream<string>({
+        const textResponseStream = new ReadableStream<string>({
           start(controller) {
             textController = controller;
           },
@@ -195,13 +239,17 @@ export function useVercelAIProvider() {
           },
         });
 
+        const toolCallGen = createAsyncGenerator<ToolCall>();
+        const reasoningGen = createAsyncGenerator<string>();
+
+
         const reasoningStream = new ReadableStream<string>({
           start(controller) {
             reasoningController = controller;
           },
         });
 
-        const { textStream: originalTextStream } = streamText({
+        const result = streamText({
           model: provider,
           providerOptions: { ollama: {think: hotTools.includes("Thinking")}},
           messages: newMessages as ModelMessage[],
@@ -221,11 +269,12 @@ export function useVercelAIProvider() {
                 icon: getIcon(c.toolName),
                 status: getToolCallStatus(c.toolName, c.input, true),
               };
-              toolCallController.enqueue(tc);
+              toolCallGen.push(tc);
+              // toolCallController.enqueue(tc);
             } else if (c?.type === "reasoning") {
               // Some SDK versions emit "reasoning" or include thinking in text/source streams
               if (typeof c.textDelta === "string") {
-                reasoningController.enqueue(c.textDelta);
+                reasoningGen.push(c.textDelta);
               }
             } else if (c?.type === "tool-result") {
               console.log("TOol result", c);
@@ -239,28 +288,31 @@ export function useVercelAIProvider() {
                 icon: getIcon(c.toolName),
                 status: getToolCallStatus(c.toolName, c.input, false),
               };
-              toolCallController.enqueue(tc);
+              toolCallGen.push(tc);
             } else {
               // other chunk types ignored
             }
           },
           onFinish: () => {
-            
-            textController.close();
-            toolCallController.close();
-            reasoningController.close();
+            toolCallGen.finish();
+            reasoningGen.finish();
+            // textController.close();
+            // toolCallController.close();
+            // reasoningController.close();
           },
           onError: (error) => {
-            textController.error(error);
-            toolCallController.error(error);
-            reasoningController.error(error);
+            
+            // textController.error(error);
+            toolCallGen.finish();
+            reasoningGen.finish();
           },
         });
 
         // Forward text chunks to our custom text stream
         (async () => {
           try {
-            for await (const content of originalTextStream) {
+            for await (const content of result.textStream) {
+              console.log("Got text chunk:", content);  
               textController.enqueue(content);
             }
           } catch (error) {
@@ -269,67 +321,57 @@ export function useVercelAIProvider() {
         })();
 
         return {
-          textStream,
-          toolCallStream,
-          reasoningStream,
+          textStream: result.textStream,
+          toolCallStream: toolCallGen.asyncIterable,
+          reasoningStream: reasoningGen.asyncIterable,
         };
       }
 
       // For mobile, we use generateText which doesn't stream
       const { text, steps, reasoning } = await generateText({
         model: provider,
-        messages: newMessages as CoreMessage[],
+        messages: newMessages as ModelMessage[],
         tools: toolSchemas,
         stopWhen: stepCountIs(3),
         toolChoice: "auto",
         abortSignal: signal,
       });
-
+      
       // Create streams that immediately provide the final result
-      const textStream = new ReadableStream<string>({
-        async start(controller) {
-          controller.enqueue(text);
-          controller.close();
-        },
-      });
+      const textGen = createAsyncGenerator<string>();
+      textGen.push(text);
 
-      const reasoningStream = new ReadableStream<string>({
-        async start(controller) {
-          for (const part of reasoning) {
-            controller.enqueue(part.text);
-          }
-          controller.close();
-        },
-      });
+      const reasoningGen = createAsyncGenerator<string>();
 
-      const toolCallStream = new ReadableStream<ToolCall>({
-        async start(controller) {
-          // Extract tool calls from steps if any
-          if (steps) {
-            for (const step of steps) {
-              if (step.toolCalls) {
-                for (const toolCall of step.toolCalls) {
-                  controller.enqueue({
-                    toolName: toolCall.toolName,
-                    toolCallId: toolCall.toolCallId,
-                    args: toolCall.input,
-                    pending: false,
-                    toolId: toolCall.toolName,
-                    icon: getIcon(toolCall.toolName),
-                    status: getToolCallStatus(toolCall.toolName, toolCall.input, false),
-                  });
-                }
-              }
+      reasoning.forEach(part => reasoningGen.push(part.text));
+
+      const toolCallGen = createAsyncGenerator<ToolCall>();
+      if (steps) {
+        for (const step of steps) {
+          if (step.toolCalls) {
+            for (const toolCall of step.toolCalls) {
+              toolCallGen.push({
+                toolName: toolCall.toolName,
+                toolCallId: toolCall.toolCallId,
+                args: toolCall.input,
+                pending: false,
+                toolId: toolCall.toolName,
+                icon: getIcon(toolCall.toolName),
+                status: getToolCallStatus(toolCall.toolName, toolCall.input, false),
+              });
             }
           }
-          controller.close();
-        },
-      });
+        }
+      }
+
+      textGen.finish();
+      toolCallGen.finish();
+      reasoningGen.finish();
 
       return {
-        textStream,
-        toolCallStream,
-        reasoningStream,
+        textStream: textGen.asyncIterable,
+        toolCallStream: toolCallGen.asyncIterable,
+        reasoningStream: reasoningGen.asyncIterable,
       };
     } catch (error: any) {
       LogService.log(
