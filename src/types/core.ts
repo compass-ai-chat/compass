@@ -1,3 +1,4 @@
+import { ModelMessage } from "@ai-sdk/provider-utils";
 import { ToolCall } from "../services/chat/providers/VercelAIProvider";
 
 export interface ThreadMetadata {
@@ -16,11 +17,8 @@ export interface Thread {
   metadata?: ThreadMetadata;
 }
 
-export type MessageRole = "user" | "assistant" | "system";
-
-export interface ChatMessage {
-  content: string;
-  role: MessageRole;
+// Use ModelMessage as base type and add our custom fields
+export type ChatMessage = ModelMessage & {
   character?: Character;
   toolCalls?: ToolCall[];
   activeTools?: string[];
@@ -31,8 +29,8 @@ export interface ChatMessage {
   };
   reasoning?: string;
   documentIds?: string[];
-  images?: string[]; // Array of base64 encoded images
-}
+  images?: string[]; // Array of base64 encoded images - Note: this may overlap with ModelMessage content for images
+};
 
 export interface Model {
   id: string;

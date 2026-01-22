@@ -4,8 +4,9 @@ import { ChatMessage } from '@/src/types/core';
 import { Model } from '@/src/types/core';
 import LogService from '@/utils/LogService';
 import { toastService } from '@/src/services/toastService';
-import { CoreMessage, embedMany, generateText, streamText, tool } from 'ai';
+import { embedMany, generateText, streamText, tool } from 'ai';
 import { createOllama } from 'ollama-ai-provider-v2';
+import { convertMessagesToModelMessages } from '@/src/utils/messageConverter';
 import { fetch as expoFetch } from 'expo/fetch';
 import { z } from 'zod';
 import { getProxyUrl } from '@/src/utils/proxy';
@@ -23,17 +24,8 @@ export class OllamaProvider implements ChatProvider {
     this.provider = provider;
   }
   async sendMessage(messages: ChatMessage[], model: Model, character?: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
-    const newMessages = [
-      ...messages.map(message => ({ 
-        role: message.role, 
-        content: message.content 
-      }))
-    ];
-
-    // if latest message is empty
-    if(newMessages[newMessages.length-1].content.trim() === ''){
-      newMessages.pop();
-    }
+    // Use the shared utility to convert messages
+    const processedMessages = convertMessagesToModelMessages(messages);
 
     try{
       if(PlatformCust.isMobile){
@@ -41,7 +33,7 @@ export class OllamaProvider implements ChatProvider {
         if(PlatformCust.isTauri) url = await getProxyUrl(url);
         return streamOllamaResponse(url, {
           model: model.id,
-          messages: newMessages,
+          messages: processedMessages,
           stream: true
         });
       }
@@ -56,7 +48,7 @@ export class OllamaProvider implements ChatProvider {
 
         const { textStream, steps } = streamText({
           model: ollama(model.id),
-          messages: newMessages as CoreMessage[],
+          messages: processedMessages,
           onError: (error) => {
             throw error;
           },
@@ -103,7 +95,7 @@ export class OllamaProvider implements ChatProvider {
         });
   
         const result = await generateText({
-          model: ollama(model.id, {think:false}),
+          model: ollama(model.id),
           messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }]
         });
   

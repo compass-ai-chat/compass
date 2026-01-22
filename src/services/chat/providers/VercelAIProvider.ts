@@ -21,6 +21,7 @@ import { SimpleSchema, simpleSchemaToZod } from "@/src/utils/zodHelpers";
 import { hotToolsAtom, thinkingActiveAtom } from "@/src/hooks/atoms";
 import { useAtom } from "jotai";
 import { getMessageRole } from "@/src/utils/chatMessage";
+import { convertMessagesToModelMessages } from "@/src/utils/messageConverter";
 
 export interface ToolCall {
   toolName?: string;
@@ -162,47 +163,8 @@ export function useVercelAIProvider() {
     character?: Character,
     signal?: AbortSignal,
   ): Promise<StreamResponse> => {
-    const newMessages = [
-      ...messages.map((message) => {
-        const baseMessage = {
-          role: getMessageRole(message),
-          content: message.content,
-        };
-
-        // If message has images, format as multipart content
-        if (message.images && message.images.length > 0) {
-          const parts: any[] = [];
-          
-          // Add image parts
-          message.images.forEach(image => {
-            parts.push({
-              type: "image",
-              image: image
-            });
-          });
-
-          // Add text content if present
-          if (message.content.trim()) {
-            parts.push({ type: "text", text: message.content });
-          }
-
-          return {
-            role: getMessageRole(message),
-            content: parts
-          };
-        }
-
-        return baseMessage;
-      }),
-    ];
-
-    // if latest message is empty
-    const lastNewMessage = newMessages[newMessages.length - 1];
-    if (lastNewMessage && 
-        ((typeof lastNewMessage.content === 'string' && lastNewMessage.content.trim() === "") ||
-         (Array.isArray(lastNewMessage.content) && lastNewMessage.content.length === 0))) {
-      newMessages.pop();
-    }
+    // Use the shared utility to convert messages
+    const processedMessages = convertMessagesToModelMessages(messages);
 
     let toolSchemas: ToolSet | undefined;
 
@@ -252,7 +214,7 @@ export function useVercelAIProvider() {
         const result = streamText({
           model: provider,
           providerOptions: { ollama: {think: hotTools.includes("Thinking")}},
-          messages: newMessages as ModelMessage[],
+          messages: processedMessages,
           tools: toolSchemas,
           stopWhen: stepCountIs(3),
           toolChoice: "auto",
@@ -330,7 +292,7 @@ export function useVercelAIProvider() {
       // For mobile, we use generateText which doesn't stream
       const { text, steps, reasoning } = await generateText({
         model: provider,
-        messages: newMessages as ModelMessage[],
+        messages: processedMessages,
         tools: toolSchemas,
         stopWhen: stepCountIs(3),
         toolChoice: "auto",

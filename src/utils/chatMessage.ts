@@ -1,6 +1,6 @@
-import { ChatMessage, MessageRole } from "@/src/types/core";
+import { ChatMessage } from "@/src/types/core";
 
-export function getMessageRole(message: ChatMessage): MessageRole {
+export function getMessageRole(message: ChatMessage) {
   return message.role;
 }
 

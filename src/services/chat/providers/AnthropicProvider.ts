@@ -6,8 +6,9 @@ import LogService from '@/utils/LogService';
 import { Platform } from 'react-native';
 import { anthropic } from '@ai-sdk/anthropic';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { CoreMessage, embedMany, tool } from 'ai';
+import { embedMany, stepCountIs, tool } from 'ai';
 import { streamText } from 'ai';
+import { convertMessagesToModelMessages } from '@/src/utils/messageConverter';
 import { z } from 'zod';
 import { fetch as expoFetch } from 'expo/fetch';
 import { Platform as PlatformCust } from '@/src/utils/platform';
@@ -20,17 +21,8 @@ export class AnthropicProvider implements ChatProvider {
     this.provider = provider;
   }
   async sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
-    const newMessages = [
-      ...messages.map(message => ({
-        role: message.role,
-        content: message.content
-      }))
-    ];
-
-    // if latest message is empty
-    if(newMessages[newMessages.length-1].content.trim() === ''){
-      newMessages.pop();
-    }
+    // Use the shared utility to convert messages
+    const processedMessages = convertMessagesToModelMessages(messages);
 
     try {
       
@@ -42,11 +34,11 @@ export class AnthropicProvider implements ChatProvider {
 
       const {textStream, steps} = streamText({
         model: anthropic(model.id),
-        messages: newMessages as CoreMessage[],
+        messages: processedMessages,
         tools: {
           weather: tool({
             description: 'Get the weather in a location (celsius)',
-            parameters: z.object({
+            inputSchema: z.object({
               location: z.string().describe('The location to get the weather for'),
             }),
             execute: async ({ location }) => {
@@ -57,7 +49,7 @@ export class AnthropicProvider implements ChatProvider {
           }),
         },
         toolChoice: 'auto',
-        maxSteps: 5
+        stopWhen: stepCountIs(5)
       });
 
       return textStream;

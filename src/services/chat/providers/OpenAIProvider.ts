@@ -2,11 +2,12 @@ import { ChatProvider } from '@/src/types/chat';
 import { Character, Provider } from '@/src/types/core';
 import { ChatMessage, Model } from '@/src/types/core';
 import LogService from '@/utils/LogService';
-import { CoreMessage, CoreUserMessage, createDataStream, embedMany, StreamData, streamText, tool } from 'ai';
+import { embedMany, streamText, tool } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { fetch as expoFetch } from 'expo/fetch';
 import { Platform as PlatformCust } from '@/src/utils/platform';
 import { streamOpenAIResponse } from '@/src/services/chat/streamUtils';
+import { convertMessagesToModelMessages } from '@/src/utils/messageConverter';
 import { z } from 'zod';
 import { getProxyUrl } from '@/src/utils/proxy';
 import { Cache } from '@/src/utils/cache';
@@ -17,17 +18,8 @@ export class OpenAIProvider implements ChatProvider {
     this.provider = provider;
   }
   async sendMessage(messages: ChatMessage[], model: Model, character: Character, signal?: AbortSignal): Promise<AsyncIterable<string>> {
-    const newMessages = [
-      ...messages.map(message => ({
-        role: message.role,
-        content: message.content
-      }))
-    ];
-
-    // if latest message is empty
-    if(newMessages[newMessages.length-1].content.trim() === ''){
-      newMessages.pop();
-    }
+    // Use the shared utility to convert messages
+    const processedMessages = convertMessagesToModelMessages(messages);
 
     try {
       if (PlatformCust.isMobile) {
@@ -35,7 +27,7 @@ export class OpenAIProvider implements ChatProvider {
         if (PlatformCust.isTauri) url = await getProxyUrl(url);
         return streamOpenAIResponse(url, {
           model: model.id,
-          messages: newMessages,
+          messages: processedMessages,
           stream: true,
         }, {
           headers:{
@@ -51,7 +43,7 @@ export class OpenAIProvider implements ChatProvider {
 
         const {textStream, steps} = streamText({
           model: openai(model.id),
-          messages: newMessages as CoreUserMessage[]
+          messages: processedMessages
         });
 
         return textStream;
