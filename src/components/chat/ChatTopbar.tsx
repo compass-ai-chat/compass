@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Settings } from './Settings';
 import { VoiceSelector } from './VoiceSelector';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { currentThreadLoadableAtom, defaultThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom, downloadingModelsAtom, isDarkModeAtom } from '@/src/hooks/atoms';
+import { currentThreadAtom, defaultVoiceAtom, polarisUserAtom, threadActionsAtom, ttsEnabledAtom, downloadingModelsAtom, isDarkModeAtom } from '@/src/hooks/atoms';
 import { useCallback, useEffect, memo } from 'react';
 import { useColorScheme } from 'nativewind';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -17,11 +17,7 @@ interface ChatTopbarProps {
 }
 
 const ChatTopbarInner: React.FC<ChatTopbarProps> = ({ dropdownElements, selectedElement, onSelection }) => {
-    const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
-    const defaultThread = useAtomValue(defaultThreadAtom);
-    const currentThread = currentThreadLoadable.state === 'hasData' 
-      ? currentThreadLoadable.data 
-      : defaultThread;
+    const currentThread = useAtomValue(currentThreadAtom);
     const [polarisUser] = useAtom(polarisUserAtom);
     const [ttsEnabled, setTtsEnabled] = useAtom(ttsEnabledAtom);
     const dispatchThread = useSetAtom(threadActionsAtom);

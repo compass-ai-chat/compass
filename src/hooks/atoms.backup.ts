@@ -31,8 +31,8 @@ export const hasSeenOnboardingAtom = atomWithAsyncStorage<boolean>("hasSeenOnboa
 export const threadsAtom = atomWithAsyncStorage<Thread[]>("threads", []);
 export const activeThreadIdAtom = atomWithAsyncStorage<string>("activeThreadId", "");
 
-// Helper function for creating default threads
-export function createDefaultThread(name: string = "New thread"): Thread {
+// Helper function
+function createDefaultThread(name: string = "New thread"): Thread {
   return {
     id: Date.now().toString(),
     title: name,
@@ -42,49 +42,35 @@ export function createDefaultThread(name: string = "New thread"): Thread {
   };
 }
 
-const ensureThreadExistsAtom = atom(
-  null,
-  async (get, set) => {
-    
-    const threads = await get(threadsAtom);
-    const activeId = await get(activeThreadIdAtom);
-    
-    // Check if we have an active thread that exists
-    if (activeId && threads.find(t => t.id === activeId)) {
-      return; // Thread exists, nothing to do
-    }
-    
-    // Create and add new default thread
-    const newThread = createDefaultThread();
-    set(threadsAtom, [...threads, newThread]);
-    set(activeThreadIdAtom, newThread.id);
-  }
-);
-
 // Simplified current thread - derived from threads array
 export const currentThreadAtom = atom(
   async (get) => {
-
-    await get(ensureThreadExistsAtom);
-
     const threads = await get(threadsAtom);
     const activeId = await get(activeThreadIdAtom);
-    
     const found = threads.find((t: Thread) => t.id === activeId);
     
-    return found || createDefaultThread();
+    // If no thread found, return a default thread
+    if (!found) {
+      return createDefaultThread();
+    }
+    
+    return found;
   },
   async (get, set, newThread: Thread) => {
     const threads = await get(threadsAtom);
     const existingIndex = threads.findIndex((t: Thread) => t.id === newThread.id);
     
     if (existingIndex >= 0) {
+      // Update existing thread
       const updatedThreads = [...threads];
       updatedThreads[existingIndex] = newThread;
       set(threadsAtom, updatedThreads);
     } else {
+      // Add new thread
       set(threadsAtom, [...threads, newThread]);
     }
+    
+    // Set as active
     set(activeThreadIdAtom, newThread.id);
   }
 );
@@ -96,8 +82,9 @@ export type ThreadAction =
   | { type: "setCurrent"; payload: Thread }
   | { type: "clearAll" }
   | { type: "updateMessages"; payload: { threadId: string; messages: ChatMessage[] } }
-  | { type: "updateMessage"; payload: { threadId: string; message: ChatMessage; index: number } };
+  | { type: "updateMessage"; payload: { threadId: string; message: ChatMessage, index: number } };
 
+// Simplified thread actions
 export const threadActionsAtom = atom(
   null,
   async (get, set, action: ThreadAction) => {
@@ -114,14 +101,14 @@ export const threadActionsAtom = atom(
         const updatedThreads = threads.map((t: Thread) => 
           t.id === action.payload.id ? action.payload : t
         );
-        console.log("Updating thread:", action.payload);
-        console.log("Here are the threads", updatedThreads);
         set(threadsAtom, updatedThreads);
         break;
 
       case "delete":
         const filteredThreads = threads.filter((t: Thread) => t.id !== action.payload);
         set(threadsAtom, filteredThreads);
+        
+        // If we deleted the active thread, switch to another
         if (activeId === action.payload) {
           if (filteredThreads.length > 0) {
             set(activeThreadIdAtom, filteredThreads[filteredThreads.length - 1].id);
@@ -133,6 +120,7 @@ export const threadActionsAtom = atom(
 
       case "setCurrent":
         set(activeThreadIdAtom, action.payload.id);
+        // Ensure thread exists
         if (!threads.find((t: Thread) => t.id === action.payload.id)) {
           set(threadsAtom, [...threads, action.payload]);
         }
@@ -143,6 +131,20 @@ export const threadActionsAtom = atom(
         set(activeThreadIdAtom, "");
         break;
 
+      case "updateMessage":
+        const existingMessage = threads.find(t => t.id === action.payload.threadId)?.messages[action.payload.index];
+        const updatedMessage = {
+          ...existingMessage,
+          ...action.payload.message
+        }
+        const threadsWithUpdatedMessage = threads.map((t) =>
+          t.id === action.payload.threadId
+            ? { ...t, messages: [...t.messages.slice(0, action.payload.index), updatedMessage, ...t.messages.slice(action.payload.index + 1)] }
+            : t,
+        );
+        await set(threadsAtom, threadsWithUpdatedMessage);
+        break;
+
       case "updateMessages":
         const threadsWithUpdatedMessages = threads.map((t: Thread) =>
           t.id === action.payload.threadId
@@ -150,17 +152,6 @@ export const threadActionsAtom = atom(
             : t
         );
         set(threadsAtom, threadsWithUpdatedMessages);
-        break;
-
-      case "updateMessage":
-        const existingMessage = threads.find(t => t.id === action.payload.threadId)?.messages[action.payload.index];
-        const updatedMessage = { ...existingMessage, ...action.payload.message };
-        const threadsWithUpdatedMessage = threads.map((t) =>
-          t.id === action.payload.threadId
-            ? { ...t, messages: [...t.messages.slice(0, action.payload.index), updatedMessage, ...t.messages.slice(action.payload.index + 1)] }
-            : t,
-        );
-        set(threadsAtom, threadsWithUpdatedMessage);
         break;
     }
   }
@@ -170,7 +161,11 @@ export const threadActionsAtom = atom(
 // UNIFIED RESOURCE MANAGEMENT
 // ========================================
 
-function createResourceAtom<T extends { id: string }>(localKey: string, defaultValue: T[] = []) {
+// Generic resource atom creator - eliminates duplication
+function createResourceAtom<T extends { id: string }>(
+  localKey: string,
+  defaultValue: T[] = []
+) {
   const localAtom = atomWithAsyncStorage<T[]>(localKey, defaultValue);
   const serverAtom = atom<T[]>([]);
 
@@ -183,6 +178,7 @@ function createResourceAtom<T extends { id: string }>(localKey: string, defaultV
       const syncToPolaris = await get(syncToPolarisAtom);
       if (syncToPolaris) {
         set(serverAtom, newValue);
+        // TODO: Sync to server via service
       } else {
         set(localAtom, newValue);
       }
@@ -190,10 +186,14 @@ function createResourceAtom<T extends { id: string }>(localKey: string, defaultV
   );
 }
 
-export const charactersAtom = createResourceAtom<Character>("userCharacters");
+// Simplified resource atoms using the generic creator
 export const providersAtom = createResourceAtom<Provider>("userProviders");
+export const charactersAtom = createResourceAtom<Character>("userCharacters");
 export const documentsAtom = createResourceAtom<Document>("documents");
 export const toolsAtom = createResourceAtom<Tool>("userTools");
+
+// Models are slightly different - they come from providers
+export const modelsAtom = atom<Model[]>([]);
 
 // ========================================
 // CHAT STATE
@@ -201,6 +201,8 @@ export const toolsAtom = createResourceAtom<Tool>("userTools");
 
 export const isGeneratingAtom = atom<boolean>(false);
 export const editingMessageIndexAtom = atom<number>(-1);
+
+// Streaming state - not persisted
 export const streamingMessageAtom = atom<{
   threadId: string;
   index: number;
@@ -210,27 +212,10 @@ export const streamingMessageAtom = atom<{
 } | null>(null);
 
 // ========================================
-// OTHER ATOMS
+// UI STATE
 // ========================================
 
-export const availableModelsAtom = atom<Model[]>([]);
 export const sidebarVisibleAtom = atomWithAsyncStorage<boolean>("sidebarVisible", true);
-export const searchEnabledAtom = atomWithAsyncStorage<boolean>("searchEnabled", false);
-
-export const fontPreferencesAtom = atomWithAsyncStorage<{
-  fontFamily: string;
-  fontSize: number;
-  lineHeight: number;
-  letterSpacing: number;
-  messageGap: number;
-}>("fontPreferences", {
-  fontFamily: "System",
-  fontSize: 18,
-  lineHeight: 24,
-  letterSpacing: 0.8,
-  messageGap: 2,
-});
-
 export const previewCodeAtom = atom<{
   html?: string;
   css?: string;
@@ -250,9 +235,32 @@ export const modalStateAtom = atom<{
   message: "",
 });
 
+// ========================================
+// PREFERENCES
+// ========================================
+
+export const fontPreferencesAtom = atomWithAsyncStorage<{
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  letterSpacing: number;
+  messageGap: number;
+}>("fontPreferences", {
+  fontFamily: "System",
+  fontSize: 18,
+  lineHeight: 24,
+  letterSpacing: 0.8,
+  messageGap: 2,
+});
+
 export const defaultModelAtom = atomWithAsyncStorage<Model | undefined>("defaultModel", undefined);
 export const defaultVoiceAtom = atomWithAsyncStorage<Voice | null>("defaultVoice", null);
 export const ttsEnabledAtom = atomWithAsyncStorage<boolean>("ttsEnabled", false);
+export const searchEnabledAtom = atomWithAsyncStorage<boolean>("searchEnabled", false);
+
+// ========================================
+// DROPDOWN/SELECTION STATE
+// ========================================
 
 export const selectedChatDropdownOptionAtom = atomWithAsyncStorage<DropdownElement>(
   "selectedChatDropdownOption",
@@ -264,9 +272,17 @@ export const defaultChatDropdownOptionAtom = atomWithAsyncStorage<DropdownElemen
   { id: "", title: "", image: "", icon: undefined }
 );
 
+// ========================================
+// FEATURE FLAGS / TOOLS
+// ========================================
+
 export const hotToolsAtom = atomWithAsyncStorage<string[]>("hotTools", []);
 export const thinkingActiveAtom = atomWithAsyncStorage<boolean>("thinkingActive", false);
 export const toolBlueprintsAtom = atom<ToolBlueprint[]>([]);
+
+// ========================================
+// GENERATED CONTENT
+// ========================================
 
 export interface GeneratedImage {
   id: string;
@@ -277,6 +293,10 @@ export interface GeneratedImage {
 
 export const generatedImagesAtom = atomWithAsyncStorage<GeneratedImage[]>("generatedImages", []);
 export const selectedImageModelAtom = atomWithAsyncStorage<Model | undefined>("selectedImageModel", undefined);
+
+// ========================================
+// POLARIS/SERVER STATE  
+// ========================================
 
 export const polarisAuthTokenAtom = atom<string | undefined>(undefined);
 export const polarisUserAtom = atomWithAsyncStorage<{
@@ -294,6 +314,10 @@ export const serverConnectionAtom = atom<{
   userId: string;
 } | null>(null);
 
+// ========================================
+// TECHNICAL/DEBUGGING
+// ========================================
+
 export interface LogEntry {
   component: string;
   function: string;
@@ -308,6 +332,10 @@ export const downloadingModelsAtom = atomWithAsyncStorage<{
   startTime: number;
 }[]>("downloadingModels", []);
 
+// ========================================
+// NETWORK/PROXY
+// ========================================
+
 const getDefaultProxyUrl = () => {
   if (typeof window !== "undefined" && window?.location?.hostname === "nordwestt.com") {
     return "";
@@ -318,28 +346,32 @@ const getDefaultProxyUrl = () => {
 export const proxyUrlAtom = atomWithAsyncStorage<string>("proxyUrl", getDefaultProxyUrl());
 
 // ========================================
-// BACKWARD COMPATIBILITY EXPORTS
+// LEGACY COMPATIBILITY EXPORTS
 // ========================================
 
-// Thread management compatibility
-export const currentThreadLoadableAtom = currentThreadAtom;
-export const currentThreadIdAtom = activeThreadIdAtom;
-export const defaultThreadAtom = atom(() => createDefaultThread());
+// For smooth migration - these point to the new simplified versions
+export const currentThreadLoadableAtom = currentThreadAtom; // Remove loadable pattern
+export const currentThreadIdAtom = activeThreadIdAtom; // Rename for clarity
 
-// Resource compatibility
+// Legacy default thread atom
+export const defaultThreadAtom = atom(async () => createDefaultThread());
+
+// Resource atom aliases for backward compatibility
 export const userCharactersAtom = charactersAtom;
 export const userProvidersAtom = providersAtom;
 export const userDocumentsAtom = documentsAtom;
 export const userToolsAtom = toolsAtom;
+
+// Legacy compatibility
 export const availableProvidersAtom = providersAtom;
+export const availableModelsAtom = modelsAtom;
 export const availableVoicesAtom = atom<Voice[]>([]);
 
-// Derived atoms
 export const currentModelAtom = atom(async (get) => (await get(currentThreadAtom)).selectedModel);
 export const currentCharacterAtom = atom(async (get) => (await get(currentThreadAtom)).character);
 export const currentThreadMessagesAtom = atom(async (get) => (await get(currentThreadAtom)).messages);
 
-// Polaris compatibility atoms
+// Polaris atoms - now handled internally by the generic resource atoms
 export const polarisCharactersAtom = atom<Character[]>([]);
 export const polarisProvidersAtom = atom<Provider[]>([]);
 export const polarisDocumentsAtom = atom<Document[]>([]);
@@ -347,20 +379,121 @@ export const polarisToolsAtom = atom<Tool[]>([]);
 export const polarisModelsAtom = atom<Model[]>([]);
 export const polarisUsersAtom = atom<User[]>([]);
 
-// Legacy atoms
-export const currentIndexAtom = atom(0);
-export const isAdminModeAtom = atom<boolean>(false);
+// Legacy chat actions - simplified
+export const chatActionsAtom = atom(
+  null,
+  async (get, set, action: { type: "send" | "interrupt"; payload?: any }) => {
+    const currentThread = await get(currentThreadAtom);
 
-// Legacy save functionality
+    switch (action.type) {
+      case "send":
+        const newMessage = action.payload;
+        const updatedThread = {
+          ...currentThread,
+          messages: [...currentThread.messages, newMessage],
+        };
+        set(currentThreadAtom, updatedThread);
+        break;
+      case "interrupt":
+        // Handle interrupt logic
+        break;
+    }
+  }
+);
+
+// Legacy save prompts functionality
 export const saveCustomPrompts = atom(
   null,
   async (get, set, characters: Character[]) => {
     await set(charactersAtom, characters);
+    
+    // Update any threads that use these characters
     const threads = await get(threadsAtom);
     const updatedThreads = threads.map((thread) => {
       const updatedCharacter = characters.find((c) => c.id === thread.character?.id);
       return updatedCharacter ? { ...thread, character: updatedCharacter } : thread;
     });
+    
     set(threadsAtom, updatedThreads);
   }
 );
+
+// Legacy index atom
+export const currentIndexAtom = atom(0);
+
+// Legacy admin atoms
+export const isAdminModeAtom = atom<boolean>(false);
+
+// ========================================
+// LEGACY COMPATIBILITY EXPORTS
+// ========================================
+
+// For smooth migration - these point to the new simplified versions
+export const currentThreadLoadableAtom = currentThreadAtom; // Remove loadable pattern
+export const currentThreadIdAtom = activeThreadIdAtom; // Rename for clarity
+
+// Legacy default thread atom
+export const defaultThreadAtom = atom(async () => createDefaultThread());
+
+// Resource atom aliases for backward compatibility
+export const userCharactersAtom = charactersAtom;
+export const userProvidersAtom = providersAtom;
+export const userDocumentsAtom = documentsAtom;
+export const userToolsAtom = toolsAtom;
+
+// Polaris atoms - now handled internally by the generic resource atoms
+export const polarisCharactersAtom = atom<Character[]>([]);
+export const polarisProvidersAtom = atom<Provider[]>([]);
+export const polarisDocumentsAtom = atom<Document[]>([]);
+export const polarisToolsAtom = atom<Tool[]>([]);
+export const polarisModelsAtom = atom<Model[]>([]);
+export const polarisUsersAtom = atom<User[]>([]);
+export const polarisServerAtom = atom<{
+  endpoint: string;
+  apiKey: string;
+} | null>(null);
+
+// Legacy chat actions - simplified
+export const chatActionsAtom = atom(
+  null,
+  async (get, set, action: { type: "send" | "interrupt"; payload?: any }) => {
+    const currentThread = await get(currentThreadAtom);
+
+    switch (action.type) {
+      case "send":
+        const newMessage = action.payload;
+        const updatedThread = {
+          ...currentThread,
+          messages: [...currentThread.messages, newMessage],
+        };
+        set(currentThreadAtom, updatedThread);
+        break;
+      case "interrupt":
+        // Handle interrupt logic
+        break;
+    }
+  }
+);
+
+// Legacy save prompts functionality
+export const saveCustomPrompts = atom(
+  null,
+  async (get, set, characters: Character[]) => {
+    await set(charactersAtom, characters);
+    
+    // Update any threads that use these characters
+    const threads = await get(threadsAtom);
+    const updatedThreads = threads.map((thread) => {
+      const updatedCharacter = characters.find((c) => c.id === thread.character?.id);
+      return updatedCharacter ? { ...thread, character: updatedCharacter } : thread;
+    });
+    
+    set(threadsAtom, updatedThreads);
+  }
+);
+
+// Legacy index atom
+export const currentIndexAtom = atom(0);
+
+// Legacy admin atoms
+export const isAdminModeAtom = atom<boolean>(false);

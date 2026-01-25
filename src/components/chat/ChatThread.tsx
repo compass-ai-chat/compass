@@ -8,12 +8,11 @@ import { ChatLayout } from './ChatLayout';
 import { EmptyChatState } from './EmptyChatState';
 import { ChatContainer } from './ChatContainer';
 import { useModelDownloadStatus } from '@/src/hooks/useModelDownloadStatus';
-import { useAtomValue } from 'jotai';
-import { streamingMessageAtom } from '@/src/hooks/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { currentThreadAtom, streamingMessageAtom, threadsAtom } from '@/src/hooks/atoms';
 
 const ChatThreadInner: React.FC = () => {
   const {
-    currentThread,
     isGenerating,
     wrappedHandleSend,
     handleMessagePress,
@@ -22,6 +21,8 @@ const ChatThreadInner: React.FC = () => {
   } = useChat();
 
   const streamingMessage = useAtomValue(streamingMessageAtom);
+  const currentThread = useAtomValue(currentThreadAtom);
+  const [threads, setThreads] = useAtom(threadsAtom);
 
   const {
     selectedModel,
@@ -45,6 +46,11 @@ const ChatThreadInner: React.FC = () => {
       previousThreadId.current = currentThread.id;
       setIsGenerating(false);
     }
+    // console.log("Woaaa");
+    // if(!threads.find(t => t.id === currentThread.id)) {
+    //   // add current thread to threads
+    //   setThreads([...threads, currentThread]);
+    // }
   }, [currentThread.id]);
 
   const baseMessages = currentThread?.messages || [];

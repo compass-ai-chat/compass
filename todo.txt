@@ -1,0 +1,112 @@
+2. Consolidate Provider Architecture ⭐
+Current Problem: You have 8+ nearly identical providers with duplicated message conversion logic.
+
+Solution: Create a base provider class or shared utility.
+
+```
+// Create shared conversion utility
+export const convertToProviderMessages = (messages: AppMessage[]) => {
+  return messages.map(message => {
+    // Single source of truth for message conversion
+    // Handle images, content, etc. once
+  });
+};
+
+// Each provider becomes much simpler:
+class AnthropicProvider {
+  async sendMessage(messages: AppMessage[], model: Model) {
+    const providerMessages = convertToProviderMessages(messages);
+    return streamText({
+      model: this.createModel(model),
+      messages: providerMessages,
+      // ...
+    });
+  }
+}
+```
+
+3. Simplify State Management ⭐
+Current Issues:
+
+Too many atoms: threadsAtom, currentThreadIdAtom, currentThreadOldAtom, etc.
+Complex loadable patterns
+Circular dependencies in services
+Solution:
+
+```
+// Consolidate to fewer, clearer atoms
+export const threadsAtom = atomWithAsyncStorage<Thread[]>("threads", []);
+export const activeThreadIdAtom = atomWithAsyncStorage<string>("activeThreadId", "");
+
+// Derive current thread instead of storing separately
+export const currentThreadAtom = atom(
+  (get) => {
+    const threads = get(threadsAtom);
+    const activeId = get(activeThreadIdAtom);
+    return threads.find(t => t.id === activeId) || createDefaultThread();
+  }
+);
+```
+
+4. Remove Redundant Type Definitions
+Current Problem: Many interfaces extend others unnecessarily.
+
+```
+// Instead of complex inheritance:
+export interface Provider extends ResourceMetadata {
+  // existing Provider properties
+}
+export interface Character extends ResourceMetadata {
+  // existing Character properties
+}
+
+// Use composition:
+export interface Provider {
+  id: string;
+  name: string;
+  // core fields only
+}
+
+export interface PersistedProvider extends Provider {
+  metadata: ResourceMetadata;
+}
+```
+
+5. Simplify Service Layer ⭐
+Current Problem: Circular dependencies between services and atoms.
+
+Solution: Move service logic into hooks or utilities, remove service classes.
+```
+// Instead of CharacterService, ProviderService, etc.
+// Use simple functions:
+export const useCharacters = () => {
+  const [characters, setCharacters] = useAtom(charactersAtom);
+  
+  const addCharacter = useCallback((character: Character) => {
+    setCharacters(prev => [...prev, character]);
+  }, [setCharacters]);
+  
+  return { characters, addCharacter };
+};
+```
+
+6. Consolidate Component Props
+Current Problem: Deep prop drilling in chat components.
+
+```
+// Instead of passing many props through ChatThread -> ChatContainer -> MessageList -> Message
+// Use context or atoms directly in components that need them
+
+export const ChatContext = createContext<{
+  threadId: string;
+  isGenerating: boolean;
+  onSend: (message: string) => void;
+}>();
+```
+
+Priority Implementation Order
+Start with ModelMessage migration - Biggest impact, clearest benefit
+Consolidate provider conversion logic - Eliminates lots of duplication
+Simplify state atoms - Reduces complexity
+Clean up service layer - Removes circular dependencies
+Optimize component structure - Better performance and maintainability

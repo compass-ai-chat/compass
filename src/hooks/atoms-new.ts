@@ -42,36 +42,12 @@ export function createDefaultThread(name: string = "New thread"): Thread {
   };
 }
 
-const ensureThreadExistsAtom = atom(
-  null,
-  async (get, set) => {
-    
-    const threads = await get(threadsAtom);
-    const activeId = await get(activeThreadIdAtom);
-    
-    // Check if we have an active thread that exists
-    if (activeId && threads.find(t => t.id === activeId)) {
-      return; // Thread exists, nothing to do
-    }
-    
-    // Create and add new default thread
-    const newThread = createDefaultThread();
-    set(threadsAtom, [...threads, newThread]);
-    set(activeThreadIdAtom, newThread.id);
-  }
-);
-
 // Simplified current thread - derived from threads array
 export const currentThreadAtom = atom(
   async (get) => {
-
-    await get(ensureThreadExistsAtom);
-
     const threads = await get(threadsAtom);
     const activeId = await get(activeThreadIdAtom);
-    
     const found = threads.find((t: Thread) => t.id === activeId);
-    
     return found || createDefaultThread();
   },
   async (get, set, newThread: Thread) => {
@@ -95,8 +71,7 @@ export type ThreadAction =
   | { type: "delete"; payload: string }
   | { type: "setCurrent"; payload: Thread }
   | { type: "clearAll" }
-  | { type: "updateMessages"; payload: { threadId: string; messages: ChatMessage[] } }
-  | { type: "updateMessage"; payload: { threadId: string; message: ChatMessage; index: number } };
+  | { type: "updateMessages"; payload: { threadId: string; messages: ChatMessage[] } };
 
 export const threadActionsAtom = atom(
   null,
@@ -114,8 +89,6 @@ export const threadActionsAtom = atom(
         const updatedThreads = threads.map((t: Thread) => 
           t.id === action.payload.id ? action.payload : t
         );
-        console.log("Updating thread:", action.payload);
-        console.log("Here are the threads", updatedThreads);
         set(threadsAtom, updatedThreads);
         break;
 
@@ -150,17 +123,6 @@ export const threadActionsAtom = atom(
             : t
         );
         set(threadsAtom, threadsWithUpdatedMessages);
-        break;
-
-      case "updateMessage":
-        const existingMessage = threads.find(t => t.id === action.payload.threadId)?.messages[action.payload.index];
-        const updatedMessage = { ...existingMessage, ...action.payload.message };
-        const threadsWithUpdatedMessage = threads.map((t) =>
-          t.id === action.payload.threadId
-            ? { ...t, messages: [...t.messages.slice(0, action.payload.index), updatedMessage, ...t.messages.slice(action.payload.index + 1)] }
-            : t,
-        );
-        set(threadsAtom, threadsWithUpdatedMessage);
         break;
     }
   }

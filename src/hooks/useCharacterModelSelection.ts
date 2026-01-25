@@ -2,21 +2,16 @@ import { useState, useEffect } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Model, Character } from '@/src/types/core';
 import { 
-  currentThreadLoadableAtom,
-  defaultThreadAtom,
   threadActionsAtom,
   availableProvidersAtom,
   availableModelsAtom,
   charactersAtom,
+  currentThreadAtom,
 } from '@/src/hooks/atoms';
 import { fetchAvailableModelsV2 } from '@/src/hooks/useModels';
 
 export const useCharacterModelSelection = () => {
-  const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
-  const defaultThread = useAtomValue(defaultThreadAtom);
-  const currentThread = currentThreadLoadable.state === 'hasData' 
-    ? currentThreadLoadable.data 
-    : defaultThread;
+  const currentThread = useAtomValue(currentThreadAtom)
   const dispatchThread = useSetAtom(threadActionsAtom);
   const [providers] = useAtom(availableProvidersAtom);
   const [models, setModels] = useAtom(availableModelsAtom);

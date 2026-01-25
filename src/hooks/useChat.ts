@@ -16,18 +16,18 @@ import { MentionedCharacter } from "@/src/components/chat/ChatInput";
 
 // Atoms
 import {
-  currentThreadLoadableAtom,
+  currentThreadAtom,
   threadActionsAtom,
   searchEnabledAtom,
   documentsAtom,
   availableModelsAtom,
-  defaultThreadAtom,
   availableProvidersAtom,
   sidebarVisibleAtom,
   isGeneratingAtom,
   editingMessageIndexAtom,
   threadsAtom,
   streamingMessageAtom,
+  createDefaultThread,
 } from "./atoms";
 
 // Hooks
@@ -107,8 +107,8 @@ function selectModelBasedOnRouting(
 
 export function useChat() {
   // ========== State Management ==========
-  // Use loadable version to avoid Suspense triggers
-  const currentThreadLoadable = useAtomValue(currentThreadLoadableAtom);
+  // Use the simplified current thread atom (no longer needs loadable)
+  const currentThread = useAtomValue(currentThreadAtom);
   const dispatchThread = useSetAtom(threadActionsAtom);
   const documents = useAtomValue(documentsAtom);
   const [threads] = useAtom(threadsAtom);
@@ -122,12 +122,6 @@ export function useChat() {
   );
   // Use useSetAtom to avoid re-renders on streaming updates
   const setStreamingMessage = useSetAtom(streamingMessageAtom);
-  const defaultThread = useAtomValue(defaultThreadAtom);
-  
-  // Extract currentThread from loadable, with fallback to defaultThread
-  const currentThread = currentThreadLoadable.state === 'hasData' 
-    ? currentThreadLoadable.data 
-    : defaultThread;
 
   // ========== Refs and External Hooks ==========
   const abortController = useRef<AbortController | null>(null);
@@ -185,7 +179,6 @@ export function useChat() {
     .addTransform(webSearchTransform)
     .addTransform(threadUpdateTransform)
     //.addTransform(firstMessageTransform);
-    
 
   // ========== Stream Handling ==========
   const handleToolCalls = async (
@@ -403,7 +396,7 @@ export function useChat() {
     }
 
     const newThread = {
-      ...defaultThread,
+      ...createDefaultThread(),
       id: Date.now().toString(),
       character: selectedCharacter,
       selectedModel: selectedModel,
