@@ -112,10 +112,8 @@ export const threadActionsAtom = atom(
 
       case "update":
         const updatedThreads = threads.map((t: Thread) => 
-          t.id === action.payload.id ? action.payload : t
+          t.id === action.payload.id ? { ...t, ...action.payload } : t
         );
-        console.log("Updating thread:", action.payload);
-        console.log("Here are the threads", updatedThreads);
         set(threadsAtom, updatedThreads);
         break;
 
@@ -153,14 +151,15 @@ export const threadActionsAtom = atom(
         break;
 
       case "updateMessage":
-        const existingMessage = threads.find(t => t.id === action.payload.threadId)?.messages[action.payload.index];
+        const existinThread = threads.find(t => t.id === action.payload.threadId);
+        const existingMessage = existinThread?.messages[action.payload.index];
         const updatedMessage = { ...existingMessage, ...action.payload.message };
         const threadsWithUpdatedMessage = threads.map((t) =>
           t.id === action.payload.threadId
             ? { ...t, messages: [...t.messages.slice(0, action.payload.index), updatedMessage, ...t.messages.slice(action.payload.index + 1)] }
             : t,
         );
-        set(threadsAtom, threadsWithUpdatedMessage);
+        await set(threadsAtom, threadsWithUpdatedMessage);
         break;
     }
   }

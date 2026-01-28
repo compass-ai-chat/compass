@@ -329,7 +329,7 @@ export function useChat() {
       updateStreamingMessage(null);
       return;
     }
-    
+
     const lastMessage = thread.messages[messageIndex];
     if (!lastMessage) {
       updateStreamingMessage(null);
@@ -342,7 +342,7 @@ export function useChat() {
       reasoning: streaming.reasoning,
       toolCalls: streaming.toolCalls,
     } as ChatMessage;
-    
+
     // Wait for persistence to complete before clearing streaming state
     await dispatchThread({
       type: "updateMessage",
