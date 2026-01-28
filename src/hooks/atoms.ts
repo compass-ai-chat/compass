@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { unwrap } from "jotai/utils";
 import { atomWithAsyncStorage } from "./storage";
 import {
   Model,
@@ -28,8 +29,13 @@ export const hasSeenOnboardingAtom = atomWithAsyncStorage<boolean>("hasSeenOnboa
 // SIMPLIFIED THREAD MANAGEMENT
 // ========================================
 
-export const threadsAtom = atomWithAsyncStorage<Thread[]>("threads", []);
-export const activeThreadIdAtom = atomWithAsyncStorage<string>("activeThreadId", "");
+// Base async storage atoms
+const threadsStorageAtom = atomWithAsyncStorage<Thread[]>("threads", []);
+const activeThreadIdStorageAtom = atomWithAsyncStorage<string>("activeThreadId", "");
+
+// Unwrapped atoms - these return the value synchronously (with fallback during hydration)
+export const threadsAtom = unwrap(threadsStorageAtom, (prev) => prev ?? []);
+export const activeThreadIdAtom = unwrap(activeThreadIdStorageAtom, (prev) => prev ?? "");
 
 // Helper function for creating default threads
 export function createDefaultThread(name: string = "New thread"): Thread {
@@ -42,50 +48,55 @@ export function createDefaultThread(name: string = "New thread"): Thread {
   };
 }
 
-const ensureThreadExistsAtom = atom(
-  null,
-  async (get, set) => {
+// Cache for the default thread to prevent creating new objects on every read
+let cachedDefaultThread: Thread | null = null;
+function getOrCreateDefaultThread(): Thread {
+  if (!cachedDefaultThread) {
+    cachedDefaultThread = createDefaultThread();
+  }
+  return cachedDefaultThread;
+}
+
+// Reset the cached default thread (call when a real thread is created)
+export function resetCachedDefaultThread() {
+  cachedDefaultThread = null;
+}
+
+// Simplified current thread - derived synchronously from threads array
+// This avoids the async read that was triggering Suspense on every update
+export const currentThreadAtom = atom(
+  (get) => {
+    const threads = get(threadsAtom);
+    const activeId = get(activeThreadIdAtom);
     
-    const threads = await get(threadsAtom);
-    const activeId = await get(activeThreadIdAtom);
-    
-    // Check if we have an active thread that exists
-    if (activeId && threads.find(t => t.id === activeId)) {
-      return; // Thread exists, nothing to do
+    // Find the active thread
+    const found = threads.find((t: Thread) => t.id === activeId);
+    if (found) {
+      return found;
     }
     
-    // Create and add new default thread
-    const newThread = createDefaultThread();
-    set(threadsAtom, [...threads, newThread]);
-    set(activeThreadIdAtom, newThread.id);
-  }
-);
-
-// Simplified current thread - derived from threads array
-export const currentThreadAtom = atom(
-  async (get) => {
-
-    await get(ensureThreadExistsAtom);
-
-    const threads = await get(threadsAtom);
-    const activeId = await get(activeThreadIdAtom);
+    // If no active thread, return the last thread or a default
+    if (threads.length > 0) {
+      return threads[threads.length - 1];
+    }
     
-    const found = threads.find((t: Thread) => t.id === activeId);
-    
-    return found || createDefaultThread();
+    // Return a stable default thread (not persisted until user sends a message)
+    return getOrCreateDefaultThread();
   },
-  async (get, set, newThread: Thread) => {
-    const threads = await get(threadsAtom);
+  (get, set, newThread: Thread) => {
+    const threads = get(threadsAtom);
     const existingIndex = threads.findIndex((t: Thread) => t.id === newThread.id);
     
     if (existingIndex >= 0) {
       const updatedThreads = [...threads];
       updatedThreads[existingIndex] = newThread;
-      set(threadsAtom, updatedThreads);
+      set(threadsStorageAtom, updatedThreads);
     } else {
-      set(threadsAtom, [...threads, newThread]);
+      // Reset cached default since we're adding a real thread
+      resetCachedDefaultThread();
+      set(threadsStorageAtom, [...threads, newThread]);
     }
-    set(activeThreadIdAtom, newThread.id);
+    set(activeThreadIdStorageAtom, newThread.id);
   }
 );
 
@@ -100,45 +111,49 @@ export type ThreadAction =
 
 export const threadActionsAtom = atom(
   null,
-  async (get, set, action: ThreadAction) => {
-    const threads = await get(threadsAtom);
-    const activeId = await get(activeThreadIdAtom);
+  (get, set, action: ThreadAction) => {
+    const threads = get(threadsAtom);
+    const activeId = get(activeThreadIdAtom);
 
     switch (action.type) {
       case "add":
-        set(threadsAtom, [...threads, action.payload]);
-        set(activeThreadIdAtom, action.payload.id);
+        // Reset cached default since we're adding a real thread
+        resetCachedDefaultThread();
+        set(threadsStorageAtom, [...threads, action.payload]);
+        set(activeThreadIdStorageAtom, action.payload.id);
         break;
 
       case "update":
         const updatedThreads = threads.map((t: Thread) => 
           t.id === action.payload.id ? { ...t, ...action.payload } : t
         );
-        set(threadsAtom, updatedThreads);
+        set(threadsStorageAtom, updatedThreads);
         break;
 
       case "delete":
         const filteredThreads = threads.filter((t: Thread) => t.id !== action.payload);
-        set(threadsAtom, filteredThreads);
+        set(threadsStorageAtom, filteredThreads);
         if (activeId === action.payload) {
           if (filteredThreads.length > 0) {
-            set(activeThreadIdAtom, filteredThreads[filteredThreads.length - 1].id);
+            set(activeThreadIdStorageAtom, filteredThreads[filteredThreads.length - 1].id);
           } else {
-            set(activeThreadIdAtom, "");
+            set(activeThreadIdStorageAtom, "");
           }
         }
         break;
 
       case "setCurrent":
-        set(activeThreadIdAtom, action.payload.id);
+        set(activeThreadIdStorageAtom, action.payload.id);
         if (!threads.find((t: Thread) => t.id === action.payload.id)) {
-          set(threadsAtom, [...threads, action.payload]);
+          resetCachedDefaultThread();
+          set(threadsStorageAtom, [...threads, action.payload]);
         }
         break;
 
       case "clearAll":
-        set(threadsAtom, []);
-        set(activeThreadIdAtom, "");
+        resetCachedDefaultThread();
+        set(threadsStorageAtom, []);
+        set(activeThreadIdStorageAtom, "");
         break;
 
       case "updateMessages":
@@ -147,19 +162,19 @@ export const threadActionsAtom = atom(
             ? { ...t, messages: action.payload.messages }
             : t
         );
-        set(threadsAtom, threadsWithUpdatedMessages);
+        set(threadsStorageAtom, threadsWithUpdatedMessages);
         break;
 
       case "updateMessage":
-        const existinThread = threads.find(t => t.id === action.payload.threadId);
+        const existinThread = threads.find((t: Thread) => t.id === action.payload.threadId);
         const existingMessage = existinThread?.messages[action.payload.index];
         const updatedMessage = { ...existingMessage, ...action.payload.message };
-        const threadsWithUpdatedMessage = threads.map((t) =>
+        const threadsWithUpdatedMessage = threads.map((t: Thread) =>
           t.id === action.payload.threadId
             ? { ...t, messages: [...t.messages.slice(0, action.payload.index), updatedMessage, ...t.messages.slice(action.payload.index + 1)] }
             : t,
         );
-        await set(threadsAtom, threadsWithUpdatedMessage);
+        set(threadsStorageAtom, threadsWithUpdatedMessage);
         break;
     }
   }
@@ -333,10 +348,10 @@ export const userToolsAtom = toolsAtom;
 export const availableProvidersAtom = providersAtom;
 export const availableVoicesAtom = atom<Voice[]>([]);
 
-// Derived atoms
-export const currentModelAtom = atom(async (get) => (await get(currentThreadAtom)).selectedModel);
-export const currentCharacterAtom = atom(async (get) => (await get(currentThreadAtom)).character);
-export const currentThreadMessagesAtom = atom(async (get) => (await get(currentThreadAtom)).messages);
+// Derived atoms - now synchronous since currentThreadAtom is synchronous
+export const currentModelAtom = atom((get) => get(currentThreadAtom).selectedModel);
+export const currentCharacterAtom = atom((get) => get(currentThreadAtom).character);
+export const currentThreadMessagesAtom = atom((get) => get(currentThreadAtom).messages);
 
 // Polaris compatibility atoms
 export const polarisCharactersAtom = atom<Character[]>([]);
@@ -353,13 +368,13 @@ export const isAdminModeAtom = atom<boolean>(false);
 // Legacy save functionality
 export const saveCustomPrompts = atom(
   null,
-  async (get, set, characters: Character[]) => {
-    await set(charactersAtom, characters);
-    const threads = await get(threadsAtom);
-    const updatedThreads = threads.map((thread) => {
+  (get, set, characters: Character[]) => {
+    set(charactersAtom, characters);
+    const threads = get(threadsAtom);
+    const updatedThreads = threads.map((thread: Thread) => {
       const updatedCharacter = characters.find((c) => c.id === thread.character?.id);
       return updatedCharacter ? { ...thread, character: updatedCharacter } : thread;
     });
-    set(threadsAtom, updatedThreads);
+    set(threadsStorageAtom, updatedThreads);
   }
 );
