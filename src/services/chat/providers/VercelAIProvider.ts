@@ -249,7 +249,6 @@ export function useVercelAIProvider() {
         (async () => {
           try {
             for await (const content of result.textStream) {
-              console.log("Got text chunk:", content);  
               textGen.push(content);
             }
           } catch (error) {
