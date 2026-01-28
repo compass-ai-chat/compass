@@ -68,14 +68,13 @@ const createAsyncGenerator = <T>() => {
           if (queue.length > 0) {
             yield queue.shift()!;
           } else if (!finished) {
-            yield await new Promise<T>((resolve) => {
-              waiters.push((result) => {
-                if (result.done) {
-                  return;
-                }
-                resolve(result.value);
-              });
+            const result = await new Promise<IteratorResult<T>>((resolve) => {
+              waiters.push(resolve);
             });
+            if (result.done) {
+              return; // Properly exit the generator
+            }
+            yield result.value;
           }
         }
       }
@@ -185,31 +184,10 @@ export function useVercelAIProvider() {
 
       if (!Platform.isMobile) {
         // Create controllers for both streams
-        let textController!: ReadableStreamDefaultController<string>;
-        let toolCallController!: ReadableStreamDefaultController<ToolCall>;
-        let reasoningController!: ReadableStreamDefaultController<string>;
-
-        const textResponseStream = new ReadableStream<string>({
-          start(controller) {
-            textController = controller;
-          },
-        });
-
-        const toolCallStream = new ReadableStream<ToolCall>({
-          start(controller) {
-            toolCallController = controller;
-          },
-        });
 
         const toolCallGen = createAsyncGenerator<ToolCall>();
         const reasoningGen = createAsyncGenerator<string>();
-
-
-        const reasoningStream = new ReadableStream<string>({
-          start(controller) {
-            reasoningController = controller;
-          },
-        });
+        const textGen = createAsyncGenerator<string>();
 
         const result = streamText({
           model: provider,
@@ -256,15 +234,12 @@ export function useVercelAIProvider() {
             }
           },
           onFinish: () => {
+
             toolCallGen.finish();
             reasoningGen.finish();
-            // textController.close();
-            // toolCallController.close();
-            // reasoningController.close();
           },
           onError: (error) => {
             
-            // textController.error(error);
             toolCallGen.finish();
             reasoningGen.finish();
           },
@@ -275,15 +250,15 @@ export function useVercelAIProvider() {
           try {
             for await (const content of result.textStream) {
               console.log("Got text chunk:", content);  
-              textController.enqueue(content);
+              textGen.push(content);
             }
           } catch (error) {
-            textController.error(error);
           }
+          textGen.finish();
         })();
 
         return {
-          textStream: result.textStream,
+          textStream: textGen.asyncIterable,
           toolCallStream: toolCallGen.asyncIterable,
           reasoningStream: reasoningGen.asyncIterable,
         };
