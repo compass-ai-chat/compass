@@ -19,6 +19,24 @@ export const rawThemes = {
       border: '#374137',
     },
   },
+  imperial: {
+    light: {
+      primary: '#000000',
+      secondary: '#8B95A3',
+      background: '#efefef',
+      surface: '#f9fafb',
+      text: '#111827',
+      border: '#e5e7eb',
+    },
+    dark: {
+      primary: '#616161',
+      secondary: '#8B95A3',
+      background: '#232323',
+      surface: '#1f1f1f',
+      text: '#F3F4F6',
+      border: '#374137',
+    },
+  },
   mossy: {
     light: {
       primary: '#2d5a27',

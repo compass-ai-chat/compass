@@ -7,13 +7,14 @@ import {
   Text,
   Clipboard,
   Image,
-  Modal
+  Modal,
+  useColorScheme
 } from "react-native";
 import Markdown from "react-native-markdown-display";
-import { useColorScheme } from "nativewind";
 import { Character, ChatMessage } from "@/src/types/core";
 import {
   fontPreferencesAtom,
+  isDarkModeAtom,
 } from "@/src/hooks/atoms";
 import { useAtomValue } from "jotai";
 import { toastService } from "@/src/services/toastService";
@@ -191,10 +192,9 @@ const MessageComponent: React.FC<MessageProps> = ({
   hasPreviewableCode,
   modelUsed,
 }) => {
-  const { colorScheme } = useColorScheme();
+  const isDark = useAtomValue(isDarkModeAtom);
   const preferences = useAtomValue(fontPreferencesAtom);
 
-  const isDark = colorScheme === "dark";
   const isFromUser = message.role === "user";
   const showThinking = Boolean(message.reasoning) && message.content.length === 0;
 
@@ -329,7 +329,7 @@ const MessageComponent: React.FC<MessageProps> = ({
           {(message.content.length > 0 || showThinking || (message.images && message.images.length > 0)) && (
             <View
               className={`relative px-4 py-2 mb-4 rounded-2xl max-w-full ${
-                isFromUser ? "bg-primary rounded-tr-none" : "bg-secondary rounded-tl-none"
+                isFromUser ? "bg-primary rounded-tr-none" : "rounded-tl-none"
               } ${isEditing ? "bg-yellow-500" : ""}`}
               onPointerEnter={() => setIsHovered(true)}
               onPointerLeave={() => setIsHovered(false)}
