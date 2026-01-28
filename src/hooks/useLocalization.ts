@@ -23,9 +23,9 @@ export const useLocalization = () => {
     }
   };
 
-  const t = (key: string, options?: any) => {
+  const t = (key: string, options?: any): string => {
     try {
-      return reactI18nextT(key, options);
+      return reactI18nextT(key, options) as string;
     } catch (error) {
       console.warn(`Translation key not found: ${key}`);
       return key; // Return the key itself as fallback
