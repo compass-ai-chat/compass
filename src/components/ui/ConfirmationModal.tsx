@@ -42,10 +42,10 @@ export const ConfirmationModal = () => {
 
   const Content = () => (
     <View className="bg-background rounded-lg p-6 m-4 max-w-sm w-full">
-      <Text className="text-xl font-bold mb-2 text-black dark:text-white">
+      <Text className="text-xl font-bold mb-2 text-text">
         {modalState.title}
       </Text>
-      <Text className="text-gray-600 dark:text-gray-300 mb-4">
+      <Text className="text-text mb-4">
         {modalState.message}
       </Text>
 
@@ -67,7 +67,7 @@ export const ConfirmationModal = () => {
           onPress={() => modalService.handleResponse(null)}
           className="px-4 py-2 rounded-lg bg-surface text-text w-1/2 mr-2"
         >
-          <Text className="text-black dark:text-white text-center">{t('common.cancel')}</Text>
+          <Text className="text-text text-center">{t('common.cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           ref={confirmButtonRef}
