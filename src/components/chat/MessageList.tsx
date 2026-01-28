@@ -79,6 +79,7 @@ export const MessageListInner = forwardRef<MessageListRef, MessageListProps>(({
       onScroll={onScroll}
       onScrollBeginDrag={onScrollBeginDrag}
       removeClippedSubviews={true}
+      showsVerticalScrollIndicator={false}
       maxToRenderPerBatch={10}
       windowSize={10}
     />
