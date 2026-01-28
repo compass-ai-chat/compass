@@ -99,7 +99,7 @@ export const ConfirmationModal = () => {
       transparent={true}
       animationType="fade"
     >
-      <View className="flex-1 bg-black justify-center items-center">
+      <View className="flex-1 justify-center items-center">
         <Content />
       </View>
     </Modal>

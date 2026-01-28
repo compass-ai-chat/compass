@@ -52,7 +52,7 @@ const Tooltip: React.FC<TooltipProps> = ({
         <View 
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
-        className={`${getPositionStyles()} bg-surface dark:bg-gray-800 px-2 py-1 rounded shadow-md z-50 ${tooltipClassName}`}>
+        className={`${getPositionStyles()} bg-surface bg-background px-2 py-1 rounded shadow-md z-50 ${tooltipClassName}`}>
           <Text className="text-text text-xs text-center">{text}</Text>
         </View>
       )}

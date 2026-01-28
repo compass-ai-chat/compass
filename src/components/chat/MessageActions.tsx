@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
+import { useAtomValue } from 'jotai';
+import { isDarkModeAtom } from '@/src/hooks/atoms';
 
 interface MessageActionsProps {
   isUser: boolean;
@@ -18,9 +20,8 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   onPreviewCode,
   onEdit,
 }) => {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
+  const isDark = useAtomValue(isDarkModeAtom);
+  
   return (
     <View className="absolute -bottom-4 right-0 flex-row bg-surface border border-border rounded-lg shadow-lg overflow-hidden">
       <TouchableOpacity 
