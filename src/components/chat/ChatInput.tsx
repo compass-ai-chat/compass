@@ -272,14 +272,8 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           if (Platform.OS === "web") {
             inputRef.current?.focus();
 
-            // For web, we can try to directly manipulate the DOM element
-            // const inputElement = inputRef.current as any;
-            // if (inputElement._inputElement) {
-            //   inputElement._inputElement.selectionStart = 0;
-            //   inputElement._inputElement.selectionEnd = 0;
-            // }
           }
-        }, 50);
+        }, 100);
       }
     };
 
