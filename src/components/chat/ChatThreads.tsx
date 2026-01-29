@@ -12,6 +12,7 @@ import { useChat } from '@/src/hooks/useChat';
 import { SearchBar } from '../ui/SearchBar';
 import { SectionHeader } from '../ui/SectionHeader';
 import { Platform } from '@/src/utils/platform';
+import { useThemePreset } from '../ui/ThemeProvider';
 
 
 interface Section {
@@ -34,13 +35,14 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
   const { t } = useLocalization();
   const { addNewThread } = useChat();
   const [search, setSearch] = useState('');
+  const { theme } = useThemePreset();
   const NewChatButton = () => (
     <TouchableOpacity 
         onPress={addNewThread} 
         className="mb-2 p-4 rounded-full flex flex-row justify-center bg-surface hover:border-primary hover:border-2 items-center"
       >
         <Ionicons 
-          className="!text-primary" 
+          color={theme.primary}
           name="add" 
           size={24}
         />
@@ -53,7 +55,7 @@ const ChatThreads: React.FC<ChatThreadsProps> = ({ className, isSidebarVisible, 
       <Ionicons 
         name="chatbubbles-outline" 
         size={64} 
-        className="!text-primary"
+        color={theme.primary}
       />
       <Text className="text-text text-lg mb-2 text-center">{t('chats.no_threads')} </Text>
       <Text className="text-gray-500 text-sm mb-12 text-center px-4">

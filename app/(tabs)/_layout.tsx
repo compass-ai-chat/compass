@@ -17,15 +17,7 @@ export default function TabLayout() {
   const { t } = useTranslation();
   const isDesktop = Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth >= 768;
 
-  const { colorScheme } = useColorScheme();
-  const { themePreset } = useThemePreset();
-  let theme = {} as any;
-  if(!rawThemes[themePreset]){
-    theme = rawThemes['default'][colorScheme ?? 'light'];
-  }
-  else{
-    theme = rawThemes[themePreset][colorScheme ?? 'light'];
-  }
+  const { theme } = useThemePreset();
 
   if (isDesktop) {
     // Use Slot for proper routing on desktop
@@ -54,7 +46,7 @@ export default function TabLayout() {
         options={{
           title: t('chats.chats'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="chatbubble" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+            <TabBarIcon name="chatbubble" size={22} color={focused?theme.primary:theme.secondary} />
           ),
         }}
       />
@@ -63,7 +55,7 @@ export default function TabLayout() {
         options={{
           title: t('characters.characters'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="people" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+            <TabBarIcon name="people" size={22} color={focused?theme.primary:theme.secondary} />
           ),
         }}
       />
@@ -72,7 +64,7 @@ export default function TabLayout() {
         options={{
           title: t('images.images'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="image" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+            <TabBarIcon name="image" size={22} color={focused?theme.primary:theme.secondary} />
           ),
         }}
       />
@@ -81,7 +73,7 @@ export default function TabLayout() {
         options={{
           title: t('documents.documents'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="document-text" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+            <TabBarIcon name="document-text" size={22} color={focused?theme.primary:theme.secondary} />
           ),
         }}
       />
@@ -90,7 +82,7 @@ export default function TabLayout() {
         options={{
           title: t('settings.settings'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="cog" size={22} className={`${focused ? '!text-primary' : '!text-secondary'}`} />
+            <TabBarIcon name="cog" size={22} color={focused?theme.primary:theme.secondary} />
           ),
         }}
       />

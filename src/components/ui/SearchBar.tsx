@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useResponsiveStyles } from "@/src/hooks/useResponsiveStyles";
+import { useThemePreset } from './ThemeProvider';
 
 interface SearchBarProps {
   value: string;
@@ -17,13 +18,15 @@ export function SearchBar({
   className = "",
 }: SearchBarProps) {
   const { getResponsiveSize, getResponsiveClass } = useResponsiveStyles();
+  const { theme } = useThemePreset();
 
   return (
     <View className={`bg-surface rounded-lg flex-row items-center p-2 ${className}`}>
       <Ionicons
         name="search"
         size={getResponsiveSize(16, 20)}
-        className="!text-secondary mr-2"
+        color={theme.primary}
+        className="mr-2"
       />
       <TextInput
         className={`flex-1 text-text outline-none ${getResponsiveClass("text-sm", "")}`}
