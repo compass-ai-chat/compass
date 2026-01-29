@@ -12,28 +12,31 @@ const themePresetAtom = atomWithStorage<ThemePresetRaw>('theme-preset', 'default
 export function ThemeProvider({ children }: PropsWithChildren) {
   const [themePreset] = useAtom(themePresetAtom);
   const [isDarkMode] = useAtom(isDarkModeAtom);
-  const colorScheme = useColorScheme();
+  const systemColorScheme = useColorScheme();
   
   // Determine if we should use dark mode
-  const shouldUseDark = isDarkMode ?? (colorScheme === 'dark');
+  const shouldUseDark = isDarkMode ?? (systemColorScheme === 'dark');
   
-  // Get current theme colors
+  // Get current theme colors for web CSS variables
   const colors = React.useMemo(() => {
     const currentTheme = rawThemes[themePreset] || rawThemes.default;
     return currentTheme[shouldUseDark ? 'dark' : 'light'];
   }, [themePreset, shouldUseDark]);
   
-  // Apply theme for web via CSS variables
+  // Apply theme for web only - use CSS variables on web
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const root = document.documentElement;
       root.setAttribute('data-theme', themePreset);
+      
+      // Apply dark class
       if (shouldUseDark) {
         root.classList.add('dark');
       } else {
         root.classList.remove('dark');
       }
-      // Set CSS variables for web (they work there)
+      
+      // Set CSS variables for web (these allow dynamic theme switching on web)
       root.style.setProperty('--color-primary', colors.primary);
       root.style.setProperty('--color-secondary', colors.secondary);
       root.style.setProperty('--color-background', colors.background);
@@ -41,8 +44,10 @@ export function ThemeProvider({ children }: PropsWithChildren) {
       root.style.setProperty('--color-text', colors.text);
       root.style.setProperty('--color-border', colors.border);
     }
-  }, [themePreset, colors, shouldUseDark]);
+  }, [themePreset, shouldUseDark, colors]);
   
+  // On native, NativeWind uses the dark: variants from tailwind.config.js
+  // The dark className triggers those variants
   return (
     <View className={`flex-1 ${shouldUseDark ? 'dark' : ''}`}>
       {children}

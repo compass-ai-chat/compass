@@ -1,5 +1,14 @@
-import { useColorScheme, vars } from 'nativewind';
+import { vars } from 'nativewind';
 
+// Helper to convert hex to RGB values
+const hexToRgb = (hex: string): string => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}`
+    : '0 0 0';
+};
+
+// Define raw color values for each theme
 export const rawThemes = {
   default: {
     light: {
@@ -130,3 +139,23 @@ export const rawThemes = {
 } as const;
 
 export type ThemePresetRaw = keyof typeof rawThemes;
+export type ThemeColors = {
+  primary: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  text: string;
+  border: string;
+};
+
+// Create vars() objects for NativeWind from theme colors
+export const createThemeVars = (colors: ThemeColors) => {
+  return vars({
+    '--color-primary': hexToRgb(colors.primary),
+    '--color-secondary': hexToRgb(colors.secondary),
+    '--color-background': hexToRgb(colors.background),
+    '--color-surface': hexToRgb(colors.surface),
+    '--color-text': hexToRgb(colors.text),
+    '--color-border': hexToRgb(colors.border),
+  });
+};
