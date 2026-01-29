@@ -516,9 +516,9 @@ export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         ) : (
           <Pressable
             onPress={handleSend}
-            className="w-12 h-12 rounded-full bg-primary items-center justify-center hover:opacity-60"
+            className="w-12 h-12 rounded-full items-center justify-center hover:opacity-60"
           >
-            <Ionicons name="send" size={26} color="white" />
+            <Ionicons name="send" size={26} className="text-primary" />
           </Pressable>
         )}
         {isEditing && (
