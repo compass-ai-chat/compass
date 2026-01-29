@@ -4,14 +4,6 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      colors: {
-        primary: 'var(--color-primary)',
-        secondary: 'var(--color-secondary)',
-        background: 'var(--color-background)',
-        surface: 'var(--color-surface)',
-        text: 'var(--color-text)',
-        border: 'var(--color-border)',
-      },
       rotate: {
         '180': '180deg',
       },

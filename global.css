@@ -2,10 +2,8 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css";
 
-@import "nativewind/theme";
-
 @theme {
-  /* Default theme - light */
+  /* Define color tokens that work on native */
   --color-primary: #5eb58c;
   --color-secondary: #8B95A3;
   --color-background: #efefef;
@@ -14,19 +12,15 @@
   --color-border: #e5e7eb;
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-primary: #5eb58c;
-    --color-secondary: #8B95A3;
-    --color-background: #232323;
-    --color-surface: #303030;
-    --color-text: #F3F4F6;
-    --color-border: #374137;
-  }
+/* Dark mode overrides */
+@theme dark {
+  --color-primary: #5eb58c;
+  --color-secondary: #8B95A3;
+  --color-background: #232323;
+  --color-surface: #303030;
+  --color-text: #F3F4F6;
+  --color-border: #374137;
 }
-
-/* Theme data attributes for manual theme switching */
 [data-theme="default"] {
   --color-primary: #5eb58c;
   --color-secondary: #8B95A3;

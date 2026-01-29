@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react';
-import { View, useColorScheme } from 'react-native';
+import { View, useColorScheme, Platform } from 'react-native';
 import { rawThemes } from '@/constants/themes';
 import { useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
@@ -17,26 +17,35 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   // Determine if we should use dark mode
   const shouldUseDark = isDarkMode ?? (colorScheme === 'dark');
   
-  // Create style object with CSS variables for the current theme
-  const themeVars = React.useMemo(() => {
+  // Get current theme colors
+  const colors = React.useMemo(() => {
     const currentTheme = rawThemes[themePreset] || rawThemes.default;
-    const colors = currentTheme[shouldUseDark ? 'dark' : 'light'];
-    
-    return {
-      '--color-primary': colors.primary,
-      '--color-secondary': colors.secondary,
-      '--color-background': colors.background,
-      '--color-surface': colors.surface,
-      '--color-text': colors.text,
-      '--color-border': colors.border,
-    } as any; // TypeScript workaround for CSS custom properties
+    return currentTheme[shouldUseDark ? 'dark' : 'light'];
   }, [themePreset, shouldUseDark]);
   
+  // Apply theme for web via CSS variables
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', themePreset);
+      if (shouldUseDark) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      // Set CSS variables for web (they work there)
+      root.style.setProperty('--color-primary', colors.primary);
+      root.style.setProperty('--color-secondary', colors.secondary);
+      root.style.setProperty('--color-background', colors.background);
+      root.style.setProperty('--color-surface', colors.surface);
+      root.style.setProperty('--color-text', colors.text);
+      root.style.setProperty('--color-border', colors.border);
+    }
+  }, [themePreset, colors, shouldUseDark]);
+  
   return (
-    <View style={themeVars} className="flex-1">
-      <View className={`flex-1 ${shouldUseDark ? 'dark' : ''}`}>
-        {children}
-      </View>
+    <View className={`flex-1 ${shouldUseDark ? 'dark' : ''}`}>
+      {children}
     </View>
   );
 }
